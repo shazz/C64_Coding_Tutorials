@@ -1,11 +1,14 @@
-# Commodore 64 Programming on Windows
+# Commodore 64 Programming on Ubuntu
 TL;TR
 
-This repo contains the source from my Commodore 64 assembly programming tutorial for Windows.
+This repo is an **adaptation** for Ubuntu of Petri Wilhelmsens' Commodore 64 assembly programming tutorial for Windows.
+https://digitalerr0r.net/2011/03/19/commodore-64-programming-a-quick-start-guide-to-c-64-assembly-programming-on-windows/
+
+The content is mostly the same, only ported for Ubuntu!
 
 ![alt text][logo]
 ### Introduction
-Welcome to the Commodore 64 Programming on Windows tutorial! This tutorial will get you up and running with the tools needed to build C64 programs on windows, and teach you(tm) the basics of 6502 microprocessor programming using assembly. I will show you how to create graphics and how to render them on the screen, how to play music, and the many limitations and considerations needed to develop a proper C64 program. Remember, this is an old machine so you might have to think about things you normally didn't - if you are a graphics developer (DirectX, OpenGL, Unity, Unreal, ...), you might be able to learn why some things are they way they are.
+Welcome to the Commodore 64 Programming on Ubuntu tutorial! This tutorial will get you up and running with the tools needed to build C64 programs on Ubuntu, and teach you(tm) the basics of 6502 microprocessor programming using assembly. I will show you how to create graphics and how to render them on the screen, how to play music, and the many limitations and considerations needed to develop a proper C64 program. Remember, this is an old machine so you might have to think about things you normally didn't - if you are a graphics developer (DirectX, OpenGL, Unity, Unreal, ...), you might be able to learn why some things are they way they are.
 
 Disclaimer: I'm no expert, use the informations here as you like.
 
@@ -13,7 +16,7 @@ Language: Assembly
 
 Compiler: DASM
 
-OS: Windows (I have tried all this on Windows 10 and Windows. Also Mac OSX users can follow the material as well by downloading DASM via [homebrew](https://brew.sh) and running `brew install dasm`
+OS: Ubuntu
 
 [1 - Setup and your first program!][1]
 
@@ -34,6 +37,8 @@ OS: Windows (I have tried all this on Windows 10 and Windows. Also Mac OSX users
 [9 - Interrupts and Music][9]
 
 [10 - Multiple Interrupts][10]
+
+Original content:
 
 [logo]: https://raw.githubusercontent.com/petriw/Commodore64Programming/master/image_thumb.png "Logo Tutorial Series"
 [1]: https://digitalerr0r.wordpress.com/2011/03/19/commodore-64-programming-a-quick-start-guide-to-c-64-assembly-programming-on-windows/
