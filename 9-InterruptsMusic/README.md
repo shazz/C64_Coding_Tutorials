@@ -9,8 +9,9 @@ An interrupt might be a timer interrupt that happens when a given amount of cycl
 There are two types if interrupts. One is Interrupt Request (IRQ), the one we are going to program in this tutorial, and then another one named Non-Maskable Interrupt (NMI). The difference between these is only that you can turn off the IRQ’s, but not the NMI’s (unless you do a trick).
 
 We are also going to introduce two new instructions, `SEI` and `CLI`:
-– `SEI` (SEt I(nterrupt) flag) instruction does disable interrupts.
-– `CLI` (CLear I(nterrupt) flag) instruction does enable interrupts.
+
+ - `SEI` (SEt I(nterrupt) flag) instruction does disable interrupts.
+ - `CLI` (CLear I(nterrupt) flag) instruction does enable interrupts.
 
 There is an initialization process when creating interrupts. During this, it’s very important to disable interrupts just to make sure another interrupt won’t ruin the init process. Smilefjes (If not, your application MIGHT crash)
 
@@ -34,7 +35,7 @@ As usual, we start by telling the compiler what processor we are programming for
 org    $0810
 ````
 
-But wait, we are starting on `$0810` instead of `$1000`? Why is this? Well, our music file will be loaded into `$1000` (`Load range`), so we simply move the start address for our program to `$0810`. To run our program, start it in the emulator and write `SYS 2064` (decimal of 0810 hex)
+But wait, we are starting on `$0810` instead of `$1000`? Why is this? Well, our music file will be loaded into `$1000` (`Load range`), so we simply move the start address for our program to `$0810`. To run our program, start it in the emulator and write `SYS 2064` (decimal of `0810` hex)
 
 Next we initiate the music. This is done but putting the value 00 into the x- and y-registers, and call the subroutine that resets the SID-chip. The properties in the SID file stated that the init routine for the music is at `$1000`, so that’s what we want to do.
 
@@ -56,13 +57,13 @@ lda #$7f
 sta $dc0d
 sta $dd0d
 ````
-We also need to enable raster interrupts. We do this by inserting 01 into $d01a.
+We also need to enable raster interrupts. We do this by inserting `01` into `$d01a`.
 
 ````
 lda #$01
 sta $d01a
 ````
-Next we tell the VIC that we want to enter single-color text mode. Inserting `1b` into `$d011` means “Enter text-mode”, and inserting 08 into `$d016` means “Use single-color”. We also tell the VIC that our screen RAM is at `$0400` and that we want to use the default charset by inserting `14` into `$d018` (see earlier tutorials for more information about how this works).
+Next we tell the VIC that we want to enter single-color text mode. Inserting `1b` into `$d011` means “Enter text-mode”, and inserting `08` into `$d016` means “Use single-color”. We also tell the VIC that our screen RAM is at `$0400` and that we want to use the default charset by inserting `14` into `$d018` (see earlier tutorials for more information about how this works).
 ````            
 lda #$1b
 ldx #$08
@@ -81,7 +82,7 @@ sta $0314
 stx $0315
 ````
 
-Then we need to create the trigger for out interrupt at “irq”. We want a raster interrupt at any line (in this example $7e) to trigger the interrupt.
+Then we need to create the trigger for out interrupt at “irq”. We want a raster interrupt at any line (in this example `$7e`) to trigger the interrupt.
 
 ````
 ldy #$7e
@@ -100,7 +101,7 @@ cli
 loop:     jmp loop     ; infinite loop
 ````
 
-Next is the code for our interrupt. What this does is to first run a sub routine at $1006 (the play SID-file routine for music.sid (remember the properties of the sid file)):
+Next is the code for our interrupt. What this does is to first run a sub routine at `$1006` (the play SID-file routine for `music.sid` (remember the properties of the sid file)):
 ````
 irq:       jsr $1006
 ````
@@ -109,7 +110,7 @@ Then we ACK the interrupt with `asl $d019`. This is done because we don’t want
 ````
 asl $d019
 ````
-Then we jump to a subroutine that restores the stack and returns from the interrupt. If you want to save 3 cycles, you could write this manually, but for simplicity, we jump to $ea81 (see below for what you can replace this with if you want to write the code yourself):
+Then we jump to a subroutine that restores the stack and returns from the interrupt. If you want to save 3 cycles, you could write this manually, but for simplicity, we jump to `$ea81` (see below for what you can replace this with if you want to write the code yourself):
 
 ````
 jmp    $ea81
@@ -122,7 +123,7 @@ The last thing we do is loading the music into `$1000`. But a SID file got an of
 INCBIN “music.sid”
 ````
 
-That’s if for basic interrupt. We will be more advanced in a later tutorial as interrupts are really important when it comes to C-64 programming.
+That’s if for basic interrupt. We will be more advanced in a later tutorial as interrupts are really important when it comes to C64 programming.
 
 A complete listing of our example is in listing 9.1.
 
