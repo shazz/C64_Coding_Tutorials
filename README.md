@@ -18,6 +18,10 @@ Compiler: DASM
 
 OS: Ubuntu
 
+
+
+Original content:
+
 [1 - Setup and your first program!][1]
 
 [2 - 6502 Microprocessor Programming Basics][2]
@@ -37,8 +41,6 @@ OS: Ubuntu
 [9 - Interrupts and Music][9]
 
 [10 - Multiple Interrupts][10]
-
-Original content:
 
 [logo]: https://raw.githubusercontent.com/petriw/Commodore64Programming/master/image_thumb.png "Logo Tutorial Series"
 [1]: https://digitalerr0r.wordpress.com/2011/03/19/commodore-64-programming-a-quick-start-guide-to-c-64-assembly-programming-on-windows/
