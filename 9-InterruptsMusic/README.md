@@ -1,5 +1,7 @@
 ## 9 - Interrupts / Music
 
+### Interrupts
+
 In this tutorial we will take a look at one of the most important topic when it comes to C64 programming – Interrupts.
 
 Interrupts are used to pause whatever the machine is doing at a given condition, and do another task. When the interrupt is complete, your program will continue to run where it was interrupted.
@@ -13,7 +15,9 @@ We are also going to introduce two new instructions, `SEI` and `CLI`:
  - `SEI` (SEt I(nterrupt) flag) instruction does disable interrupts.
  - `CLI` (CLear I(nterrupt) flag) instruction does enable interrupts.
 
-There is an initialization process when creating interrupts. During this, it’s very important to disable interrupts just to make sure another interrupt won’t ruin the init process. Smilefjes (If not, your application MIGHT crash)
+There is an initialization process when creating interrupts. During this, it’s very important to disable interrupts just to make sure another interrupt won’t ruin the init process. (If not, your application MIGHT crash)
+
+### PSID files
 
 The example in this tutorial will use interrupts to play music. Playing music in a program is very simple. Only a music file (`.sid`) and 5 lines of code is required. You also need to find some numbers that will be used to locate, init and play the music using a SID-player tool.
 
@@ -25,6 +29,8 @@ The SID player I use is named `Sidplay2` for Linux and can be downloaded using `
 Now, download and start `sidplay2 -v music.sid` and the music will start playing. You'll also see a long list with information regarding the SID-file:
 
 What’s important to note is the `Load range`, `Init address` and `Play address`. These will be used when we init and play our song.
+
+### An easy one
 
 Let the programming begin!
 
@@ -125,46 +131,54 @@ INCBIN “music.sid”
 
 That’s if for basic interrupt. We will be more advanced in a later tutorial as interrupts are really important when it comes to C64 programming.
 
-A complete listing of our example is in listing 9.1.
+The complete listing of our example is there: https://github.com/shazz/C64_Coding_Tutorials/blob/master/9-InterruptsMusic/InterruptsMusic.asm
 
-Listing 9.1 – Interrupts and music
+### A little bit more complicated, Load range behind the BASIC ROM
+
+If like me you're a big fan of Rob and, especially, of his Cybernoid II tune, let's try to modify the first example. It should be easy isn't it ?
+First let's review the Cybernoid II PSDI file properties using sidplay2:
 
 ````
-processor    6502
-org    $0810
-
-             lda #$00
-tax
-tay
-jsr $1000
-sei
-lda #$7f
-sta $dc0d
-sta $dd0d
-lda #$01
-sta $d01a
-lda #$1b
-ldx #$08
-ldy #$14
-sta $d011
-stx $d016
-sty $d018
-lda #<irq
-ldx #>irq
-ldy #$7e
-sta $0314
-stx $0315
-sty $d012
-lda $dc0d
-lda $dd0d
-asl $d019
-cli
-loop:    jmp loop
-irq:      jsr $1006
-asl $d019
-jmp    $ea81
-
-    org $1000-$7e
-INCBIN “music.sid”
++------------------------------------------------------+
+|   SIDPLAY - Music Player and C64 SID Chip Emulator   |
+|          Sidplay V2.0.9, Libsidplay V2.1.1           |
++------------------------------------------------------+
+| Title        : Cybernoid II                          |
+| Author       : Jeroen Tel                            |
+| Released     : 1988 Hewson                           |
++------------------------------------------------------+
+| File format  : PlaySID one-file format (PSID)        |
+| Filename(s)  : Cybernoid_II.sid                      |
+| Condition    : No errors                             |
+| Playlist     : 1/2 (tune 1/2[1])                     |
+| Song Speed   : 50 Hz VBI (PAL)                       |
+| Song Length  : UNKNOWN                               |
++------------------------------------------------------+
+| Addresses    : DRIVER = $0400-$04FF, INIT = $A600    |
+|              : LOAD   = $A600-$B717, PLAY = $A603    |
+| SID Details  : Filter = Yes, Model = 6581            |
+| Environment  : Real C64                              |
++------------------------------------------------------+
 ````
+
+First you may just notice that init, load and play addresses are quite different, and this we can even relocate our program to `$1000` as usual. Looks good...
+But if you check a second time, and if you remember the C64 memory map (https://www.c64-wiki.com/images/5/51/Memory_Map.png), you may notice that the `LOAD` address in in the BASIC ROM range ! (`$A000`-`$BFFF`). So that's going to be a problem... 
+
+So how to handle this? Simply by disabling/enabling the BASIC ROM before and after any call to the PSID player and there is a way to do that using the zeropage `6510 CPU's on-chip port register` routine (https://www.c64-wiki.com/wiki/Zeropage):
+````
+; disable BASIC ROM
+lda #$36
+sta $01
+
+; set any routine parameters in A, X, Y
+; call to $A6xx routine
+
+; enable BASIC ROM
+lda #$37
+sta $01
+````
+
+As you can see, this routine can be used to modify the bankswitching and select if $A000-$BFFF, $E000-$FFFF and $D000-$DFFF ranges are mapped to the ROMs or to the RAM!
+
+Enjoy !
 
