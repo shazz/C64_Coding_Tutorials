@@ -12,8 +12,8 @@ There are two types if interrupts. One is Interrupt Request (IRQ), the one we ar
 
 We are also going to introduce two new instructions, `SEI` and `CLI`:
 
- - `SEI` (SEt I(nterrupt) flag) instruction does disable interrupts.
- - `CLI` (CLear I(nterrupt) flag) instruction does enable interrupts.
+ - `SEI` (`SE`t `I`(nterrupt) flag) instruction does disable interrupts.
+ - `CLI` (`CL`ear `I`(nterrupt) flag) instruction does enable interrupts.
 
 There is an initialization process when creating interrupts. During this, it’s very important to disable interrupts just to make sure another interrupt won’t ruin the init process. (If not, your application MIGHT crash)
 
@@ -43,7 +43,7 @@ org    $0810
 
 But wait, we are starting on `$0810` instead of `$1000`? Why is this? Well, our music file will be loaded into `$1000` (`Load range`), so we simply move the start address for our program to `$0810`. To run our program, start it in the emulator and write `SYS 2064` (decimal of `0810` hex)
 
-Next we initiate the music. This is done but putting the value 00 into the x- and y-registers, and call the subroutine that resets the SID-chip. The properties in the SID file stated that the init routine for the music is at `$1000`, so that’s what we want to do.
+Next we initiate the music. This is done but putting the value `00` into the x- and y-registers, and call the subroutine that resets the SID-chip. The properties in the SID file stated that the init routine for the music is at `$1000`, so that’s what we want to do.
 
 ````
 lda #$00
@@ -178,7 +178,7 @@ lda #$37
 sta $01
 ````
 
-As you can see, this routine can be used to modify the bankswitching and select if $A000-$BFFF, $E000-$FFFF and $D000-$DFFF ranges are mapped to the ROMs or to the RAM!
+As you can see, this routine can be used to modify the bankswitching and select if `$A000`-`$BFFF`, `$E000`-`$FFFF` and `$D000`-`$DFFF` ranges are mapped to the ROMs or to the RAM!
 
 Enjoy !
 
