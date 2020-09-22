@@ -57,7 +57,7 @@ Now we are going to initiate the interrupts. First we need to turn off the inter
 sei
 ````
 
-Then we put the value 7f into $dc0d and $dd0d to disable the CIA I, CIA II and VIC interrupts (timer, keyboard,…, interrupts)
+Then we put the value 7f into `$dc0d` and `$dd0d` to disable the CIA I, CIA II and VIC interrupts (timer, keyboard,…, interrupts)
 ````
 lda #$7f
 sta $dc0d
@@ -122,7 +122,7 @@ Then we jump to a subroutine that restores the stack and returns from the interr
 jmp    $ea81
 ````
 
-The last thing we do is loading the music into `$1000`. But a SID file got an offset of $7e so we need to subtract this from `$1000` so the file is correctly placed in memory.
+The last thing we do is loading the music into `$1000`. But a SID file got an offset of `$7e` so we need to subtract this from `$1000` so the file is correctly placed in memory.
 
 ````
     org $1000-$7e
