@@ -16,7 +16,7 @@ The cross assemblers that we will be using are named `dasm` and `cc65`, they be 
 sudo apt-get install -Y wget
 wget https://github.com/dasm-assembler/dasm/releases/download/2.20.14/dasm-2.20.14-linux-x64.tar.gz
 tar -xzf https://github.com/dasm-assembler/dasm/releases/download/2.20.14/dasm-2.20.14-linux-x64.tar.gz
-sudo cp dasm /usr/local/dasm
+sudo cp dasm /usr/local/
 ````
 
 #### cc65
