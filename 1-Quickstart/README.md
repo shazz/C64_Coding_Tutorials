@@ -170,11 +170,11 @@ LD65   = ld65
 
 BINDIR = bin
 
-DEMOS = $(BINDIR)/test.prg $(BINDIR)/border.prg
+DEMOS = $(BINDIR)/window.prg $(BINDIR)/border.prg
 
 all: $(DEMOS) $(EXAMPLES)
 
-$(BINDIR)/test.prg: test.s
+$(BINDIR)/window.prg: window.s
 	$(CL65) -t c64 -C c64-asm.cfg -u __EXEHDR__ $< -o $@
 
 $(BINDIR)/border.prg: border.s
@@ -195,7 +195,7 @@ So your 2 examples should look like:
 
 window.s
 ````
-; set window color
+; Set window color
 
 loop:
 	inc $d021
