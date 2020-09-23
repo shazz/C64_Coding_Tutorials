@@ -4,11 +4,11 @@ LD65   = ld65
 
 BINDIR = bin
 
-DEMOS = $(BINDIR)/test.prg $(BINDIR)/border.prg
+DEMOS = $(BINDIR)/window.prg $(BINDIR)/border.prg
 
 all: $(DEMOS) $(EXAMPLES)
 
-$(BINDIR)/test.prg: test.s
+$(BINDIR)/windo.prg: windo.s
 	$(CL65) -t c64 -C c64-asm.cfg -u __EXEHDR__ $< -o $@
 
 $(BINDIR)/border.prg: border.s
