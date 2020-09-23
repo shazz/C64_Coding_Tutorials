@@ -1,4 +1,4 @@
-## 1-Quickstart
+## 1 - Quickstart
 
 I noticed that a lot of people are creating graphical programs to the Commodore 64 again, so I decided to let you know of the tools I use, and how you can use them to create C-64 apps on Linux. I might write more articles on C64 programming if there’s an interest for it. If you want more, let me know by writing a comment to this article
 
@@ -102,16 +102,18 @@ jmp loop
 
 Now, all that is left is to build our program and run it on the emulator.
 Start a terminal sessions (or within Visual Code) and browse to the folder your code is located, to build our program, write the following command:
-`dasm test.asm –otest.prg`
+`dasm test.asm –otest.prg`.
 
-Please note the spacing before the first two lines (processor and org), `dasm` requires this to compile.
+Normally, `dasm` shoud only says something like `Complete. (0)` and a file `test.prg` should be created.
 
-Let’s run it in the emulator. Type the command x64 test.prg and hit [Enter]. Then you will see the emulator starting, and loading the program `TEST.PRG` into the memory.
+Please note the spacing before the first two lines (processor and org), `dasm` requires this to assemble the source code.
+
+Let’s run it in the emulator. Type the command x64 test.prg and hit [Enter]. Then you will see the emulator starting. Then go into the `File` menu and select `smart attach disk/tape ...` then select the program `test.prg` where it is located.
 
 ![C64 screen](https://github.com/shazz/C64_Coding_Tutorials/raw/master/1-Quickstart/docs/image10.png)
 
 All that is left is to run the application from the emulator. To do this, type the command `SYS 4096` in the emulator….
-….and hit ENTER.
+….and hit [ENTER].
 
 The application should now be running, giving you a result that looks something like this:
 
@@ -129,4 +131,84 @@ An exercise for you is to change the color of both the border and the main area,
 
 ![C64 screen](https://github.com/shazz/C64_Coding_Tutorials/raw/master/1-Quickstart/docs/image13.png)
 
+### Using makefiles and cc65
 
+When we will build more complicated programs, including multiple source files, binary data (tables, images, music...) we will quickly need a better way to assemble our programs and the good old `Makefile` will help. So letś define a template for our future programs using `cc65`, condifurations and `Makefile`.
+
+#### Create a default cc65 configuration
+
+Create a file named `c64-asm.cfg` and add:
+````
+FEATURES {
+    STARTADDRESS: default = $0801;
+}
+SYMBOLS {
+    __LOADADDR__: type = import;
+}
+MEMORY {
+    ZP:       file = "", start = $0002,  size = $00FE,      define = yes;
+    LOADADDR: file = %O, start = %S - 2, size = $0002;
+    MAIN:     file = %O, start = %S,     size = $A000 - %S;
+}
+SEGMENTS {
+    ZEROPAGE: load = ZP,       type = zp,  optional = yes;
+    LOADADDR: load = LOADADDR, type = ro;
+    EXEHDR:   load = MAIN,     type = ro,  optional = yes;
+    CODE:     load = MAIN,     type = rw;
+    RODATA:   load = MAIN,     type = ro,  optional = yes;
+    DATA:     load = MAIN,     type = rw,  optional = yes;
+    BSS:      load = MAIN,     type = bss, optional = yes, define = yes;
+}
+````
+
+#### Create the Makefile
+
+````
+CA65   = ca65
+CL65   = cl65
+LD65   = ld65
+
+BINDIR = bin
+
+DEMOS = $(BINDIR)/test.prg $(BINDIR)/border.prg
+
+all: $(DEMOS) $(EXAMPLES)
+
+$(BINDIR)/test.prg: test.s
+	$(CL65) -t c64 -C c64-asm.cfg -u __EXEHDR__ $< -o $@
+
+$(BINDIR)/border.prg: border.s
+	$(CL65) -t c64 -C c64-asm.cfg -u __EXEHDR__ $< -o $@
+
+clean:
+	rm -f *.o
+````
+
+#### Converting our source files to cc65
+
+`cc65` (or in fact its assembler `cl65`) uses a syntax which differs a little from `dasm` and have to use the `.s` extension.
+
+ 1. No need to define the processor and the origin, already set by the `c64-asm.cfg` config file and the Makefile options
+ 1. That's it!
+ 
+So your 2 examples should look like:
+
+window.s
+````
+; set window color
+
+loop:
+	inc $d021
+	jmp loop
+````
+
+border.s
+````
+; Set border color
+
+loop:
+	inc $d020
+	jmp loop
+````
+
+Now time to test it! Just type in a terminal `make`, now your `prg` should be in thr `bin` directory! Test them using `vice`.
