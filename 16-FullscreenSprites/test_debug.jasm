@@ -1,0 +1,30 @@
+0801: 0C 08 00 00 9E 32 30 36
+0809: 31 00 00 00
+080D: 78       entry                            SEI
+080E: A2 7F                                     LDX #$7F
+0810: 8E 0D DC                                  STX $DC0D
+0813: 8E 0D DD                                  STX $DD0D
+0816: A2 01                                     LDX #$01
+0818: 8E 1A D0                                  STX $D01A
+081B: A2 39                                     LDX #$39
+081D: 8E 14 03                                  STX $0314
+0820: A2 08                                     LDX #$08
+0822: 8E 15 03                                  STX $0315
+0825: A2 1B                                     LDX #$1B
+0827: 8E 11 D0                                  STX $D011
+082A: A2 F9                                     LDX #$F9
+082C: 8E 12 D0                                  STX $D012
+082F: A2 00                                     LDX #$00
+0831: 8E FF 3F                                  STX $3FFF
+0834: 58                                        CLI
+0835: 4C 35 08 loop                             JMP $0835
+0838: 60                                        RTS
+0839: A2 13    nearend                          LDX #$13
+083B: 8E 11 D0                                  STX $D011
+083E: E8       delay                            INX
+083F: D0 FD                                     BNE $083E
+0841: A2 1B                                     LDX #$1B
+0843: 8E 11 D0                                  STX $D011
+0846: A2 01                                     LDX #$01
+0848: 8E 19 D0                                  STX $D019
+084B: 4C 31 EA                                  JMP $EA31

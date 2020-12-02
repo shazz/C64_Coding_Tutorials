@@ -1,0 +1,1527 @@
+0801: 0C 08 00 00 9E 32 30 36
+0809: 31 00 00 00
+080D: A9 06    entry                            LDA #$06
+080F: 8D 20 D0                                  STA $D020
+0812: A9 06                                     LDA #$06
+0814: 8D 21 D0                                  STA $D021
+0817: A9 20                                     LDA #$20
+0819: A2 00                                     LDX #$00
+081B: 9D 00 04 entry::__anon_scope_5::loop      STA $0400,X
+081E: 9D 00 05                                  STA $0500,X
+0821: 9D 00 06                                  STA $0600,X
+0824: 9D 00 07                                  STA $0700,X
+0827: E8                                        INX
+0828: D0 F1                                     BNE $081B
+082A: 78                                        SEI
+082B: A9 35                                     LDA #$35
+082D: 85 01                                     STA $01
+082F: A9 00                                     LDA #$00
+0831: 8D 1D D0                                  STA $D01D
+0834: 8D 17 D0                                  STA $D017
+0837: 8D 1B D0                                  STA $D01B
+083A: 85 2C                                     STA $2C
+083C: A9 FF                                     LDA #$FF
+083E: 8D 1C D0                                  STA $D01C
+0841: A9 0E                                     LDA #$0E
+0843: 8D 25 D0                                  STA $D025
+0846: A9 03                                     LDA #$03
+0848: 8D 26 D0                                  STA $D026
+084B: A9 FF                                     LDA #$FF
+084D: 8D 15 D0                                  STA $D015
+0850: AD 00 11                                  LDA $1100
+0853: 85 23                                     STA $23
+0855: AD 01 11                                  LDA $1101
+0858: 85 24                                     STA $24
+085A: AD 02 11                                  LDA $1102
+085D: 85 25                                     STA $25
+085F: AD 03 11                                  LDA $1103
+0862: 85 26                                     STA $26
+0864: AD 04 11                                  LDA $1104
+0867: 85 27                                     STA $27
+0869: 20 19 10                                  JSR $1019
+086C: A9 00                                     LDA #$00
+086E: 85 02                                     STA $02
+0870: A9 18                                     LDA #$18
+0872: 85 0A                                     STA $0A
+0874: A9 00                                     LDA #$00
+0876: 85 0B                                     STA $0B
+0878: A9 07                                     LDA #$07
+087A: 8D 27 D0                                  STA $D027
+087D: A9 0A                                     LDA #$0A
+087F: 85 03                                     STA $03
+0881: A9 48                                     LDA #$48
+0883: 85 0C                                     STA $0C
+0885: A9 00                                     LDA #$00
+0887: 85 0D                                     STA $0D
+0889: A9 07                                     LDA #$07
+088B: 8D 28 D0                                  STA $D028
+088E: A9 14                                     LDA #$14
+0890: 85 04                                     STA $04
+0892: A9 78                                     LDA #$78
+0894: 85 0E                                     STA $0E
+0896: A9 00                                     LDA #$00
+0898: 85 0F                                     STA $0F
+089A: A9 07                                     LDA #$07
+089C: 8D 29 D0                                  STA $D029
+089F: A9 1E                                     LDA #$1E
+08A1: 85 05                                     STA $05
+08A3: A9 A8                                     LDA #$A8
+08A5: 85 10                                     STA $10
+08A7: A9 00                                     LDA #$00
+08A9: 85 11                                     STA $11
+08AB: A9 07                                     LDA #$07
+08AD: 8D 2A D0                                  STA $D02A
+08B0: A9 28                                     LDA #$28
+08B2: 85 06                                     STA $06
+08B4: A9 D8                                     LDA #$D8
+08B6: 85 12                                     STA $12
+08B8: A9 00                                     LDA #$00
+08BA: 85 13                                     STA $13
+08BC: A9 07                                     LDA #$07
+08BE: 8D 2B D0                                  STA $D02B
+08C1: A9 32                                     LDA #$32
+08C3: 85 07                                     STA $07
+08C5: A9 08                                     LDA #$08
+08C7: 85 14                                     STA $14
+08C9: A9 01                                     LDA #$01
+08CB: 85 15                                     STA $15
+08CD: A9 07                                     LDA #$07
+08CF: 8D 2C D0                                  STA $D02C
+08D2: A9 3C                                     LDA #$3C
+08D4: 85 08                                     STA $08
+08D6: A9 38                                     LDA #$38
+08D8: 85 16                                     STA $16
+08DA: A9 01                                     LDA #$01
+08DC: 85 17                                     STA $17
+08DE: A9 07                                     LDA #$07
+08E0: 8D 2D D0                                  STA $D02D
+08E3: A9 46                                     LDA #$46
+08E5: 85 09                                     STA $09
+08E7: A9 68                                     LDA #$68
+08E9: 85 18                                     STA $18
+08EB: A9 01                                     LDA #$01
+08ED: 85 19                                     STA $19
+08EF: A9 07                                     LDA #$07
+08F1: 8D 2E D0                                  STA $D02E
+08F4: A9 80                                     LDA #$80
+08F6: 8D F8 07                                  STA $07F8
+08F9: 8D F9 07                                  STA $07F9
+08FC: 8D FA 07                                  STA $07FA
+08FF: 8D FB 07                                  STA $07FB
+0902: 8D FC 07                                  STA $07FC
+0905: 8D FD 07                                  STA $07FD
+0908: 8D FE 07                                  STA $07FE
+090B: 8D FF 07                                  STA $07FF
+090E: A9 7F                                     LDA #$7F
+0910: 8D 0D DC                                  STA $DC0D
+0913: 8D 0D DD                                  STA $DD0D
+0916: A9 3F                                     LDA #$3F
+0918: A2 09                                     LDX #$09
+091A: 8D FE FF                                  STA $FFFE
+091D: 8E FF FF                                  STX $FFFF
+0920: A9 01                                     LDA #$01
+0922: 8D 1A D0                                  STA $D01A
+0925: A9 0A                                     LDA #$0A
+0927: 8D 12 D0                                  STA $D012
+092A: AD 11 D0                                  LDA $D011
+092D: 29 7F                                     AND #$7F
+092F: 8D 11 D0                                  STA $D011
+0932: 0E 19 D0                                  ASL $D019
+0935: 2C 0D DC                                  BIT $DC0D
+0938: 2C 0D DD                                  BIT $DD0D
+093B: 58                                        CLI
+093C: 4C 3C 09                                  JMP $093C
+093F: 8D 80 0B irq_top                          STA $0B80
+0942: 8E 82 0B                                  STX $0B82
+0945: 8C 84 0B                                  STY $0B84
+0948: 48                                        PHA
+0949: A9 01                                     LDA #$01
+094B: 8D 20 D0                                  STA $D020
+094E: 68                                        PLA
+094F: A9 18                                     LDA #$18
+0951: 8D 11 D0                                  STA $D011
+0954: A9 20                                     LDA #$20
+0956: 8D 01 D0                                  STA $D001
+0959: 8D 03 D0                                  STA $D003
+095C: 8D 05 D0                                  STA $D005
+095F: 8D 07 D0                                  STA $D007
+0962: 8D 09 D0                                  STA $D009
+0965: 8D 0B D0                                  STA $D00B
+0968: 8D 0D D0                                  STA $D00D
+096B: 8D 0F D0                                  STA $D00F
+096E: A9 05                                     LDA #$05
+0970: 85 22                                     STA $22
+0972: A6 2C                                     LDX $2C
+0974: BD EC 10                                  LDA $10EC,X
+0977: 8D F8 07                                  STA $07F8
+097A: 8D F9 07                                  STA $07F9
+097D: 8D FA 07                                  STA $07FA
+0980: 8D FB 07                                  STA $07FB
+0983: 8D FC 07                                  STA $07FC
+0986: 8D FD 07                                  STA $07FD
+0989: 8D FE 07                                  STA $07FE
+098C: 8D FF 07                                  STA $07FF
+098F: E8                                        INX
+0990: 8A                                        TXA
+0991: C9 14                                     CMP #$14
+0993: D0 02                                     BNE $0997
+0995: A9 00                                     LDA #$00
+0997: 85 2C    irq_top::cont                    STA $2C
+0999: 38                                        SEC
+099A: A5 0A                                     LDA $0A
+099C: E9 04                                     SBC #$04
+099E: 85 0A                                     STA $0A
+09A0: B0 02                                     BCS $09A4
+09A2: C6 0B                                     DEC $0B
+09A4: A5 0A    irq_top::__anon_scope_49::__anon_scope_50::ok LDA $0A
+09A6: C9 04                                     CMP #$04
+09A8: B0 0C                                     BCS $09B6
+09AA: A5 0B                                     LDA $0B
+09AC: D0 08                                     BNE $09B6
+09AE: A9 80                                     LDA #$80
+09B0: 85 0A                                     STA $0A
+09B2: A9 01                                     LDA #$01
+09B4: 85 0B                                     STA $0B
+09B6: A6 02    irq_top::__anon_scope_49::positive LDX $02
+09B8: BD 9C 10                                  LDA $109C,X
+09BB: 85 1A                                     STA $1A
+09BD: A5 0A                                     LDA $0A
+09BF: 8D 00 D0                                  STA $D000
+09C2: E6 02    irq_top::__anon_scope_49::check_y INC $02
+09C4: A9 50                                     LDA #$50
+09C6: C5 02                                     CMP $02
+09C8: D0 04                                     BNE $09CE
+09CA: A9 00                                     LDA #$00
+09CC: 85 02                                     STA $02
+09CE: 38       irq_top::__anon_scope_49::cont   SEC
+09CF: A5 0C                                     LDA $0C
+09D1: E9 04                                     SBC #$04
+09D3: 85 0C                                     STA $0C
+09D5: B0 02                                     BCS $09D9
+09D7: C6 0D                                     DEC $0D
+09D9: A5 0C    irq_top::__anon_scope_51::__anon_scope_52::ok LDA $0C
+09DB: C9 04                                     CMP #$04
+09DD: B0 0C                                     BCS $09EB
+09DF: A5 0D                                     LDA $0D
+09E1: D0 08                                     BNE $09EB
+09E3: A9 80                                     LDA #$80
+09E5: 85 0C                                     STA $0C
+09E7: A9 01                                     LDA #$01
+09E9: 85 0D                                     STA $0D
+09EB: A6 03    irq_top::__anon_scope_51::positive LDX $03
+09ED: BD 9C 10                                  LDA $109C,X
+09F0: 85 1B                                     STA $1B
+09F2: A5 0C                                     LDA $0C
+09F4: 8D 02 D0                                  STA $D002
+09F7: E6 03    irq_top::__anon_scope_51::check_y INC $03
+09F9: A9 50                                     LDA #$50
+09FB: C5 03                                     CMP $03
+09FD: D0 04                                     BNE $0A03
+09FF: A9 00                                     LDA #$00
+0A01: 85 03                                     STA $03
+0A03: 38       irq_top::__anon_scope_51::cont   SEC
+0A04: A5 0E                                     LDA $0E
+0A06: E9 04                                     SBC #$04
+0A08: 85 0E                                     STA $0E
+0A0A: B0 02                                     BCS $0A0E
+0A0C: C6 0F                                     DEC $0F
+0A0E: A5 0E    irq_top::__anon_scope_53::__anon_scope_54::ok LDA $0E
+0A10: C9 04                                     CMP #$04
+0A12: B0 0C                                     BCS $0A20
+0A14: A5 0F                                     LDA $0F
+0A16: D0 08                                     BNE $0A20
+0A18: A9 80                                     LDA #$80
+0A1A: 85 0E                                     STA $0E
+0A1C: A9 01                                     LDA #$01
+0A1E: 85 0F                                     STA $0F
+0A20: A6 04    irq_top::__anon_scope_53::positive LDX $04
+0A22: BD 9C 10                                  LDA $109C,X
+0A25: 85 1C                                     STA $1C
+0A27: A5 0E                                     LDA $0E
+0A29: 8D 04 D0                                  STA $D004
+0A2C: E6 04    irq_top::__anon_scope_53::check_y INC $04
+0A2E: A9 50                                     LDA #$50
+0A30: C5 04                                     CMP $04
+0A32: D0 04                                     BNE $0A38
+0A34: A9 00                                     LDA #$00
+0A36: 85 04                                     STA $04
+0A38: 38       irq_top::__anon_scope_53::cont   SEC
+0A39: A5 10                                     LDA $10
+0A3B: E9 04                                     SBC #$04
+0A3D: 85 10                                     STA $10
+0A3F: B0 02                                     BCS $0A43
+0A41: C6 11                                     DEC $11
+0A43: A5 10    irq_top::__anon_scope_55::__anon_scope_56::ok LDA $10
+0A45: C9 04                                     CMP #$04
+0A47: B0 0C                                     BCS $0A55
+0A49: A5 11                                     LDA $11
+0A4B: D0 08                                     BNE $0A55
+0A4D: A9 80                                     LDA #$80
+0A4F: 85 10                                     STA $10
+0A51: A9 01                                     LDA #$01
+0A53: 85 11                                     STA $11
+0A55: A6 05    irq_top::__anon_scope_55::positive LDX $05
+0A57: BD 9C 10                                  LDA $109C,X
+0A5A: 85 1D                                     STA $1D
+0A5C: A5 10                                     LDA $10
+0A5E: 8D 06 D0                                  STA $D006
+0A61: E6 05    irq_top::__anon_scope_55::check_y INC $05
+0A63: A9 50                                     LDA #$50
+0A65: C5 05                                     CMP $05
+0A67: D0 04                                     BNE $0A6D
+0A69: A9 00                                     LDA #$00
+0A6B: 85 05                                     STA $05
+0A6D: 38       irq_top::__anon_scope_55::cont   SEC
+0A6E: A5 12                                     LDA $12
+0A70: E9 04                                     SBC #$04
+0A72: 85 12                                     STA $12
+0A74: B0 02                                     BCS $0A78
+0A76: C6 13                                     DEC $13
+0A78: A5 12    irq_top::__anon_scope_57::__anon_scope_58::ok LDA $12
+0A7A: C9 04                                     CMP #$04
+0A7C: B0 0C                                     BCS $0A8A
+0A7E: A5 13                                     LDA $13
+0A80: D0 08                                     BNE $0A8A
+0A82: A9 80                                     LDA #$80
+0A84: 85 12                                     STA $12
+0A86: A9 01                                     LDA #$01
+0A88: 85 13                                     STA $13
+0A8A: A6 06    irq_top::__anon_scope_57::positive LDX $06
+0A8C: BD 9C 10                                  LDA $109C,X
+0A8F: 85 1E                                     STA $1E
+0A91: A5 12                                     LDA $12
+0A93: 8D 08 D0                                  STA $D008
+0A96: E6 06    irq_top::__anon_scope_57::check_y INC $06
+0A98: A9 50                                     LDA #$50
+0A9A: C5 06                                     CMP $06
+0A9C: D0 04                                     BNE $0AA2
+0A9E: A9 00                                     LDA #$00
+0AA0: 85 06                                     STA $06
+0AA2: 38       irq_top::__anon_scope_57::cont   SEC
+0AA3: A5 14                                     LDA $14
+0AA5: E9 04                                     SBC #$04
+0AA7: 85 14                                     STA $14
+0AA9: B0 02                                     BCS $0AAD
+0AAB: C6 15                                     DEC $15
+0AAD: A5 14    irq_top::__anon_scope_59::__anon_scope_60::ok LDA $14
+0AAF: C9 04                                     CMP #$04
+0AB1: B0 0C                                     BCS $0ABF
+0AB3: A5 15                                     LDA $15
+0AB5: D0 08                                     BNE $0ABF
+0AB7: A9 80                                     LDA #$80
+0AB9: 85 14                                     STA $14
+0ABB: A9 01                                     LDA #$01
+0ABD: 85 15                                     STA $15
+0ABF: A6 07    irq_top::__anon_scope_59::positive LDX $07
+0AC1: BD 9C 10                                  LDA $109C,X
+0AC4: 85 1F                                     STA $1F
+0AC6: A5 14                                     LDA $14
+0AC8: 8D 0A D0                                  STA $D00A
+0ACB: E6 07    irq_top::__anon_scope_59::check_y INC $07
+0ACD: A9 50                                     LDA #$50
+0ACF: C5 07                                     CMP $07
+0AD1: D0 04                                     BNE $0AD7
+0AD3: A9 00                                     LDA #$00
+0AD5: 85 07                                     STA $07
+0AD7: 38       irq_top::__anon_scope_59::cont   SEC
+0AD8: A5 16                                     LDA $16
+0ADA: E9 04                                     SBC #$04
+0ADC: 85 16                                     STA $16
+0ADE: B0 02                                     BCS $0AE2
+0AE0: C6 17                                     DEC $17
+0AE2: A5 16    irq_top::__anon_scope_61::__anon_scope_62::ok LDA $16
+0AE4: C9 04                                     CMP #$04
+0AE6: B0 0C                                     BCS $0AF4
+0AE8: A5 17                                     LDA $17
+0AEA: D0 08                                     BNE $0AF4
+0AEC: A9 80                                     LDA #$80
+0AEE: 85 16                                     STA $16
+0AF0: A9 01                                     LDA #$01
+0AF2: 85 17                                     STA $17
+0AF4: A6 08    irq_top::__anon_scope_61::positive LDX $08
+0AF6: BD 9C 10                                  LDA $109C,X
+0AF9: 85 20                                     STA $20
+0AFB: A5 16                                     LDA $16
+0AFD: 8D 0C D0                                  STA $D00C
+0B00: E6 08    irq_top::__anon_scope_61::check_y INC $08
+0B02: A9 50                                     LDA #$50
+0B04: C5 08                                     CMP $08
+0B06: D0 04                                     BNE $0B0C
+0B08: A9 00                                     LDA #$00
+0B0A: 85 08                                     STA $08
+0B0C: 38       irq_top::__anon_scope_61::cont   SEC
+0B0D: A5 18                                     LDA $18
+0B0F: E9 04                                     SBC #$04
+0B11: 85 18                                     STA $18
+0B13: B0 02                                     BCS $0B17
+0B15: C6 19                                     DEC $19
+0B17: A5 18    irq_top::__anon_scope_63::__anon_scope_64::ok LDA $18
+0B19: C9 04                                     CMP #$04
+0B1B: B0 0C                                     BCS $0B29
+0B1D: A5 19                                     LDA $19
+0B1F: D0 08                                     BNE $0B29
+0B21: A9 80                                     LDA #$80
+0B23: 85 18                                     STA $18
+0B25: A9 01                                     LDA #$01
+0B27: 85 19                                     STA $19
+0B29: A6 09    irq_top::__anon_scope_63::positive LDX $09
+0B2B: BD 9C 10                                  LDA $109C,X
+0B2E: 85 21                                     STA $21
+0B30: A5 18                                     LDA $18
+0B32: 8D 0E D0                                  STA $D00E
+0B35: E6 09    irq_top::__anon_scope_63::check_y INC $09
+0B37: A9 50                                     LDA #$50
+0B39: C5 09                                     CMP $09
+0B3B: D0 04                                     BNE $0B41
+0B3D: A9 00                                     LDA #$00
+0B3F: 85 09                                     STA $09
+0B41: A5 19    irq_top::__anon_scope_63::cont   LDA $19
+0B43: 0A                                        ASL
+0B44: 05 19                                     ORA $19
+0B46: 0A                                        ASL
+0B47: 05 17                                     ORA $17
+0B49: 0A                                        ASL
+0B4A: 05 15                                     ORA $15
+0B4C: 0A                                        ASL
+0B4D: 05 13                                     ORA $13
+0B4F: 0A                                        ASL
+0B50: 05 11                                     ORA $11
+0B52: 0A                                        ASL
+0B53: 05 0F                                     ORA $0F
+0B55: 0A                                        ASL
+0B56: 05 0D                                     ORA $0D
+0B58: 0A                                        ASL
+0B59: 05 0B                                     ORA $0B
+0B5B: 8D 10 D0                                  STA $D010
+0B5E: 48                                        PHA
+0B5F: A9 06                                     LDA #$06
+0B61: 8D 20 D0                                  STA $D020
+0B64: 68                                        PLA
+0B65: 0E 19 D0                                  ASL $D019
+0B68: A9 86                                     LDA #$86
+0B6A: 8D FE FF                                  STA $FFFE
+0B6D: A9 0B                                     LDA #$0B
+0B6F: 8D FF FF                                  STA $FFFF
+0B72: A9 1F                                     LDA #$1F
+0B74: 8D 12 D0                                  STA $D012
+0B77: AD 11 D0                                  LDA $D011
+0B7A: 29 7F                                     AND #$7F
+0B7C: 8D 11 D0                                  STA $D011
+0B7F: A9 00                                     LDA #$00
+0B81: A2 00                                     LDX #$00
+0B83: A0 00                                     LDY #$00
+0B85: 40                                        RTI
+0B86: 8D 40 0C irq_top::end                     STA $0C40
+0B89: 8E 42 0C                                  STX $0C42
+0B8C: 8C 44 0C                                  STY $0C44
+0B8F: A9 A8                                     LDA #$A8
+0B91: A2 0B                                     LDX #$0B
+0B93: 8D FE FF                                  STA $FFFE
+0B96: 8E FF FF                                  STX $FFFF
+0B99: EE 12 D0                                  INC $D012
+0B9C: 0E 19 D0                                  ASL $D019
+0B9F: BA                                        TSX
+0BA0: 58                                        CLI
+0BA1: EA                                        NOP
+0BA2: EA                                        NOP
+0BA3: EA                                        NOP
+0BA4: EA                                        NOP
+0BA5: EA                                        NOP
+0BA6: EA                                        NOP
+0BA7: EA                                        NOP
+0BA8: 9A       irq_strecher::irq                TXS
+0BA9: A9 FF                                     LDA #$FF
+0BAB: 8D 15 D0                                  STA $D015
+0BAE: A0 00                                     LDY #$00
+0BB0: A2 00                                     LDX #$00
+0BB2: 8C 17 D0 irq_strecher::raster             STY $D017
+0BB5: B5 2D                                     LDA $2D,X
+0BB7: 8D 17 D0                                  STA $D017
+0BBA: BD 76 10                                  LDA $1076,X
+0BBD: 24 EA                                     BIT $EA
+0BBF: EA                                        NOP
+0BC0: EA                                        NOP
+0BC1: CE 16 D0                                  DEC $D016
+0BC4: 8D 11 D0                                  STA $D011
+0BC7: EE 16 D0                                  INC $D016
+0BCA: E8                                        INX
+0BCB: E0 26                                     CPX #$26
+0BCD: D0 E3                                     BNE $0BB2
+0BCF: A9 1B                                     LDA #$1B
+0BD1: 8D 11 D0                                  STA $D011
+0BD4: A6 22                                     LDX $22
+0BD6: CA                                        DEX
+0BD7: D0 05                                     BNE $0BDE
+0BD9: 86 22                                     STX $22
+0BDB: 4C 1E 0C                                  JMP $0C1E
+0BDE: 86 22    irq_strecher::cont               STX $22
+0BE0: B4 23                                     LDY $23,X
+0BE2: 8C 01 D0                                  STY $D001
+0BE5: 8C 03 D0                                  STY $D003
+0BE8: 8C 05 D0                                  STY $D005
+0BEB: 8C 07 D0                                  STY $D007
+0BEE: 8C 09 D0                                  STY $D009
+0BF1: 8C 0B D0                                  STY $D00B
+0BF4: 8C 0D D0                                  STY $D00D
+0BF7: 8C 0F D0                                  STY $D00F
+0BFA: 88                                        DEY
+0BFB: 84 2B                                     STY $2B
+0BFD: 0E 19 D0                                  ASL $D019
+0C00: A9 86                                     LDA #$86
+0C02: 8D FE FF                                  STA $FFFE
+0C05: A9 0B                                     LDA #$0B
+0C07: 8D FF FF                                  STA $FFFF
+0C0A: A5 2B                                     LDA $2B
+0C0C: 8D 12 D0                                  STA $D012
+0C0F: AD 11 D0                                  LDA $D011
+0C12: 29 7F                                     AND #$7F
+0C14: 8D 11 D0                                  STA $D011
+0C17: A9 00                                     LDA #$00
+0C19: A2 00                                     LDX #$00
+0C1B: A0 00                                     LDY #$00
+0C1D: 40                                        RTI
+0C1E: 48       irq_strecher::finish_irq         PHA
+0C1F: A9 07                                     LDA #$07
+0C21: 8D 20 D0                                  STA $D020
+0C24: 68                                        PLA
+0C25: 0E 19 D0                                  ASL $D019
+0C28: A9 46                                     LDA #$46
+0C2A: 8D FE FF                                  STA $FFFE
+0C2D: A9 0C                                     LDA #$0C
+0C2F: 8D FF FF                                  STA $FFFF
+0C32: A9 F7                                     LDA #$F7
+0C34: 8D 12 D0                                  STA $D012
+0C37: AD 11 D0                                  LDA $D011
+0C3A: 29 7F                                     AND #$7F
+0C3C: 8D 11 D0                                  STA $D011
+0C3F: A9 00                                     LDA #$00
+0C41: A2 00                                     LDX #$00
+0C43: A0 00                                     LDY #$00
+0C45: 40                                        RTI
+0C46: 8D C4 0C irq_strecher::end                STA $0CC4
+0C49: 8E C6 0C                                  STX $0CC6
+0C4C: 8C C8 0C                                  STY $0CC8
+0C4F: 48                                        PHA
+0C50: A9 06                                     LDA #$06
+0C52: 8D 20 D0                                  STA $D020
+0C55: 68                                        PLA
+0C56: EA                                        NOP
+0C57: EA                                        NOP
+0C58: EA                                        NOP
+0C59: A9 00                                     LDA #$00
+0C5B: 8D 17 D0                                  STA $D017
+0C5E: A9 F8                                     LDA #$F8
+0C60: 8D 01 D0                                  STA $D001
+0C63: 8D 03 D0                                  STA $D003
+0C66: 8D 05 D0                                  STA $D005
+0C69: 8D 07 D0                                  STA $D007
+0C6C: 8D 09 D0                                  STA $D009
+0C6F: 8D 0B D0                                  STA $D00B
+0C72: 8D 0D D0                                  STA $D00D
+0C75: 8D 0F D0                                  STA $D00F
+0C78: A0 00                                     LDY #$00
+0C7A: A2 00                                     LDX #$00
+0C7C: 8C 17 D0 irq_noborder::raster             STY $D017
+0C7F: B5 2D                                     LDA $2D,X
+0C81: 8D 17 D0                                  STA $D017
+0C84: BD 76 10                                  LDA $1076,X
+0C87: 24 EA                                     BIT $EA
+0C89: EA                                        NOP
+0C8A: EA                                        NOP
+0C8B: CE 16 D0                                  DEC $D016
+0C8E: 8D 11 D0                                  STA $D011
+0C91: EE 16 D0                                  INC $D016
+0C94: E8                                        INX
+0C95: E0 26                                     CPX #$26
+0C97: D0 E3                                     BNE $0C7C
+0C99: A9 1B                                     LDA #$1B
+0C9B: 8D 11 D0                                  STA $D011
+0C9E: A9 00                                     LDA #$00
+0CA0: 8D 15 D0                                  STA $D015
+0CA3: 20 19 10                                  JSR $1019
+0CA6: 20 CA 0C                                  JSR $0CCA
+0CA9: 0E 19 D0                                  ASL $D019
+0CAC: A9 3F                                     LDA #$3F
+0CAE: 8D FE FF                                  STA $FFFE
+0CB1: A9 09                                     LDA #$09
+0CB3: 8D FF FF                                  STA $FFFF
+0CB6: A9 0A                                     LDA #$0A
+0CB8: 8D 12 D0                                  STA $D012
+0CBB: AD 11 D0                                  LDA $D011
+0CBE: 29 7F                                     AND #$7F
+0CC0: 8D 11 D0                                  STA $D011
+0CC3: A9 00                                     LDA #$00
+0CC5: A2 00                                     LDX #$00
+0CC7: A0 00                                     LDY #$00
+0CC9: 40                                        RTI
+0CCA: 48       irq_noborder::end_irq_noborder   PHA
+0CCB: A9 02                                     LDA #$02
+0CCD: 8D 20 D0                                  STA $D020
+0CD0: 68                                        PLA
+0CD1: A4 1A                                     LDY $1A
+0CD3: A2 FE                                     LDX #$FE
+0CD5: B9 2D 00                                  LDA $002D,Y
+0CD8: 97 2D                                     SAX $2D,Y
+0CDA: B9 2E 00                                  LDA $002E,Y
+0CDD: 97 2E                                     SAX $2E,Y
+0CDF: B9 2F 00                                  LDA $002F,Y
+0CE2: 97 2F                                     SAX $2F,Y
+0CE4: B9 30 00                                  LDA $0030,Y
+0CE7: 97 30                                     SAX $30,Y
+0CE9: B9 31 00                                  LDA $0031,Y
+0CEC: 97 31                                     SAX $31,Y
+0CEE: B9 32 00                                  LDA $0032,Y
+0CF1: 97 32                                     SAX $32,Y
+0CF3: B9 33 00                                  LDA $0033,Y
+0CF6: 97 33                                     SAX $33,Y
+0CF8: B9 34 00                                  LDA $0034,Y
+0CFB: 97 34                                     SAX $34,Y
+0CFD: B9 35 00                                  LDA $0035,Y
+0D00: 97 35                                     SAX $35,Y
+0D02: B9 36 00                                  LDA $0036,Y
+0D05: 97 36                                     SAX $36,Y
+0D07: B9 37 00                                  LDA $0037,Y
+0D0A: 97 37                                     SAX $37,Y
+0D0C: B9 38 00                                  LDA $0038,Y
+0D0F: 97 38                                     SAX $38,Y
+0D11: B9 39 00                                  LDA $0039,Y
+0D14: 97 39                                     SAX $39,Y
+0D16: B9 3A 00                                  LDA $003A,Y
+0D19: 97 3A                                     SAX $3A,Y
+0D1B: B9 3B 00                                  LDA $003B,Y
+0D1E: 97 3B                                     SAX $3B,Y
+0D20: B9 3C 00                                  LDA $003C,Y
+0D23: 97 3C                                     SAX $3C,Y
+0D25: B9 3D 00                                  LDA $003D,Y
+0D28: 97 3D                                     SAX $3D,Y
+0D2A: B9 3E 00                                  LDA $003E,Y
+0D2D: 97 3E                                     SAX $3E,Y
+0D2F: B9 3F 00                                  LDA $003F,Y
+0D32: 97 3F                                     SAX $3F,Y
+0D34: B9 40 00                                  LDA $0040,Y
+0D37: 97 40                                     SAX $40,Y
+0D39: A4 1B                                     LDY $1B
+0D3B: A2 FD                                     LDX #$FD
+0D3D: B9 2D 00                                  LDA $002D,Y
+0D40: 97 2D                                     SAX $2D,Y
+0D42: B9 2E 00                                  LDA $002E,Y
+0D45: 97 2E                                     SAX $2E,Y
+0D47: B9 2F 00                                  LDA $002F,Y
+0D4A: 97 2F                                     SAX $2F,Y
+0D4C: B9 30 00                                  LDA $0030,Y
+0D4F: 97 30                                     SAX $30,Y
+0D51: B9 31 00                                  LDA $0031,Y
+0D54: 97 31                                     SAX $31,Y
+0D56: B9 32 00                                  LDA $0032,Y
+0D59: 97 32                                     SAX $32,Y
+0D5B: B9 33 00                                  LDA $0033,Y
+0D5E: 97 33                                     SAX $33,Y
+0D60: B9 34 00                                  LDA $0034,Y
+0D63: 97 34                                     SAX $34,Y
+0D65: B9 35 00                                  LDA $0035,Y
+0D68: 97 35                                     SAX $35,Y
+0D6A: B9 36 00                                  LDA $0036,Y
+0D6D: 97 36                                     SAX $36,Y
+0D6F: B9 37 00                                  LDA $0037,Y
+0D72: 97 37                                     SAX $37,Y
+0D74: B9 38 00                                  LDA $0038,Y
+0D77: 97 38                                     SAX $38,Y
+0D79: B9 39 00                                  LDA $0039,Y
+0D7C: 97 39                                     SAX $39,Y
+0D7E: B9 3A 00                                  LDA $003A,Y
+0D81: 97 3A                                     SAX $3A,Y
+0D83: B9 3B 00                                  LDA $003B,Y
+0D86: 97 3B                                     SAX $3B,Y
+0D88: B9 3C 00                                  LDA $003C,Y
+0D8B: 97 3C                                     SAX $3C,Y
+0D8D: B9 3D 00                                  LDA $003D,Y
+0D90: 97 3D                                     SAX $3D,Y
+0D92: B9 3E 00                                  LDA $003E,Y
+0D95: 97 3E                                     SAX $3E,Y
+0D97: B9 3F 00                                  LDA $003F,Y
+0D9A: 97 3F                                     SAX $3F,Y
+0D9C: B9 40 00                                  LDA $0040,Y
+0D9F: 97 40                                     SAX $40,Y
+0DA1: A4 1C                                     LDY $1C
+0DA3: A2 FB                                     LDX #$FB
+0DA5: B9 2D 00                                  LDA $002D,Y
+0DA8: 97 2D                                     SAX $2D,Y
+0DAA: B9 2E 00                                  LDA $002E,Y
+0DAD: 97 2E                                     SAX $2E,Y
+0DAF: B9 2F 00                                  LDA $002F,Y
+0DB2: 97 2F                                     SAX $2F,Y
+0DB4: B9 30 00                                  LDA $0030,Y
+0DB7: 97 30                                     SAX $30,Y
+0DB9: B9 31 00                                  LDA $0031,Y
+0DBC: 97 31                                     SAX $31,Y
+0DBE: B9 32 00                                  LDA $0032,Y
+0DC1: 97 32                                     SAX $32,Y
+0DC3: B9 33 00                                  LDA $0033,Y
+0DC6: 97 33                                     SAX $33,Y
+0DC8: B9 34 00                                  LDA $0034,Y
+0DCB: 97 34                                     SAX $34,Y
+0DCD: B9 35 00                                  LDA $0035,Y
+0DD0: 97 35                                     SAX $35,Y
+0DD2: B9 36 00                                  LDA $0036,Y
+0DD5: 97 36                                     SAX $36,Y
+0DD7: B9 37 00                                  LDA $0037,Y
+0DDA: 97 37                                     SAX $37,Y
+0DDC: B9 38 00                                  LDA $0038,Y
+0DDF: 97 38                                     SAX $38,Y
+0DE1: B9 39 00                                  LDA $0039,Y
+0DE4: 97 39                                     SAX $39,Y
+0DE6: B9 3A 00                                  LDA $003A,Y
+0DE9: 97 3A                                     SAX $3A,Y
+0DEB: B9 3B 00                                  LDA $003B,Y
+0DEE: 97 3B                                     SAX $3B,Y
+0DF0: B9 3C 00                                  LDA $003C,Y
+0DF3: 97 3C                                     SAX $3C,Y
+0DF5: B9 3D 00                                  LDA $003D,Y
+0DF8: 97 3D                                     SAX $3D,Y
+0DFA: B9 3E 00                                  LDA $003E,Y
+0DFD: 97 3E                                     SAX $3E,Y
+0DFF: B9 3F 00                                  LDA $003F,Y
+0E02: 97 3F                                     SAX $3F,Y
+0E04: B9 40 00                                  LDA $0040,Y
+0E07: 97 40                                     SAX $40,Y
+0E09: A4 1D                                     LDY $1D
+0E0B: A2 F7                                     LDX #$F7
+0E0D: B9 2D 00                                  LDA $002D,Y
+0E10: 97 2D                                     SAX $2D,Y
+0E12: B9 2E 00                                  LDA $002E,Y
+0E15: 97 2E                                     SAX $2E,Y
+0E17: B9 2F 00                                  LDA $002F,Y
+0E1A: 97 2F                                     SAX $2F,Y
+0E1C: B9 30 00                                  LDA $0030,Y
+0E1F: 97 30                                     SAX $30,Y
+0E21: B9 31 00                                  LDA $0031,Y
+0E24: 97 31                                     SAX $31,Y
+0E26: B9 32 00                                  LDA $0032,Y
+0E29: 97 32                                     SAX $32,Y
+0E2B: B9 33 00                                  LDA $0033,Y
+0E2E: 97 33                                     SAX $33,Y
+0E30: B9 34 00                                  LDA $0034,Y
+0E33: 97 34                                     SAX $34,Y
+0E35: B9 35 00                                  LDA $0035,Y
+0E38: 97 35                                     SAX $35,Y
+0E3A: B9 36 00                                  LDA $0036,Y
+0E3D: 97 36                                     SAX $36,Y
+0E3F: B9 37 00                                  LDA $0037,Y
+0E42: 97 37                                     SAX $37,Y
+0E44: B9 38 00                                  LDA $0038,Y
+0E47: 97 38                                     SAX $38,Y
+0E49: B9 39 00                                  LDA $0039,Y
+0E4C: 97 39                                     SAX $39,Y
+0E4E: B9 3A 00                                  LDA $003A,Y
+0E51: 97 3A                                     SAX $3A,Y
+0E53: B9 3B 00                                  LDA $003B,Y
+0E56: 97 3B                                     SAX $3B,Y
+0E58: B9 3C 00                                  LDA $003C,Y
+0E5B: 97 3C                                     SAX $3C,Y
+0E5D: B9 3D 00                                  LDA $003D,Y
+0E60: 97 3D                                     SAX $3D,Y
+0E62: B9 3E 00                                  LDA $003E,Y
+0E65: 97 3E                                     SAX $3E,Y
+0E67: B9 3F 00                                  LDA $003F,Y
+0E6A: 97 3F                                     SAX $3F,Y
+0E6C: B9 40 00                                  LDA $0040,Y
+0E6F: 97 40                                     SAX $40,Y
+0E71: A4 1E                                     LDY $1E
+0E73: A2 EF                                     LDX #$EF
+0E75: B9 2D 00                                  LDA $002D,Y
+0E78: 97 2D                                     SAX $2D,Y
+0E7A: B9 2E 00                                  LDA $002E,Y
+0E7D: 97 2E                                     SAX $2E,Y
+0E7F: B9 2F 00                                  LDA $002F,Y
+0E82: 97 2F                                     SAX $2F,Y
+0E84: B9 30 00                                  LDA $0030,Y
+0E87: 97 30                                     SAX $30,Y
+0E89: B9 31 00                                  LDA $0031,Y
+0E8C: 97 31                                     SAX $31,Y
+0E8E: B9 32 00                                  LDA $0032,Y
+0E91: 97 32                                     SAX $32,Y
+0E93: B9 33 00                                  LDA $0033,Y
+0E96: 97 33                                     SAX $33,Y
+0E98: B9 34 00                                  LDA $0034,Y
+0E9B: 97 34                                     SAX $34,Y
+0E9D: B9 35 00                                  LDA $0035,Y
+0EA0: 97 35                                     SAX $35,Y
+0EA2: B9 36 00                                  LDA $0036,Y
+0EA5: 97 36                                     SAX $36,Y
+0EA7: B9 37 00                                  LDA $0037,Y
+0EAA: 97 37                                     SAX $37,Y
+0EAC: B9 38 00                                  LDA $0038,Y
+0EAF: 97 38                                     SAX $38,Y
+0EB1: B9 39 00                                  LDA $0039,Y
+0EB4: 97 39                                     SAX $39,Y
+0EB6: B9 3A 00                                  LDA $003A,Y
+0EB9: 97 3A                                     SAX $3A,Y
+0EBB: B9 3B 00                                  LDA $003B,Y
+0EBE: 97 3B                                     SAX $3B,Y
+0EC0: B9 3C 00                                  LDA $003C,Y
+0EC3: 97 3C                                     SAX $3C,Y
+0EC5: B9 3D 00                                  LDA $003D,Y
+0EC8: 97 3D                                     SAX $3D,Y
+0ECA: B9 3E 00                                  LDA $003E,Y
+0ECD: 97 3E                                     SAX $3E,Y
+0ECF: B9 3F 00                                  LDA $003F,Y
+0ED2: 97 3F                                     SAX $3F,Y
+0ED4: B9 40 00                                  LDA $0040,Y
+0ED7: 97 40                                     SAX $40,Y
+0ED9: A4 1F                                     LDY $1F
+0EDB: A2 DF                                     LDX #$DF
+0EDD: B9 2D 00                                  LDA $002D,Y
+0EE0: 97 2D                                     SAX $2D,Y
+0EE2: B9 2E 00                                  LDA $002E,Y
+0EE5: 97 2E                                     SAX $2E,Y
+0EE7: B9 2F 00                                  LDA $002F,Y
+0EEA: 97 2F                                     SAX $2F,Y
+0EEC: B9 30 00                                  LDA $0030,Y
+0EEF: 97 30                                     SAX $30,Y
+0EF1: B9 31 00                                  LDA $0031,Y
+0EF4: 97 31                                     SAX $31,Y
+0EF6: B9 32 00                                  LDA $0032,Y
+0EF9: 97 32                                     SAX $32,Y
+0EFB: B9 33 00                                  LDA $0033,Y
+0EFE: 97 33                                     SAX $33,Y
+0F00: B9 34 00                                  LDA $0034,Y
+0F03: 97 34                                     SAX $34,Y
+0F05: B9 35 00                                  LDA $0035,Y
+0F08: 97 35                                     SAX $35,Y
+0F0A: B9 36 00                                  LDA $0036,Y
+0F0D: 97 36                                     SAX $36,Y
+0F0F: B9 37 00                                  LDA $0037,Y
+0F12: 97 37                                     SAX $37,Y
+0F14: B9 38 00                                  LDA $0038,Y
+0F17: 97 38                                     SAX $38,Y
+0F19: B9 39 00                                  LDA $0039,Y
+0F1C: 97 39                                     SAX $39,Y
+0F1E: B9 3A 00                                  LDA $003A,Y
+0F21: 97 3A                                     SAX $3A,Y
+0F23: B9 3B 00                                  LDA $003B,Y
+0F26: 97 3B                                     SAX $3B,Y
+0F28: B9 3C 00                                  LDA $003C,Y
+0F2B: 97 3C                                     SAX $3C,Y
+0F2D: B9 3D 00                                  LDA $003D,Y
+0F30: 97 3D                                     SAX $3D,Y
+0F32: B9 3E 00                                  LDA $003E,Y
+0F35: 97 3E                                     SAX $3E,Y
+0F37: B9 3F 00                                  LDA $003F,Y
+0F3A: 97 3F                                     SAX $3F,Y
+0F3C: B9 40 00                                  LDA $0040,Y
+0F3F: 97 40                                     SAX $40,Y
+0F41: A4 20                                     LDY $20
+0F43: A2 BF                                     LDX #$BF
+0F45: B9 2D 00                                  LDA $002D,Y
+0F48: 97 2D                                     SAX $2D,Y
+0F4A: B9 2E 00                                  LDA $002E,Y
+0F4D: 97 2E                                     SAX $2E,Y
+0F4F: B9 2F 00                                  LDA $002F,Y
+0F52: 97 2F                                     SAX $2F,Y
+0F54: B9 30 00                                  LDA $0030,Y
+0F57: 97 30                                     SAX $30,Y
+0F59: B9 31 00                                  LDA $0031,Y
+0F5C: 97 31                                     SAX $31,Y
+0F5E: B9 32 00                                  LDA $0032,Y
+0F61: 97 32                                     SAX $32,Y
+0F63: B9 33 00                                  LDA $0033,Y
+0F66: 97 33                                     SAX $33,Y
+0F68: B9 34 00                                  LDA $0034,Y
+0F6B: 97 34                                     SAX $34,Y
+0F6D: B9 35 00                                  LDA $0035,Y
+0F70: 97 35                                     SAX $35,Y
+0F72: B9 36 00                                  LDA $0036,Y
+0F75: 97 36                                     SAX $36,Y
+0F77: B9 37 00                                  LDA $0037,Y
+0F7A: 97 37                                     SAX $37,Y
+0F7C: B9 38 00                                  LDA $0038,Y
+0F7F: 97 38                                     SAX $38,Y
+0F81: B9 39 00                                  LDA $0039,Y
+0F84: 97 39                                     SAX $39,Y
+0F86: B9 3A 00                                  LDA $003A,Y
+0F89: 97 3A                                     SAX $3A,Y
+0F8B: B9 3B 00                                  LDA $003B,Y
+0F8E: 97 3B                                     SAX $3B,Y
+0F90: B9 3C 00                                  LDA $003C,Y
+0F93: 97 3C                                     SAX $3C,Y
+0F95: B9 3D 00                                  LDA $003D,Y
+0F98: 97 3D                                     SAX $3D,Y
+0F9A: B9 3E 00                                  LDA $003E,Y
+0F9D: 97 3E                                     SAX $3E,Y
+0F9F: B9 3F 00                                  LDA $003F,Y
+0FA2: 97 3F                                     SAX $3F,Y
+0FA4: B9 40 00                                  LDA $0040,Y
+0FA7: 97 40                                     SAX $40,Y
+0FA9: A4 21                                     LDY $21
+0FAB: A2 7F                                     LDX #$7F
+0FAD: B9 2D 00                                  LDA $002D,Y
+0FB0: 97 2D                                     SAX $2D,Y
+0FB2: B9 2E 00                                  LDA $002E,Y
+0FB5: 97 2E                                     SAX $2E,Y
+0FB7: B9 2F 00                                  LDA $002F,Y
+0FBA: 97 2F                                     SAX $2F,Y
+0FBC: B9 30 00                                  LDA $0030,Y
+0FBF: 97 30                                     SAX $30,Y
+0FC1: B9 31 00                                  LDA $0031,Y
+0FC4: 97 31                                     SAX $31,Y
+0FC6: B9 32 00                                  LDA $0032,Y
+0FC9: 97 32                                     SAX $32,Y
+0FCB: B9 33 00                                  LDA $0033,Y
+0FCE: 97 33                                     SAX $33,Y
+0FD0: B9 34 00                                  LDA $0034,Y
+0FD3: 97 34                                     SAX $34,Y
+0FD5: B9 35 00                                  LDA $0035,Y
+0FD8: 97 35                                     SAX $35,Y
+0FDA: B9 36 00                                  LDA $0036,Y
+0FDD: 97 36                                     SAX $36,Y
+0FDF: B9 37 00                                  LDA $0037,Y
+0FE2: 97 37                                     SAX $37,Y
+0FE4: B9 38 00                                  LDA $0038,Y
+0FE7: 97 38                                     SAX $38,Y
+0FE9: B9 39 00                                  LDA $0039,Y
+0FEC: 97 39                                     SAX $39,Y
+0FEE: B9 3A 00                                  LDA $003A,Y
+0FF1: 97 3A                                     SAX $3A,Y
+0FF3: B9 3B 00                                  LDA $003B,Y
+0FF6: 97 3B                                     SAX $3B,Y
+0FF8: B9 3C 00                                  LDA $003C,Y
+0FFB: 97 3C                                     SAX $3C,Y
+0FFD: B9 3D 00                                  LDA $003D,Y
+1000: 97 3D                                     SAX $3D,Y
+1002: B9 3E 00                                  LDA $003E,Y
+1005: 97 3E                                     SAX $3E,Y
+1007: B9 3F 00                                  LDA $003F,Y
+100A: 97 3F                                     SAX $3F,Y
+100C: B9 40 00                                  LDA $0040,Y
+100F: 97 40                                     SAX $40,Y
+1011: 48                                        PHA
+1012: A9 06                                     LDA #$06
+1014: 8D 20 D0                                  STA $D020
+1017: 68                                        PLA
+1018: 60                                        RTS
+1019: 48       clear_d017_table                 PHA
+101A: A9 03                                     LDA #$03
+101C: 8D 20 D0                                  STA $D020
+101F: 68                                        PLA
+1020: A9 FF                                     LDA #$FF
+1022: 85 2D                                     STA $2D
+1024: 85 2E                                     STA $2E
+1026: 85 2F                                     STA $2F
+1028: 85 30                                     STA $30
+102A: 85 31                                     STA $31
+102C: 85 32                                     STA $32
+102E: 85 33                                     STA $33
+1030: 85 34                                     STA $34
+1032: 85 35                                     STA $35
+1034: 85 36                                     STA $36
+1036: 85 37                                     STA $37
+1038: 85 38                                     STA $38
+103A: 85 39                                     STA $39
+103C: 85 3A                                     STA $3A
+103E: 85 3B                                     STA $3B
+1040: 85 3C                                     STA $3C
+1042: 85 3D                                     STA $3D
+1044: 85 3E                                     STA $3E
+1046: 85 3F                                     STA $3F
+1048: 85 40                                     STA $40
+104A: 85 41                                     STA $41
+104C: 85 42                                     STA $42
+104E: 85 43                                     STA $43
+1050: 85 44                                     STA $44
+1052: 85 45                                     STA $45
+1054: 85 46                                     STA $46
+1056: 85 47                                     STA $47
+1058: 85 48                                     STA $48
+105A: 85 49                                     STA $49
+105C: 85 4A                                     STA $4A
+105E: 85 4B                                     STA $4B
+1060: 85 4C                                     STA $4C
+1062: 85 4D                                     STA $4D
+1064: 85 4E                                     STA $4E
+1066: 85 4F                                     STA $4F
+1068: 85 50                                     STA $50
+106A: 85 51                                     STA $51
+106C: 85 52                                     STA $52
+106E: 48                                        PHA
+106F: A9 06                                     LDA #$06
+1071: 8D 20 D0                                  STA $D020
+1074: 68                                        PLA
+1075: 60                                        RTS
+1076: 10 11 12 13 14 15 16 17
+107E: 10 11 12 13 14 15 16 17
+1086: 10 11 12 13 14 15 16 17
+108E: 10 11 12 13 14 15 16 17
+1096: 10 11 12 13 14 15 09 0A
+109E: 0A 0B 0B 0C 0D 0D 0E 0E
+10A6: 0F 0F 0F 10 10 10 11 11
+10AE: 11 11 11 11 11 11 11 10
+10B6: 10 10 0F 0F 0F 0E 0E 0D
+10BE: 0D 0C 0B 0B 0A 0A 09 08
+10C6: 08 07 07 06 05 05 04 04
+10CE: 03 03 03 02 02 02 01 01
+10D6: 01 01 01 01 01 01 01 02
+10DE: 02 02 03 03 03 04 04 05
+10E6: 05 06 07 07 08 08 80 80
+10EE: 81 81 82 82 83 83 84 84
+10F6: 85 85 86 86 87 87 88 88
+10FE: 89 89 00 CA A0 75 4A 00
+1106: 00 00 00 00 00 00 00 00
+110E: 00 00 00 00 00 00 00 00
+1116: 00 00 00 00 00 00 00 00
+111E: 00 00 00 00 00 00 00 00
+1126: 00 00 00 00 00 00 00 00
+112E: 00 00 00 00 00 00 00 00
+1136: 00 00 00 00 00 00 00 00
+113E: 00 00 00 00 00 00 00 00
+1146: 00 00 00 00 00 00 00 00
+114E: 00 00 00 00 00 00 00 00
+1156: 00 00 00 00 00 00 00 00
+115E: 00 00 00 00 00 00 00 00
+1166: 00 00 00 00 00 00 00 00
+116E: 00 00 00 00 00 00 00 00
+1176: 00 00 00 00 00 00 00 00
+117E: 00 00 00 00 00 00 00 00
+1186: 00 00 00 00 00 00 00 00
+118E: 00 00 00 00 00 00 00 00
+1196: 00 00 00 00 00 00 00 00
+119E: 00 00 00 00 00 00 00 00
+11A6: 00 00 00 00 00 00 00 00
+11AE: 00 00 00 00 00 00 00 00
+11B6: 00 00 00 00 00 00 00 00
+11BE: 00 00 00 00 00 00 00 00
+11C6: 00 00 00 00 00 00 00 00
+11CE: 00 00 00 00 00 00 00 00
+11D6: 00 00 00 00 00 00 00 00
+11DE: 00 00 00 00 00 00 00 00
+11E6: 00 00 00 00 00 00 00 00
+11EE: 00 00 00 00 00 00 00 00
+11F6: 00 00 00 00 00 00 00 00
+11FE: 00 00 00 00 00 00 00 00
+1206: 00 00 00 00 00 00 00 00
+120E: 00 00 00 00 00 00 00 00
+1216: 00 00 00 00 00 00 00 00
+121E: 00 00 00 00 00 00 00 00
+1226: 00 00 00 00 00 00 00 00
+122E: 00 00 00 00 00 00 00 00
+1236: 00 00 00 00 00 00 00 00
+123E: 00 00 00 00 00 00 00 00
+1246: 00 00 00 00 00 00 00 00
+124E: 00 00 00 00 00 00 00 00
+1256: 00 00 00 00 00 00 00 00
+125E: 00 00 00 00 00 00 00 00
+1266: 00 00 00 00 00 00 00 00
+126E: 00 00 00 00 00 00 00 00
+1276: 00 00 00 00 00 00 00 00
+127E: 00 00 00 00 00 00 00 00
+1286: 00 00 00 00 00 00 00 00
+128E: 00 00 00 00 00 00 00 00
+1296: 00 00 00 00 00 00 00 00
+129E: 00 00 00 00 00 00 00 00
+12A6: 00 00 00 00 00 00 00 00
+12AE: 00 00 00 00 00 00 00 00
+12B6: 00 00 00 00 00 00 00 00
+12BE: 00 00 00 00 00 00 00 00
+12C6: 00 00 00 00 00 00 00 00
+12CE: 00 00 00 00 00 00 00 00
+12D6: 00 00 00 00 00 00 00 00
+12DE: 00 00 00 00 00 00 00 00
+12E6: 00 00 00 00 00 00 00 00
+12EE: 00 00 00 00 00 00 00 00
+12F6: 00 00 00 00 00 00 00 00
+12FE: 00 00 00 00 00 00 00 00
+1306: 00 00 00 00 00 00 00 00
+130E: 00 00 00 00 00 00 00 00
+1316: 00 00 00 00 00 00 00 00
+131E: 00 00 00 00 00 00 00 00
+1326: 00 00 00 00 00 00 00 00
+132E: 00 00 00 00 00 00 00 00
+1336: 00 00 00 00 00 00 00 00
+133E: 00 00 00 00 00 00 00 00
+1346: 00 00 00 00 00 00 00 00
+134E: 00 00 00 00 00 00 00 00
+1356: 00 00 00 00 00 00 00 00
+135E: 00 00 00 00 00 00 00 00
+1366: 00 00 00 00 00 00 00 00
+136E: 00 00 00 00 00 00 00 00
+1376: 00 00 00 00 00 00 00 00
+137E: 00 00 00 00 00 00 00 00
+1386: 00 00 00 00 00 00 00 00
+138E: 00 00 00 00 00 00 00 00
+1396: 00 00 00 00 00 00 00 00
+139E: 00 00 00 00 00 00 00 00
+13A6: 00 00 00 00 00 00 00 00
+13AE: 00 00 00 00 00 00 00 00
+13B6: 00 00 00 00 00 00 00 00
+13BE: 00 00 00 00 00 00 00 00
+13C6: 00 00 00 00 00 00 00 00
+13CE: 00 00 00 00 00 00 00 00
+13D6: 00 00 00 00 00 00 00 00
+13DE: 00 00 00 00 00 00 00 00
+13E6: 00 00 00 00 00 00 00 00
+13EE: 00 00 00 00 00 00 00 00
+13F6: 00 00 00 00 00 00 00 00
+13FE: 00 00 00 00 00 00 00 00
+1406: 00 00 00 00 00 00 00 00
+140E: 00 00 00 00 00 00 00 00
+1416: 00 00 00 00 00 00 00 00
+141E: 00 00 00 00 00 00 00 00
+1426: 00 00 00 00 00 00 00 00
+142E: 00 00 00 00 00 00 00 00
+1436: 00 00 00 00 00 00 00 00
+143E: 00 00 00 00 00 00 00 00
+1446: 00 00 00 00 00 00 00 00
+144E: 00 00 00 00 00 00 00 00
+1456: 00 00 00 00 00 00 00 00
+145E: 00 00 00 00 00 00 00 00
+1466: 00 00 00 00 00 00 00 00
+146E: 00 00 00 00 00 00 00 00
+1476: 00 00 00 00 00 00 00 00
+147E: 00 00 00 00 00 00 00 00
+1486: 00 00 00 00 00 00 00 00
+148E: 00 00 00 00 00 00 00 00
+1496: 00 00 00 00 00 00 00 00
+149E: 00 00 00 00 00 00 00 00
+14A6: 00 00 00 00 00 00 00 00
+14AE: 00 00 00 00 00 00 00 00
+14B6: 00 00 00 00 00 00 00 00
+14BE: 00 00 00 00 00 00 00 00
+14C6: 00 00 00 00 00 00 00 00
+14CE: 00 00 00 00 00 00 00 00
+14D6: 00 00 00 00 00 00 00 00
+14DE: 00 00 00 00 00 00 00 00
+14E6: 00 00 00 00 00 00 00 00
+14EE: 00 00 00 00 00 00 00 00
+14F6: 00 00 00 00 00 00 00 00
+14FE: 00 00 00 00 00 00 00 00
+1506: 00 00 00 00 00 00 00 00
+150E: 00 00 00 00 00 00 00 00
+1516: 00 00 00 00 00 00 00 00
+151E: 00 00 00 00 00 00 00 00
+1526: 00 00 00 00 00 00 00 00
+152E: 00 00 00 00 00 00 00 00
+1536: 00 00 00 00 00 00 00 00
+153E: 00 00 00 00 00 00 00 00
+1546: 00 00 00 00 00 00 00 00
+154E: 00 00 00 00 00 00 00 00
+1556: 00 00 00 00 00 00 00 00
+155E: 00 00 00 00 00 00 00 00
+1566: 00 00 00 00 00 00 00 00
+156E: 00 00 00 00 00 00 00 00
+1576: 00 00 00 00 00 00 00 00
+157E: 00 00 00 00 00 00 00 00
+1586: 00 00 00 00 00 00 00 00
+158E: 00 00 00 00 00 00 00 00
+1596: 00 00 00 00 00 00 00 00
+159E: 00 00 00 00 00 00 00 00
+15A6: 00 00 00 00 00 00 00 00
+15AE: 00 00 00 00 00 00 00 00
+15B6: 00 00 00 00 00 00 00 00
+15BE: 00 00 00 00 00 00 00 00
+15C6: 00 00 00 00 00 00 00 00
+15CE: 00 00 00 00 00 00 00 00
+15D6: 00 00 00 00 00 00 00 00
+15DE: 00 00 00 00 00 00 00 00
+15E6: 00 00 00 00 00 00 00 00
+15EE: 00 00 00 00 00 00 00 00
+15F6: 00 00 00 00 00 00 00 00
+15FE: 00 00 00 00 00 00 00 00
+1606: 00 00 00 00 00 00 00 00
+160E: 00 00 00 00 00 00 00 00
+1616: 00 00 00 00 00 00 00 00
+161E: 00 00 00 00 00 00 00 00
+1626: 00 00 00 00 00 00 00 00
+162E: 00 00 00 00 00 00 00 00
+1636: 00 00 00 00 00 00 00 00
+163E: 00 00 00 00 00 00 00 00
+1646: 00 00 00 00 00 00 00 00
+164E: 00 00 00 00 00 00 00 00
+1656: 00 00 00 00 00 00 00 00
+165E: 00 00 00 00 00 00 00 00
+1666: 00 00 00 00 00 00 00 00
+166E: 00 00 00 00 00 00 00 00
+1676: 00 00 00 00 00 00 00 00
+167E: 00 00 00 00 00 00 00 00
+1686: 00 00 00 00 00 00 00 00
+168E: 00 00 00 00 00 00 00 00
+1696: 00 00 00 00 00 00 00 00
+169E: 00 00 00 00 00 00 00 00
+16A6: 00 00 00 00 00 00 00 00
+16AE: 00 00 00 00 00 00 00 00
+16B6: 00 00 00 00 00 00 00 00
+16BE: 00 00 00 00 00 00 00 00
+16C6: 00 00 00 00 00 00 00 00
+16CE: 00 00 00 00 00 00 00 00
+16D6: 00 00 00 00 00 00 00 00
+16DE: 00 00 00 00 00 00 00 00
+16E6: 00 00 00 00 00 00 00 00
+16EE: 00 00 00 00 00 00 00 00
+16F6: 00 00 00 00 00 00 00 00
+16FE: 00 00 00 00 00 00 00 00
+1706: 00 00 00 00 00 00 00 00
+170E: 00 00 00 00 00 00 00 00
+1716: 00 00 00 00 00 00 00 00
+171E: 00 00 00 00 00 00 00 00
+1726: 00 00 00 00 00 00 00 00
+172E: 00 00 00 00 00 00 00 00
+1736: 00 00 00 00 00 00 00 00
+173E: 00 00 00 00 00 00 00 00
+1746: 00 00 00 00 00 00 00 00
+174E: 00 00 00 00 00 00 00 00
+1756: 00 00 00 00 00 00 00 00
+175E: 00 00 00 00 00 00 00 00
+1766: 00 00 00 00 00 00 00 00
+176E: 00 00 00 00 00 00 00 00
+1776: 00 00 00 00 00 00 00 00
+177E: 00 00 00 00 00 00 00 00
+1786: 00 00 00 00 00 00 00 00
+178E: 00 00 00 00 00 00 00 00
+1796: 00 00 00 00 00 00 00 00
+179E: 00 00 00 00 00 00 00 00
+17A6: 00 00 00 00 00 00 00 00
+17AE: 00 00 00 00 00 00 00 00
+17B6: 00 00 00 00 00 00 00 00
+17BE: 00 00 00 00 00 00 00 00
+17C6: 00 00 00 00 00 00 00 00
+17CE: 00 00 00 00 00 00 00 00
+17D6: 00 00 00 00 00 00 00 00
+17DE: 00 00 00 00 00 00 00 00
+17E6: 00 00 00 00 00 00 00 00
+17EE: 00 00 00 00 00 00 00 00
+17F6: 00 00 00 00 00 00 00 00
+17FE: 00 00 00 00 00 00 00 00
+1806: 00 00 00 00 00 00 00 00
+180E: 00 00 00 00 00 00 00 00
+1816: 00 00 00 00 00 00 00 00
+181E: 00 00 00 00 00 00 00 00
+1826: 00 00 00 00 00 00 00 00
+182E: 00 00 00 00 00 00 00 00
+1836: 00 00 00 00 00 00 00 00
+183E: 00 00 00 00 00 00 00 00
+1846: 00 00 00 00 00 00 00 00
+184E: 00 00 00 00 00 00 00 00
+1856: 00 00 00 00 00 00 00 00
+185E: 00 00 00 00 00 00 00 00
+1866: 00 00 00 00 00 00 00 00
+186E: 00 00 00 00 00 00 00 00
+1876: 00 00 00 00 00 00 00 00
+187E: 00 00 00 00 00 00 00 00
+1886: 00 00 00 00 00 00 00 00
+188E: 00 00 00 00 00 00 00 00
+1896: 00 00 00 00 00 00 00 00
+189E: 00 00 00 00 00 00 00 00
+18A6: 00 00 00 00 00 00 00 00
+18AE: 00 00 00 00 00 00 00 00
+18B6: 00 00 00 00 00 00 00 00
+18BE: 00 00 00 00 00 00 00 00
+18C6: 00 00 00 00 00 00 00 00
+18CE: 00 00 00 00 00 00 00 00
+18D6: 00 00 00 00 00 00 00 00
+18DE: 00 00 00 00 00 00 00 00
+18E6: 00 00 00 00 00 00 00 00
+18EE: 00 00 00 00 00 00 00 00
+18F6: 00 00 00 00 00 00 00 00
+18FE: 00 00 00 00 00 00 00 00
+1906: 00 00 00 00 00 00 00 00
+190E: 00 00 00 00 00 00 00 00
+1916: 00 00 00 00 00 00 00 00
+191E: 00 00 00 00 00 00 00 00
+1926: 00 00 00 00 00 00 00 00
+192E: 00 00 00 00 00 00 00 00
+1936: 00 00 00 00 00 00 00 00
+193E: 00 00 00 00 00 00 00 00
+1946: 00 00 00 00 00 00 00 00
+194E: 00 00 00 00 00 00 00 00
+1956: 00 00 00 00 00 00 00 00
+195E: 00 00 00 00 00 00 00 00
+1966: 00 00 00 00 00 00 00 00
+196E: 00 00 00 00 00 00 00 00
+1976: 00 00 00 00 00 00 00 00
+197E: 00 00 00 00 00 00 00 00
+1986: 00 00 00 00 00 00 00 00
+198E: 00 00 00 00 00 00 00 00
+1996: 00 00 00 00 00 00 00 00
+199E: 00 00 00 00 00 00 00 00
+19A6: 00 00 00 00 00 00 00 00
+19AE: 00 00 00 00 00 00 00 00
+19B6: 00 00 00 00 00 00 00 00
+19BE: 00 00 00 00 00 00 00 00
+19C6: 00 00 00 00 00 00 00 00
+19CE: 00 00 00 00 00 00 00 00
+19D6: 00 00 00 00 00 00 00 00
+19DE: 00 00 00 00 00 00 00 00
+19E6: 00 00 00 00 00 00 00 00
+19EE: 00 00 00 00 00 00 00 00
+19F6: 00 00 00 00 00 00 00 00
+19FE: 00 00 00 00 00 00 00 00
+1A06: 00 00 00 00 00 00 00 00
+1A0E: 00 00 00 00 00 00 00 00
+1A16: 00 00 00 00 00 00 00 00
+1A1E: 00 00 00 00 00 00 00 00
+1A26: 00 00 00 00 00 00 00 00
+1A2E: 00 00 00 00 00 00 00 00
+1A36: 00 00 00 00 00 00 00 00
+1A3E: 00 00 00 00 00 00 00 00
+1A46: 00 00 00 00 00 00 00 00
+1A4E: 00 00 00 00 00 00 00 00
+1A56: 00 00 00 00 00 00 00 00
+1A5E: 00 00 00 00 00 00 00 00
+1A66: 00 00 00 00 00 00 00 00
+1A6E: 00 00 00 00 00 00 00 00
+1A76: 00 00 00 00 00 00 00 00
+1A7E: 00 00 00 00 00 00 00 00
+1A86: 00 00 00 00 00 00 00 00
+1A8E: 00 00 00 00 00 00 00 00
+1A96: 00 00 00 00 00 00 00 00
+1A9E: 00 00 00 00 00 00 00 00
+1AA6: 00 00 00 00 00 00 00 00
+1AAE: 00 00 00 00 00 00 00 00
+1AB6: 00 00 00 00 00 00 00 00
+1ABE: 00 00 00 00 00 00 00 00
+1AC6: 00 00 00 00 00 00 00 00
+1ACE: 00 00 00 00 00 00 00 00
+1AD6: 00 00 00 00 00 00 00 00
+1ADE: 00 00 00 00 00 00 00 00
+1AE6: 00 00 00 00 00 00 00 00
+1AEE: 00 00 00 00 00 00 00 00
+1AF6: 00 00 00 00 00 00 00 00
+1AFE: 00 00 00 00 00 00 00 00
+1B06: 00 00 00 00 00 00 00 00
+1B0E: 00 00 00 00 00 00 00 00
+1B16: 00 00 00 00 00 00 00 00
+1B1E: 00 00 00 00 00 00 00 00
+1B26: 00 00 00 00 00 00 00 00
+1B2E: 00 00 00 00 00 00 00 00
+1B36: 00 00 00 00 00 00 00 00
+1B3E: 00 00 00 00 00 00 00 00
+1B46: 00 00 00 00 00 00 00 00
+1B4E: 00 00 00 00 00 00 00 00
+1B56: 00 00 00 00 00 00 00 00
+1B5E: 00 00 00 00 00 00 00 00
+1B66: 00 00 00 00 00 00 00 00
+1B6E: 00 00 00 00 00 00 00 00
+1B76: 00 00 00 00 00 00 00 00
+1B7E: 00 00 00 00 00 00 00 00
+1B86: 00 00 00 00 00 00 00 00
+1B8E: 00 00 00 00 00 00 00 00
+1B96: 00 00 00 00 00 00 00 00
+1B9E: 00 00 00 00 00 00 00 00
+1BA6: 00 00 00 00 00 00 00 00
+1BAE: 00 00 00 00 00 00 00 00
+1BB6: 00 00 00 00 00 00 00 00
+1BBE: 00 00 00 00 00 00 00 00
+1BC6: 00 00 00 00 00 00 00 00
+1BCE: 00 00 00 00 00 00 00 00
+1BD6: 00 00 00 00 00 00 00 00
+1BDE: 00 00 00 00 00 00 00 00
+1BE6: 00 00 00 00 00 00 00 00
+1BEE: 00 00 00 00 00 00 00 00
+1BF6: 00 00 00 00 00 00 00 00
+1BFE: 00 00 00 00 00 00 00 00
+1C06: 00 00 00 00 00 00 00 00
+1C0E: 00 00 00 00 00 00 00 00
+1C16: 00 00 00 00 00 00 00 00
+1C1E: 00 00 00 00 00 00 00 00
+1C26: 00 00 00 00 00 00 00 00
+1C2E: 00 00 00 00 00 00 00 00
+1C36: 00 00 00 00 00 00 00 00
+1C3E: 00 00 00 00 00 00 00 00
+1C46: 00 00 00 00 00 00 00 00
+1C4E: 00 00 00 00 00 00 00 00
+1C56: 00 00 00 00 00 00 00 00
+1C5E: 00 00 00 00 00 00 00 00
+1C66: 00 00 00 00 00 00 00 00
+1C6E: 00 00 00 00 00 00 00 00
+1C76: 00 00 00 00 00 00 00 00
+1C7E: 00 00 00 00 00 00 00 00
+1C86: 00 00 00 00 00 00 00 00
+1C8E: 00 00 00 00 00 00 00 00
+1C96: 00 00 00 00 00 00 00 00
+1C9E: 00 00 00 00 00 00 00 00
+1CA6: 00 00 00 00 00 00 00 00
+1CAE: 00 00 00 00 00 00 00 00
+1CB6: 00 00 00 00 00 00 00 00
+1CBE: 00 00 00 00 00 00 00 00
+1CC6: 00 00 00 00 00 00 00 00
+1CCE: 00 00 00 00 00 00 00 00
+1CD6: 00 00 00 00 00 00 00 00
+1CDE: 00 00 00 00 00 00 00 00
+1CE6: 00 00 00 00 00 00 00 00
+1CEE: 00 00 00 00 00 00 00 00
+1CF6: 00 00 00 00 00 00 00 00
+1CFE: 00 00 00 00 00 00 00 00
+1D06: 00 00 00 00 00 00 00 00
+1D0E: 00 00 00 00 00 00 00 00
+1D16: 00 00 00 00 00 00 00 00
+1D1E: 00 00 00 00 00 00 00 00
+1D26: 00 00 00 00 00 00 00 00
+1D2E: 00 00 00 00 00 00 00 00
+1D36: 00 00 00 00 00 00 00 00
+1D3E: 00 00 00 00 00 00 00 00
+1D46: 00 00 00 00 00 00 00 00
+1D4E: 00 00 00 00 00 00 00 00
+1D56: 00 00 00 00 00 00 00 00
+1D5E: 00 00 00 00 00 00 00 00
+1D66: 00 00 00 00 00 00 00 00
+1D6E: 00 00 00 00 00 00 00 00
+1D76: 00 00 00 00 00 00 00 00
+1D7E: 00 00 00 00 00 00 00 00
+1D86: 00 00 00 00 00 00 00 00
+1D8E: 00 00 00 00 00 00 00 00
+1D96: 00 00 00 00 00 00 00 00
+1D9E: 00 00 00 00 00 00 00 00
+1DA6: 00 00 00 00 00 00 00 00
+1DAE: 00 00 00 00 00 00 00 00
+1DB6: 00 00 00 00 00 00 00 00
+1DBE: 00 00 00 00 00 00 00 00
+1DC6: 00 00 00 00 00 00 00 00
+1DCE: 00 00 00 00 00 00 00 00
+1DD6: 00 00 00 00 00 00 00 00
+1DDE: 00 00 00 00 00 00 00 00
+1DE6: 00 00 00 00 00 00 00 00
+1DEE: 00 00 00 00 00 00 00 00
+1DF6: 00 00 00 00 00 00 00 00
+1DFE: 00 00 00 00 00 00 00 00
+1E06: 00 00 00 00 00 00 00 00
+1E0E: 00 00 00 00 00 00 00 00
+1E16: 00 00 00 00 00 00 00 00
+1E1E: 00 00 00 00 00 00 00 00
+1E26: 00 00 00 00 00 00 00 00
+1E2E: 00 00 00 00 00 00 00 00
+1E36: 00 00 00 00 00 00 00 00
+1E3E: 00 00 00 00 00 00 00 00
+1E46: 00 00 00 00 00 00 00 00
+1E4E: 00 00 00 00 00 00 00 00
+1E56: 00 00 00 00 00 00 00 00
+1E5E: 00 00 00 00 00 00 00 00
+1E66: 00 00 00 00 00 00 00 00
+1E6E: 00 00 00 00 00 00 00 00
+1E76: 00 00 00 00 00 00 00 00
+1E7E: 00 00 00 00 00 00 00 00
+1E86: 00 00 00 00 00 00 00 00
+1E8E: 00 00 00 00 00 00 00 00
+1E96: 00 00 00 00 00 00 00 00
+1E9E: 00 00 00 00 00 00 00 00
+1EA6: 00 00 00 00 00 00 00 00
+1EAE: 00 00 00 00 00 00 00 00
+1EB6: 00 00 00 00 00 00 00 00
+1EBE: 00 00 00 00 00 00 00 00
+1EC6: 00 00 00 00 00 00 00 00
+1ECE: 00 00 00 00 00 00 00 00
+1ED6: 00 00 00 00 00 00 00 00
+1EDE: 00 00 00 00 00 00 00 00
+1EE6: 00 00 00 00 00 00 00 00
+1EEE: 00 00 00 00 00 00 00 00
+1EF6: 00 00 00 00 00 00 00 00
+1EFE: 00 00 00 00 00 00 00 00
+1F06: 00 00 00 00 00 00 00 00
+1F0E: 00 00 00 00 00 00 00 00
+1F16: 00 00 00 00 00 00 00 00
+1F1E: 00 00 00 00 00 00 00 00
+1F26: 00 00 00 00 00 00 00 00
+1F2E: 00 00 00 00 00 00 00 00
+1F36: 00 00 00 00 00 00 00 00
+1F3E: 00 00 00 00 00 00 00 00
+1F46: 00 00 00 00 00 00 00 00
+1F4E: 00 00 00 00 00 00 00 00
+1F56: 00 00 00 00 00 00 00 00
+1F5E: 00 00 00 00 00 00 00 00
+1F66: 00 00 00 00 00 00 00 00
+1F6E: 00 00 00 00 00 00 00 00
+1F76: 00 00 00 00 00 00 00 00
+1F7E: 00 00 00 00 00 00 00 00
+1F86: 00 00 00 00 00 00 00 00
+1F8E: 00 00 00 00 00 00 00 00
+1F96: 00 00 00 00 00 00 00 00
+1F9E: 00 00 00 00 00 00 00 00
+1FA6: 00 00 00 00 00 00 00 00
+1FAE: 00 00 00 00 00 00 00 00
+1FB6: 00 00 00 00 00 00 00 00
+1FBE: 00 00 00 00 00 00 00 00
+1FC6: 00 00 00 00 00 00 00 00
+1FCE: 00 00 00 00 00 00 00 00
+1FD6: 00 00 00 00 00 00 00 00
+1FDE: 00 00 00 00 00 00 00 00
+1FE6: 00 00 00 00 00 00 00 00
+1FEE: 00 00 00 00 00 00 00 00
+1FF6: 00 00 00 00 00 00 00 00
+1FFE: 00 00 00 00 00 00 20 00
+2006: 00 A8 00 02 AA 00 0A AA
+200E: 80 0E AA 80 0E AA 40 0F
+2016: A9 40 0F A5 40 0F 55 40
+201E: 0F 55 40 0F 55 40 0F 55
+2026: 40 0F 55 40 0F 55 40 03
+202E: 55 40 03 55 00 03 54 00
+2036: 00 50 00 00 40 00 00 00
+203E: 00 87 00 00 00 00 20 00
+2046: 00 A8 00 02 AA 00 0A AA
+204E: 80 0E AA A0 0F AA 90 0F
+2056: AA 50 0F E9 50 0F F5 50
+205E: 0F F5 50 0F F5 50 0F F5
+2066: 50 0F F5 50 0F F5 50 03
+206E: F5 50 03 F5 40 00 F5 00
+2076: 00 34 00 00 00 00 00 00
+207E: 00 87 00 00 00 00 08 00
+2086: 00 2A 00 00 AA 80 02 AA
+208E: A0 0A AA 90 0E AA 90 0F
+2096: AA 50 0F EA 50 0F F9 50
+209E: 0F FD 50 0F FD 50 0F FD
+20A6: 50 0F FD 50 0F FD 50 03
+20AE: FD 40 00 FD 40 00 3D 00
+20B6: 00 0C 00 00 00 00 00 00
+20BE: 00 87 00 00 00 00 08 00
+20C6: 00 2A 00 00 AA 80 02 AA
+20CE: A0 02 AA 90 03 AA 90 03
+20D6: EA 50 03 FA 50 03 FF 50
+20DE: 03 FF 50 03 FF 50 03 FF
+20E6: 50 03 FF 50 03 FF 50 03
+20EE: FF 40 00 FF 40 00 3F 40
+20F6: 00 0F 00 00 03 00 00 00
+20FE: 00 87 00 00 00 00 00 00
+2106: 00 00 00 02 AA A0 02 AA
+210E: A0 02 AA A0 02 AA A0 02
+2116: AA A0 02 AA A0 03 FF F0
+211E: 03 FF F0 03 FF F0 03 FF
+2126: F0 03 FF F0 03 FF F0 03
+212E: FF F0 03 FF F0 03 FF F0
+2136: 03 FF F0 00 00 00 00 00
+213E: 00 87 00 00 00 00 20 00
+2146: 00 A8 00 02 AA 00 0A AA
+214E: 80 06 AA 80 06 AA C0 05
+2156: AB C0 05 AF C0 05 FF C0
+215E: 05 FF C0 05 FF C0 05 FF
+2166: C0 05 FF C0 05 FF C0 01
+216E: FF C0 01 FF 00 01 FC 00
+2176: 00 F0 00 00 C0 00 00 00
+217E: 00 87 00 00 00 00 20 00
+2186: 00 A8 00 02 AA 00 0A AA
+218E: 80 06 AA A0 05 AA B0 05
+2196: AA F0 05 6B F0 05 5F F0
+219E: 05 5F F0 05 5F F0 05 5F
+21A6: F0 05 5F F0 05 5F F0 01
+21AE: 5F F0 01 5F C0 00 5F 00
+21B6: 00 1C 00 00 00 00 00 00
+21BE: 00 87 00 00 00 00 08 00
+21C6: 00 2A 00 00 AA 80 02 AA
+21CE: A0 0A AA B0 06 AA B0 05
+21D6: AA F0 05 6A F0 05 5B F0
+21DE: 05 57 F0 05 57 F0 05 57
+21E6: F0 05 57 F0 05 57 F0 01
+21EE: 57 F0 00 57 C0 00 17 00
+21F6: 00 04 00 00 00 00 00 00
+21FE: 00 87 00 00 00 00 08 00
+2206: 00 2A 00 00 AA 80 02 AA
+220E: A0 02 AA B0 01 AA B0 01
+2216: 6A F0 01 5A F0 01 55 F0
+221E: 01 55 F0 01 55 F0 01 55
+2226: F0 01 55 F0 01 55 F0 01
+222E: 55 C0 00 55 C0 00 15 C0
+2236: 00 05 00 00 01 00 00 00
+223E: 00 87 00 00 00 00 00 00
+2246: 00 00 00 02 AA A0 02 AA
+224E: A0 02 AA A0 02 AA A0 02
+2256: AA A0 02 AA A0 01 55 50
+225E: 01 55 50 01 55 50 01 55
+2266: 50 01 55 50 01 55 50 01
+226E: 55 50 01 55 50 01 55 50
+2276: 01 55 50 00 00 00 00 00
+227E: 00 87

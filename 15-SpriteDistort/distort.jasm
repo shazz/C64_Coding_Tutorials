@@ -1,0 +1,264 @@
+
+!let debug = 1 
+
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+    tmp0: $60,
+    tmp1: $62,
+    tmp2: $64
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/maths" as maths
+!use "../macros/utils" as utils
+!use "../macros/spd" as spd
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+
+;!let colors = [$000000, $838383, $ffffff, $959595]
+
+!let SPRITE_LOGO_YSTART = 50
+!let IRQ_TOP_LINE = 20
+!let IRQ_WARP_LINE = SPRITE_LOGO_YSTART-1
+
+; total anim size (must be power of two)
+!let sintab_len = 256
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+
+    lda #$00                    ; set borders and window to black
+    sta vic.border_col
+    sta vic.bck_col
+
+    +clear_screen({"clearByte": $20, "screen": $0400})
+
+    sei
+    lda #$35                    ; Bank out kernal and basic
+    sta $01                     ; $e000-$ffff
+
+    +setup_irq(irq_top, IRQ_TOP_LINE)
+    cli                         ; set IRQ then loop forever
+
+    jmp *
+}
+
+; ------------------------------------------------------------------------------------------
+; enable_sprites sub routine
+; Set the VIC Sprites registers
+; ------------------------------------------------------------------------------------------
+enable_sprites: {
+    lda #%00001111              ; set double width and height for 4 sprites
+    sta vic.sprite_dblx        
+    sta vic.sprite_dblh
+
+    lda #%00001111              ; enable sprites + color mode for the logo
+    sta vic.sprite_colmode
+    sta vic.sprite_en
+
+    lda #(bintris_sprite/64)
+    ldx #0
+
+set_spr_ptr_and_color:
+    sta $07f8, x                ; set sprite memory pointers
+    clc
+    adc #1
+
+    tay         
+    lda #color.white
+    sta vic.sprite0_color, x    ; sprites color to white
+    tya
+
+    inx                         
+    cpx #4
+    bne set_spr_ptr_and_color   ; loop until the 4 sprites are set
+
+    lda #color.white
+    sta vic.sprite_extra_col1   ; set extra colors to white
+    sta vic.sprite_extra_col2
+
+    lda #0                      ; no need to set sprite x 9th bit
+    sta vic.sprites_x           
+
+    ldy #SPRITE_LOGO_YSTART     ; char pos y = SPRITE_LOGO_YSTART
+    !for s in range(4) {        ; for each sprite
+        ldx #(64+s*24)          ; x = 64+ (x*spr_length)
+        stx vic.sprite0_x+s*2   ; set sprite x position
+        sty vic.sprite0_x+s*2+1 ; set sprite y position to SPRITE_LOGO_YSTART
+    }
+    rts
+}
+
+; ------------------------------------------------------------------------------------------
+; top irq
+; At rasterline 20,  set the sprites registers then the warp irq
+; ------------------------------------------------------------------------------------------
+irq_top: {
+    +irq_start(end)             ; save registers
+
+    lda #$18                    ; $18 = 0001 1000
+    sta vic.scr_ctrl            ; set screen control: no vertical scroll, 25 rows, bitmap mode
+
+    jsr enable_sprites          ; sub routine to set the sprites registers
+
+    +irq_end(irq_warp, IRQ_WARP_LINE, TRUE) ; set the next raster IRQ to IRQ_WARP_LINE, 1 line before sprites
+end:
+}
+
+; ------------------------------------------------------------------------------------------
+; warp irq
+; At rasterline Y_Sprite - 1, set the double irq
+; ------------------------------------------------------------------------------------------
+irq_warp: {
+    +double_irq(end, irq)
+
+; ------------------------------------------------------------------------------------------
+; irq
+; double irq set by macro
+; ------------------------------------------------------------------------------------------
+; !align 256                                    ; why needed to align ?
+irq:
+    txs                                         ; 2 restore the stack pointer
+    bit $fe                                     ; 3 waste 3 cycles (not sure why)
+
+                                                ; here we're at the start of a rasterline
+    !for y in range(21*2) {                     ; for on 42 lines due to double sprite height
+        !let cycles = 63                        ; cycles in one PAL rasterline
+                                                ; skip bad line with FLD
+        !let rasty = SPRITE_LOGO_YSTART + y     
+        !!cycles = cycles - 3 - 8               ; sprite overhead + 3? 8 cycles are consumed by 4 sprites DMA
+
+        lda #$18 | ((rasty+1) & %111)           ; 2 1 1000 or 3 first bits of(current_line+1) 
+        sta vic.scr_ctrl                        ; 4 set the Y-scroll of scr_ctrl to disable bad lines
+        !!cycles = cycles - 6           
+
+        lda logo_spritex+y*4 + 0                ; 4 get virtual sprite 0 position for line y
+        ldx logo_spritex+y*4 + 1                ; 4 get virtual sprite 1 position for line y
+        ldy logo_spritex+y*4 + 2                ; 4 get virtual sprite 2 position for line y
+        !!cycles = cycles - (3*4)               
+
+        sta vic.sprite0_x                       ; 4 set VIC sprite positions for 3 sprites
+        stx vic.sprite1_x                       ; 4 
+        sty vic.sprite2_x                       ; 4 
+        !!cycles = cycles - (4*3)
+
+        lda logo_spritex+y*4 + 3                ; 4 get virtual last sprite position for line y
+        !!cycles = cycles - 4
+
+        sta vic.sprite3_x                       ; 4 set VIC sprite positions for last sprites
+        !!cycles = cycles - 4
+
+        !if (cycles < 0) {
+            !error "cycles cannot be less than zero"
+        } else {
+            !!utils.debug([cycles, "remaining cycles"])
+        }
+
+        +waste_cycles(cycles)                   ; waste remaining cycles in the rasterline (14)
+    }   
+
+    +cpu_time_start()
+    jsr update_logo_wobble                      ; this routine is executed after the sprite, for next frame
+    +cpu_time_stop()
+
+    +irq_end(irq_top, IRQ_TOP_LINE, TRUE)
+end:
+}
+
+; ------------------------------------------------------------------------------------------
+; update_logo_wobble sub routine
+; Compute next frame sprites positions
+; ------------------------------------------------------------------------------------------
+update_logo_wobble: {
+    ldx #0                      ; x = 0 (x counter increases of 4 each loop)
+yloop:
+    txa                         ; a = x
+    clc                         
+    adc logo_phase              ; a = logo_phase + x
+    tay                         ; y = a
+
+    lda sintab, y               ; get sintab value at index y=logo_phase+x
+    sta zp.tmp2                 ; copy to zp
+
+    txa                         ; a = x 
+    tay                         ; y = x
+
+    lda zp.tmp2                 ; reload sin value
+    clc
+    adc #64                     ; a = sin + 64
+    sta logo_spritex+0, y       ; set virtual sprite x position
+    clc
+    adc #24*2                   ; a = sin + 64 + 48
+    sta logo_spritex+1, y       ; set virtual next sprite position
+    clc
+    adc #24*2                   ; a = sin + 64 + 48 + 48
+    sta logo_spritex+2, y       ; set virtual next sprite position
+    clc
+    adc #24*2                   ; a = sin + 64 + 48 + 48
+    sta logo_spritex+3, y       ; set virtual last sprite position
+
+    txa                         ; a = x
+    clc     
+    adc #4                      ; a = x + 4
+    tax                         ; x = a
+    cpx #21*4*2                 ; if x != 42*4, loop 
+    bne yloop
+
+    lda logo_phase              ; set next logo_phase
+    clc                 
+    adc #-5                     ; set speed, how fast the index advances in the table
+    sta logo_phase
+    rts
+}
+
+; ------------------------------------------------------------------------------------------
+; data
+; ------------------------------------------------------------------------------------------
+logo_phase:
+    !byte 0
+
+!align 256
+sintab:
+    !let scale = 12
+    !for i in range(sintab_len) {
+        !byte Math.sin(i/sintab_len*Math.PI*2)*scale + scale
+    }
+
+logo_spritex:
+    !for y in range(21*2) {     ; create 42 (double height) 4-bytes data
+        !for s in range(4) {    ; containing for each sprite (4)
+            !byte 64+s*24*2     ; the current x position, init at 64 + (24*spr_nb)
+        }
+    }
+
+; ------------------------------------------------------------------------------------------
+; Sprite data set at $2000 (by specs)
+; ------------------------------------------------------------------------------------------
+* = $2000
+!let bintris_spd = spd("logo.spd")
+bintris_sprite: 
+    !byte bintris_spd.data[0]
+    !byte bintris_spd.data[1]
+    !byte bintris_spd.data[2]
+    !byte bintris_spd.data[3]
+!! utils.debug("-- End of pass --")
+

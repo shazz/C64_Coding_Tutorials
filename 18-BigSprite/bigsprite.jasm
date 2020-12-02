@@ -1,0 +1,132 @@
+!let debug = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let desc = loadJson("data/skull4_i20.json")
+!!utils.debug(desc)
+!let DATA_FILE = desc.datafile
+!let BACK_COLOR = desc.background_color
+!let MULTI_COLOR1 = desc.multi_color1
+!let MULTI_COLOR2 = desc.multi_color2
+!let SPRITE_COLOR = desc.sprite_color
+!let SPRITE_COLS = 8
+!let SPRITE_ROWS = desc.nb_rows
+!let INTERLEAVE = desc.interleave
+
+!let IRQ_RASTERLINE = 10
+!let TOP_POS = 50
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic
+    sta $01         			                    ; $e000-$ffff
+    +setup_irq(irq, IRQ_RASTERLINE)
+    cli							                    ; set up irq to replace the kernal IRQ
+
+    lda #%00010100                                  ; default: 0001 010 0 => text mem at $1000,    
+    sta vic.mem_setup                               ; set Memory setup register to char memory 4 (3 bits $2000-$27FF,) screen memory to 1 ($0400-$07FF)
+
+    +clear_screen({"clearByte": $20, "screen": $0400, usePtr: FALSE})
+
+	lda #0
+    sta vic.sprite_dblx  	                        ; no double width
+    sta vic.sprite_dblh			                    ; no double height
+	sta vic.sprite_pri	        		            ; no priority
+
+    lda #%11111111                                  ; all 8 sprites multicolor
+    sta vic.sprite_colmode                          ; single color sprites
+
+    lda #BACK_COLOR
+    sta vic.bck_col                                 ; set window color to charset transparent color
+    sta vic.border_col                              ; set border color to charset transparent color
+
+    lda #MULTI_COLOR1                               ; set sprite first shared color
+    sta vic.sprite_extra_col1
+
+    lda #MULTI_COLOR2                               ; set sprite first shared color
+    sta vic.sprite_extra_col2
+
+    lda #SPRITE_COLOR                               ; set sprite specific color
+    !for i in range(SPRITE_COLS) {
+        sta vic.sprite0_color+i
+    }
+
+    !for x in range(8) {
+        lda #80+(x*24)                              ; set fixed x positions (80+24+...)
+        sta vic.sprite0_x+(x*2)
+    }
+
+	lda #(1<<SPRITE_COLS)-1		       
+	sta vic.sprite_en		                        ; enable sprites
+
+forever: 
+    jmp forever                                     ; at this point, only IRQs do something
+}
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+
+; this IRQ will be repeated / modified for each row of sprite, then setup the next
+irq: {
+    !for i in range(SPRITE_ROWS) {
+        +irq_start(end)
+
+        +cpu_time_start()
+
+        lda #TOP_POS+(i*21)-INTERLEAVE
+        !for y in range(8) {
+            sta vic.sprite0_y+(y*2)                 ; adjust next Y positions starting at TOP_POS, +21 pixels,..
+        }
+
+        !for spr in range(SPRITE_COLS) {
+            lda #(sprite_data+($200*i)+(spr*64))/64 ; set sprites pointer to next row (one row = 64*8=512=$200 bytes)
+            sta $07f8+spr     		
+        }
+
+        +cpu_time_stop()
+
+        !if (i == SPRITE_ROWS-1) {
+            +irq_end(irq, IRQ_RASTERLINE, TRUE)     ; last loop turn, go back to top
+        } else {
+            nop                                     ; marker for debugging :)
+            +irq_end(*+33, TOP_POS+21+(i*21)-2-INTERLEAVE, TRUE)    ; jump to next IRQ at rasterline +20. +irq_end generates 33 bytes
+        }
+    end:
+    }
+}
+
+; ------------------------------------------------------------------------------------------
+; Data
+; ------------------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------------------
+; Segment $2000: displayed sprites, set by vic.mem_setup
+; ------------------------------------------------------------------------------------------
+* = $2000
+; sprite_data: !fill 512, 0
+sprite_data: !binary DATA_FILE

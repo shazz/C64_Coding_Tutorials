@@ -1,0 +1,130 @@
+.var N_ACTOR = 32               // Must be even.
+        
+        // Zero-page variables:
+
+ypos:   .fill   N_ACTOR, 0      // External input.
+
+loptr:  .fill   32, 0
+hiptr:  .fill   28, 0
+one_time_init:
+        lda     #>lonext
+.for(var i = 0; i < 16; i++) {
+        sta     loptr+i*2+1
+}
+        lda     #>hinext
+.for(var i = 0; i < 14; i++) {
+        sta     hiptr+i*2+1
+}
+        rts
+sort_actors:
+        // Stages 1 and 4:
+
+        // The clean version:
+
+        // .for(i = 0; i < 16; i++) {
+        //      lda     #<join_lo+1+i*4
+        //      sta     loptr+(15-i)*2
+        // }
+        // .for(i = 0; i < 14; i++) {
+        //      lda     #<join_hi+1+i*4
+        //      sta     hiptr+(13-i)*2
+        // }
+
+        // But instead we do the following:
+
+        ldx     #$fb
+.for(var i = 0; i < 8; i++) {
+        lda     #<join_lo+1+i*8+4
+        sax     loptr+(15-i*2)*2
+        sta     loptr+(14-i*2)*2
+        .if(i != 7) {
+        sax     hiptr+(13-i*2)*2
+        sta     hiptr+(12-i*2)*2
+        }
+}
+        // 2 + 8 * 14 - 6 = 108
+
+        // Stage 2:
+
+.for(var i = 0; i < N_ACTOR; i++) {
+        ldy     ypos+i
+        ldx     lobits,y
+        lda     #i
+        sta     (loptr,x)
+        sta     loptr,x
+}
+        ldy     #0
+        jmp     join_lo
+
+        // 32 * 19 + 5 = 613
+
+        .align  $100
+lobits:
+        .fill   $100, (i & 15) * 2
+lonext:
+        .fill   N_ACTOR, 0
+
+        // Stage 3:
+
+        .align  8
+join_lo:
+.for(var i = 14; i >= 0; i--) {
+        lda     #0      // operand is first[i+1]
+        sta     (loptr+2*i),y
+}
+        lda     #0      // operand is first[0]
+
+        // 15 * 8 + 2 = 122
+
+        // Stage 5:
+
+        tax
+.for(var i = 0; i < N_ACTOR; i++) {
+        ldy     ypos,x
+        ldx     hibits,y
+        sta     (hiptr,x)
+        sta     hiptr,x
+        .if(i != N_ACTOR - 1) {
+        tay
+        lax     lonext,y
+        }
+}
+        ldy     #0
+        jmp     join_hi
+
+        // 2 + 32 * 24 - 6 + 5 = 769
+
+        .align  $100
+hibits:
+        .fill   $100, (i >> 4) * 2
+hinext:
+        .fill   N_ACTOR, 0
+
+        // Stage 6:
+
+        .align  8
+join_hi:
+.for(var i = 12; i >= 0; i--) {
+        lda     #0      // operand is first[i+1]
+        sta     (hiptr+2*i),y
+}
+        lda     #0      // operand is first[0]
+
+        // 13 * 8 + 2 = 106
+
+        // Stage 7:
+.for(var i = 0; i < N_ACTOR; i += 2) {
+        pha
+        tay
+        lax     hinext,y
+        pha
+        .if(i != N_ACTOR - 2) {
+        lda     hinext,x
+        }
+}
+        // 16 * 16 - 4 = 252
+
+        // Total cycle count:
+        // 108 + 613 + 122 + 769 + 106 + 252 = 1970
+
+        // Note: Don't rts here, since there is data on the stack.

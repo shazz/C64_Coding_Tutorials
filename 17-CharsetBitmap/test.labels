@@ -1,0 +1,13 @@
+080d    1 entry
+080e   28 entry::start
+082a    9 entry::cont
+0833    2 entry::update
+0835   12 entry::copy_data
+0841    1 current_ptr
+0842   10 data_ptr
+084c  192 data1
+090c  192 data2
+09cc  192 data3
+0a8c  192 data4
+0b4c 5300 data5
+2000  192 dest

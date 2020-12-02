@@ -1,0 +1,383 @@
+; ------------------------------------------------------------------------------------------
+; Macros
+; ------------------------------------------------------------------------------------------
+
+!use "../macros/utils" as utils
+
+; ------------------------------------------------------------------------------------------
+; define bool
+; ------------------------------------------------------------------------------------------
+!let FALSE = 0
+!let TRUE = 1
+
+; ------------------------------------------------------------------------------------------
+; basic start
+; generate a compatible BASIC header
+; ------------------------------------------------------------------------------------------
+!macro basic_start(addr) {
+* = $801
+    !byte $0c
+    !byte $08
+    !byte $00
+    !byte $00
+    !byte $9e
+    
+!if (addr >= 10000) {
+    !byte $30 + (addr/10000)%10
+}
+!if (addr >= 1000) {
+    !byte $30 + (addr/1000)%10
+}
+!if (addr >= 100) {
+    !byte $30 + (addr/100)%10
+}
+!if (addr >= 10) {
+    !byte $30 + (addr/10)%10
+}
+    !byte $30 + addr % 10
+    !byte 0, 0, 0
+
+    !!utils.debug(["After basic header, program start at", *])
+}
+
+; ------------------------------------------------------------------------------------------
+; Color enum
+; Replace each C64 color value by its name
+; ------------------------------------------------------------------------------------------
+!let color = {
+    black       : $0,
+    white       : $1,
+    red         : $2,
+    cyan        : $3,
+    purple      : $4,
+    green       : $5,
+    blue        : $6,
+    yellow      : $7,
+    orange      : $8,
+    brown       : $9,
+    light_red   : $a,
+    dark_grey   : $b,
+    grey        : $c,
+    light_green : $d,
+    light_blue  : $e,
+    light_grey  : $f
+}
+
+; ------------------------------------------------------------------------------------------
+; VIC Enum
+; Declare VIC registers
+; ------------------------------------------------------------------------------------------
+!let vic = {
+    start               : $d000,
+    sprite0_x           : $d000,
+    sprite0_y           : $d001,
+    sprite1_x           : $d002,
+    sprite1_y           : $d003,
+    sprite2_x           : $d004,
+    sprite2_y           : $d005,
+    sprite3_x           : $d006,
+    sprite3_y           : $d007,
+    sprite4_x           : $d008,
+    sprite4_y           : $d009,
+    sprite5_x           : $d00a,
+    sprite5_y           : $d00b,
+    sprite6_x           : $d00c,
+    sprite6_y           : $d00d,
+    sprite7_x           : $d00e,
+    sprite7_y           : $d00f,
+    sprites_x           : $d010,
+    scr_ctrl            : $d011,
+    raster_line         : $d012,
+    lightpen_x          : $d013,
+    lightpen_y          : $d014,
+    sprite_en           : $d015,
+    scr_ctrl2           : $d016,
+    sprite_dblh         : $d017,
+    mem_setup           : $d018,
+    irq_status          : $d019,
+    irq_ctrl            : $d01a,
+    sprite_pri          : $d01b,
+    sprite_colmode      : $d01c,
+    sprite_dblx         : $d01d,
+    sprite_spr_coll     : $d01e,
+    sprite_bck_coll     : $d01f,
+    border_col          : $d020,
+    bck_col             : $d021,
+    back_extra_col1     : $d022,
+    back_extra_col2     : $d023,
+    back_extra_col3     : $d024,
+    sprite_extra_col1   : $d025,
+    sprite_extra_col2   : $d026,
+    sprite0_color       : $d027,
+    sprite1_color       : $d028,
+    sprite2_color       : $d029,
+    sprite3_color       : $d02a,
+    sprite4_color       : $d02b,
+    sprite5_color       : $d02c,
+    sprite6_color       : $d02d,
+    sprite7_color       : $d02e,
+}
+
+; ------------------------------------------------------------------------------------------
+; clear_screen(clearByte, screen)
+; Clear the screen RAM (all 1024 bytes) from a given address with a given character
+; ------------------------------------------------------------------------------------------
+!macro clear_screen(args) {
+    !if (args.usePtr) {
+        lda args.clearByte
+    } else {
+        lda #args.clearByte
+    }
+    ldx #0
+loop:
+    !let screen = args.screen
+    sta screen, x
+    sta screen + $100, x
+    sta screen + $200, x
+    sta screen + $300, x
+    inx
+    bne loop
+}
+
+;------------------------------------------------------------------------
+; setup_irq(irq_addr, irq_line) 
+; Set raster IRQ
+; TODO: add 9th bit for raster line > 255
+; -----------------------------------------------------------------------
+!macro setup_irq(irq_addr, irq_line) {
+    lda #$7f                ; $7f = 0111 1111
+    sta $dc0d               ; enable all interrupts
+    sta $dd0d               ; enable all NMI
+
+    lda #<irq_addr          ; set HW interrupt vector
+    ldx #>irq_addr
+    sta $fffe
+    stx $ffff
+
+    lda #$01            
+    sta $d01a               ; Enable Raster interrupt
+    lda #irq_line
+    sta $d012               ; Set raster interrupt to rasterline `irq_line`
+    !if (irq_line > 255) {
+        !error "this macro doesn't support setting the 9th bit of irq line"
+    }
+    lda $d011               ; load screen control register
+    and #$7f                ; ack raster interrupt (bit #8)
+    sta $d011       
+
+    asl $d019               ; Ack all interrupts
+    bit $dc0d               ; Enable all interrupts
+    bit $dd0d               ; Enable all NMI
+}
+
+;------------------------------------------------------------------------
+; end_irq(next_irq_addr, next_irq_line, irq_line_hi) 
+; Ack, end current raster IRQ and set new raster IRQ
+;------------------------------------------------------------------------
+!macro end_irq(next_irq_addr, next_irq_line, irq_line_hi, fixed_line) {
+    asl $d019               ; Ack all interrupts
+    lda #<next_irq_addr     ; Set next IRQ in hardware vector (no kernal)
+    sta $fffe
+    lda #>next_irq_addr
+    sta $ffff
+    !if (fixed_line) {
+        lda #next_irq_line      ; Set next raster line interrupt
+    } else {
+        lda next_irq_line      ; Set next raster line interrupt
+    }
+    sta $d012       
+    !if (irq_line_hi) {     ; if irq_line_hi, then 
+        lda $d011
+        ora #$80            ; 1000 0000
+        sta $d011           ; force raster line interrupt
+    } else {
+        lda $d011
+        and #$7f            ; clear raster line interrupt
+        sta $d011
+    }
+}
+
+;------------------------------------------------------------------------
+; irq_start(end_lbl)
+; set a,x,y registers
+;------------------------------------------------------------------------
+!macro irq_start(end_lbl) {
+    sta end_lbl-6
+    stx end_lbl-4
+    sty end_lbl-2
+}
+
+;------------------------------------------------------------------------
+; irq_end(next, line)
+; restore a,x,y registers then RTI (Kernal interrupt vector replacement)
+;------------------------------------------------------------------------
+!macro irq_end(next, line, fixed_line) {
+    +end_irq(next, line, FALSE, fixed_line)
+    lda #$00
+    ldx #$00
+    ldy #$00
+    rti
+}
+
+;------------------------------------------------------------------------
+; double_irq(end, stableIRQ)
+; setup stable raster 
+; IRQ NOTE: cannot be set on a badline or the second
+; interrupt happens before we store the stack pointer (among other things)
+;------------------------------------------------------------------------
+!macro double_irq(end, stableIRQ) {
+    ; The CPU cycles spent to get in here                       [7] 7
+    +irq_start(end)     ; 4+4+4 cycles                          [12] 19
+
+    lda #<stableIRQ     ; Set IRQ Vector                        [4] 23
+    ldx #>stableIRQ     ; to point to the                       [4] 27
+                        ; next part of the
+    sta $fffe           ; Stable IRQ                            [4] 31
+    stx $ffff           ;                                       [4] 35
+    inc $d012           ; set raster interrupt to the next line [6] 41
+    asl $d019           ; Ack raster interrupt                  [6] 47
+    tsx                 ; Store the stack pointer!              [2] 49
+    cli                 ;                                       [2] 51
+    ; Total spent cycles up to this point                       [51] 
+    nop                 ;                                       [53]
+    nop                 ;                                       [55]
+    nop                 ;                                       [57]
+    nop                 ;                                       [59]
+    nop                 ; Execute nop's                         [61]
+    nop                 ; until next RASTER                     [63]
+    nop                 ; IRQ Triggers
+}
+
+;------------------------------------------------------------------------
+; waste_cycles(n) 
+; setup stable raster IRQ NOTE: cannot be set on a badline or the second
+; interrupt happens before we store the stack pointer (among other things)
+;------------------------------------------------------------------------
+!macro waste_cycles(n) {
+    !let nops = Math.floor(n/2)
+    !let rem = n&1
+
+    !let c = n
+    !if (rem == 0) {
+        !for i in range(nops) {
+            nop
+            !!c = c - 2
+        }
+    } else {
+        !for i in range(nops-1) {
+            nop
+            !!c = c - 2
+        }
+        bit $fe
+        !!c = c - 3
+    }
+    !if (c != 0) {
+        !!utils.debug(["error", c, "cycles remainig on", n])
+        !error "Should not be here"
+    }
+    
+}
+
+;------------------------------------------------------------------------
+; cpu_time_start
+; set border CPU time
+;------------------------------------------------------------------------
+!macro cpu_time_start() {
+    !if (debug) {
+        inc vic.border_col
+    }
+}
+
+;------------------------------------------------------------------------
+; cpu_time_stop
+; unset border CPU time
+;------------------------------------------------------------------------
+!macro cpu_time_stop() {
+    !if (debug) {
+        dec vic.border_col
+    }
+}
+
+;------------------------------------------------------------------------
+; cpu_time_set_color
+; set border color, consumes 13 cycles
+;------------------------------------------------------------------------
+!macro cpu_time_set_color(color) {
+    !if (debug) {
+        !if (color > 15) {
+            !error "color has to be between 0 and 15"
+        }
+        pha                 ; 3
+        lda #color          ; 2
+        sta vic.border_col  ; 4
+        pla                 ; 4
+    }
+}
+
+;------------------------------------------------------------------------
+; add16(res, n1, n2)
+; 16bits addition
+;------------------------------------------------------------------------
+!macro add16(res, n1, n2) {
+    clc
+    lda n1
+    adc n2
+    sta res+0
+    lda n1+1
+    adc n2+1
+    sta res+1
+}
+
+;------------------------------------------------------------------------
+; inc16(n, val)
+; Add a 8bits value to a 16bits value
+;------------------------------------------------------------------------
+!macro inc16(n, val) {
+	clc		
+	lda n
+	adc #val
+	sta n
+    bcc ok             
+    inc n+1
+ok:
+}
+
+;------------------------------------------------------------------------
+; dec16(n, val)
+; Substracts a 8bits value to a 16bits value
+;------------------------------------------------------------------------
+!macro dec16(n, val) {
+	sec		
+	lda n
+	sbc #val
+	sta n
+    bcs ok             
+    dec n+1
+ok:
+}
+
+;------------------------------------------------------------------------
+; sub16(res, n1, n2) 
+; subtracts number 2 from number 1 and writes result out
+;------------------------------------------------------------------------
+!macro sub16(res, n1, n2) {
+    sec				    ; set carry for borrow purpose
+	lda n1
+	sbc n2			    ; perform subtraction on the LSBs
+	sta res+0
+	lda n1+1			; do the same for the MSBs, with carry
+	sbc n2+1			; set according to the previous result
+	sta res+1
+}
+
+;------------------------------------------------------------------------
+; mov16imm(res, v)
+; write in a 16bits memory address
+;------------------------------------------------------------------------
+!macro mov16imm(res, v) {
+    lda #<v
+    sta res+0
+    lda #>v
+    sta res+1
+}
+

@@ -1,0 +1,12 @@
+{
+    "source": "skull4.png",
+    "source_width": 96,
+    "source_height": 189,
+    "nb_rows": 9,
+    "interleave": 0,
+    "datafile": "data/skull4.bin",
+    "background_color": 0,
+    "multi_color1": 11,
+    "multi_color2": 15,
+    "sprite_color": 12
+}

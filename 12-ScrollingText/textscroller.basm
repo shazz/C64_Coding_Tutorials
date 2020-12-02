@@ -1,0 +1,146 @@
+; Program: Single row scroll loop
+; Author: Andrew Burch
+; Site: www.0xc64.com
+; Assembler: dasm
+; Notes: Use $d016 to scroll the single row
+;		8 pixels for a 1x1 text scroller
+;		added colour to head and tail of text row
+;
+		!section "main", $801
+		!byte $0b,$08,$01,$00,$9e,$32,$30,$36
+		!byte $31,$00,$00,$00 ;= SYS 2061
+
+		lda #00 			; black screen & background
+		sta $d020
+		sta $d021
+
+
+		ldx #40				; init colour map to color 1 (white) on line 24
+set_colors:		
+		lda #01				
+		sta $dbc0,X			; set color RAM to 1 since cell 920 => line 23 to 24
+		dex	
+		bpl set_colors		; loop 40 times = 1 line
+
+		sei					; set up interrupt
+		lda #$7f
+		sta $dc0d			; turn off the CIA interrupts
+		sta $dd0d
+		and $d011			; clear high bit of raster line
+		sta $d011		
+
+		ldy #00				; trigger int on first scan line
+		sty $d012
+
+		lda #<noscroll		; load interrupt address
+		ldx #>noscroll
+		sta $0314
+		stx $0315
+
+		lda #$01 			; enable raster interrupts
+		sta $d01a
+		cli
+		rts					; back to BASIC
+
+noscroll:
+		lda $d016			; default to no scroll on start of screen
+		and #248			; mask register to maintain higher bits: 1111 1000
+		sta $d016			; Screen control register #2. 
+							;    +----------+---------------------------------------------------+
+							;    | Bits 7-6 |    Unused                                         |
+							;    | Bit  5   |    Reset-Bit: 1 = Stop VIC (no Video Out, no RAM  |
+							;    |          |                   refresh, no bus access)         |
+							;    | Bit  4   |    Multi-Color Mode: 1 = Enable (Text or Bitmap)  |
+							;    | Bit  3   |    Select 38/40 Column Text Display: 1 = 40 Cols  |
+							;    | Bits 2-0 |    Smooth Scroll to X Dot-Position (0-7)          |
+							;    +----------+---------------------------------------------------+
+
+		ldy #242			; trigger scroll on last character row
+		sty $d012
+		lda #<scroll		; load interrupt address
+		ldx #>scroll
+		sta $0314
+		stx $0315
+		inc $d019			; acknowledge interrupt
+		jmp $ea31
+
+scroll:
+		lda $d016			; grab scroll register
+		and #248			; mask lower 3 bits
+		adc offset			; apply scroll (offet between 0 and 7)
+		sta $d016
+
+		dec offset			; update scroll
+		bpl resetsmooth
+		lda #07				; reset scroll offset
+		sta offset
+
+shiftrow:
+		ldx #00 			; shift characters to the left
+		lda $07c1,X			; get cell 961 and copy it to cell 960 and so on for 39 cells
+		sta $07c0,X			; $07c0 = cell 960 => line 24 of screen mem ($0400-$07e7)
+		inx
+		cpx #39
+		bne shiftrow+2
+
+		ldx nextcharpos		; insert next character when a line is fully shifted
+		lda message,X
+		sta $07e7			; on cell 999, last right cell of line 24
+		inx					; increase message offset
+
+		lda message,X		; get next screen char in message
+		cmp #$ff			; 
+		bne setcharpos		; if not 255  
+		ldx #00				; else reset to 0
+setcharpos:
+		stx nextcharpos		; store next message pos offset
+
+resetsmooth:
+		ldx offset			; update colour map
+		lda colours,X		; cell 960 (first of line 24)
+		sta	$dbc0
+		lda colours+8,X    	; cell 961 (2nd of line 24)
+		sta $dbc1
+		lda colours+16,X	; cell 998 (penultimate of lie 24)
+		sta	$dbe6
+		lda colours+24,X	; cell 999 (last cell of line 24)
+		sta $dbe7
+
+continue:	
+		ldy #00				; trigger on first scan line
+		sty $d012
+		lda #<noscroll		; load interrupt address
+		ldx #>noscroll
+		sta $0314
+		stx $0315
+		inc $d019			; acknowledge interrupt
+
+		jmp $ea31
+
+offset:		
+		!byte 07 	; start at 7 for left scroll
+nextcharpos:
+		!byte 00
+
+				
+message:;      -   -   =       1       x  	
+		!byte 45, 45, 61, 32, 49, 32, 24, 32
+		;      1       T   E   X   T       S
+		!byte 49, 32, 20, 05, 24, 20, 32, 19
+		;      C   R   O   L   L   E   R  
+		!byte 03, 18, 15, 12, 12, 05, 18, 32
+		;      B   Y       J   E   S   D   E
+		!byte 02, 25, 32, 10, 05, 19, 04, 05
+		;      R       @       W   W   W   . 
+		!byte 18, 32, 00, 32, 23, 23, 23, 46
+		;      0   X   C   6   4   .   C   O 
+		!byte 48, 24, 03, 54, 52, 46, 03, 15
+		;      M       =   -   - 
+		!byte 13, 32, 61, 45, 45, 32, 32, 32
+		!byte 32, 32, 32, 32, 32, 32, 32, 255
+
+colours:	
+		!byte 00, 00, 00, 00, 06, 06, 06, 06
+		!byte 14, 14, 14, 14, 03, 03, 03, 03
+		!byte 03, 03, 03, 03, 14, 14, 14, 14
+		!byte 06, 06, 06, 06, 00, 00, 00, 00

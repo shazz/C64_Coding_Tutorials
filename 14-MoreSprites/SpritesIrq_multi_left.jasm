@@ -1,0 +1,196 @@
+!let debug = 1 
+
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	sintab_counters: $20,
+	x_positions: $28,
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/maths" as maths
+!use "../macros/utils" as utils
+!use "../macros/spd" as spd
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let SPRITES_NB = 8
+!let SPRITES_SPACING = 42
+!let SIN_LEN = 80
+!let SIN_SCALE = 10
+!let SIN_SPACE = 10
+!let IRQ_RASTERLINE = 5
+!let SPEED_X = 4
+!let TOP_SIN = 60
+!let FIRST_UPDATE_IRQ_RASTERLINE = TOP_SIN + 16
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: 
+    sei
+    lda #$35        			; Bank out kernal and basic
+    sta $01         			; $e000-$ffff
+    +setup_irq(irq_top, IRQ_RASTERLINE)
+    cli							; set up a dummy irq to replace the kernal IRQ
+
+	+clear_screen({ screen: $0400, clearByte: $20 })
+
+	lda #0
+	sta vic.border_col
+	sta vic.bck_col
+    sta vic.sprite_dblx  	    ; no double width
+    sta vic.sprite_dblh			; no double height
+	sta vic.sprite_pri			; no priority
+
+	lda #(1<<SPRITES_NB)-1
+	sta vic.sprite_colmode		; single color sprites	
+
+	lda #$0b 					; sprite multicolor 1
+	sta $d025
+	lda #$01 					; sprite multicolor 2
+	sta $d026
+
+	lda #(1<<SPRITES_NB)-1		; set one bit per sprite
+	sta vic.sprite_en			; set 1 to register enable sprite 1 (Bit #x: 1 = Sprite #x is enabled, drawn onto the screen.)		
+
+!for i in range(SPRITES_NB) {
+	lda #i*SIN_SPACE			; initialize the sprites offset in the sintab
+	sta zp.sintab_counters+i	; easier with a macro to compute *SIN_SPACE
+
+	lda spr_cols+i				; set sprites 1st color
+	sta vic.sprite0_color+i	
+
+	!let pos_l = ((360/SPRITES_NB)+(i*SPRITES_SPACING)) & $ff
+	!let pos_h = (((360/SPRITES_NB)+(i*SPRITES_SPACING)) & $100) >> 8
+	!!utils.debug(((360/SPRITES_NB)+(i*SPRITES_SPACING)))
+	lda #pos_l
+	sta zp.x_positions+(2*i)
+	lda #pos_h
+	sta zp.x_positions+(2*i)+1
+}
+
+forever:
+	jmp forever
+
+irq_top: {
+    +irq_start(end)
+
+	+cpu_time_start()
+
+	lda #0
+
+    ldy #sprite_data/64				; a = $80 (128) to set sprite pointer to $2000, see next line
+    !for i in range(SPRITES_NB) {
+		sty $07f8+i	     			; set default area for sprite pointer 0 to 128*64 = 8192 ($2000) when our sprite data is located. *64 because each sprite is 64K
+
+		+dec16(zp.x_positions+(2*i), SPEED_X); move sprites to the left
+
+		lda zp.x_positions+(2*i)	; read sprite X position (low byte)
+		cmp #SPEED_X+1				; lsb_x - incr.x
+		bcs positive				; if negative, re-set the sprite to the far right
+
+		lda zp.x_positions+(2*i)+1	; check msb is set (means x > 255)
+		bne positive					
+		lda #84						; if yes, reset msb and lsb to 1 and 84 = 340
+		sta zp.x_positions+(2*i)	
+		lda #1
+		sta zp.x_positions+(2*i)+1
+positive:
+		ldx zp.sintab_counters+i	; get position in sintab
+		lda sintab, x
+		sta vic.sprite0_y+(i*2)		; set sprite #i Y-coordinate to 128    
+
+		lda zp.x_positions+(i*2)	; read sprite X position (low byte)
+		sta vic.sprite0_x+(i*2)		;
+check_y:
+		inc zp.sintab_counters+i	; if counter[i] = len(sintab) then counter[i] = 0
+		lda #SIN_LEN
+		cmp zp.sintab_counters+i
+		bne cont					; *+6 or *+7 if zp or not, go to next iteration in the loop (bne+lda+sta = 6/7 bytes)
+		lda #0
+  		sta zp.sintab_counters+i
+cont:
+	}
+	lda zp.x_positions+(2*(SPRITES_NB-1))+1		; get msb7 [6,5,4,3,2,1,0] 
+	!for i in utils.reverse(range(SPRITES_NB)) { 	
+		asl							; msb << 1
+		ora zp.x_positions+(2*i)+1	; or with msb-1
+	}
+	sta vic.sprites_x
+
+	+cpu_time_stop()
+
+	+irq_end(irq_update_y, rasterlines_ptr, FALSE)
+	; +irq_end(irq_top, IRQ_RASTERLINE, TRUE)
+
+end:
+}
+irq_update_y: {
+    +irq_start(end)					; backup a,x,y for both irq
+	+irq_start(update_rasterline)	
+
+	+cpu_time_start()
+
+    !for i in range(SPRITES_NB) {
+		lda vic.sprite0_y+(i*2)		; increment sprite y by sprite size + SIN_SCALE/2
+		clc
+		adc #21+(SIN_SCALE/2)
+		sta vic.sprite0_y+(i*2)
+	}
+
+	lda rasterlines_ptr				; update next rasterline irq
+	clc
+	adc #21+(SIN_SCALE/2)			; to the next horizontal zone
+	cmp #230
+	bcc update_rasterline			; else reset
+	lda #FIRST_UPDATE_IRQ_RASTERLINE
+	sta rasterlines_ptr
+	+cpu_time_stop()
+	+irq_end(irq_top, IRQ_RASTERLINE, TRUE)	; will restore registers and rti
+update_rasterline:
+	sta rasterlines_ptr
+	+cpu_time_stop()
+	+irq_end(irq_update_y, rasterlines_ptr, FALSE) ; will restore registers and rti
+end:
+}
+
+rasterlines_ptr: !byte FIRST_UPDATE_IRQ_RASTERLINE
+
+hb_pos_x: 
+	!!utils.debug("Computing high byte")
+	!let mask = 0
+    !for i in range(SPRITES_NB) {
+		mask = mask | (((320/SPRITES_NB)+(i*SPRITES_SPACING) & $100) >> (8-i))
+    }
+	!!utils.debug(maths.int_to_bin(mask))
+	!byte mask
+
+spr_cols: !byte color.cyan, color.red, color.blue, color.green, color.white, color.yellow, color.orange, color.purple 
+
+!let sinvals = maths.sintab(SIN_LEN, SIN_SCALE)
+sintab:
+!for v in sinvals {
+    !byte (TOP_SIN+SIN_SCALE/2)+v
+}
+end_sintag:
+
+* = $2000
+!let ball_spd = spd("ball.spd")
+sprite_data: !byte ball_spd.data[0]
+; sprite_data: !binary "sprite3.spr"       ; all of sprite3.spr, set to $2000 (8192)
+!! utils.debug("-- End of pass --")

@@ -1,0 +1,14 @@
+080d   60 entry
+0849  120 entry::__anon_scope_7::loop
+08c1    3 entry::forever
+08c4  115 irq
+0937  115 irq::__anon_scope_25::end
+09aa  115 irq::__anon_scope_52::end
+0a1d  115 irq::__anon_scope_79::end
+0a90  115 irq::__anon_scope_106::end
+0b03  115 irq::__anon_scope_133::end
+0b76  115 irq::__anon_scope_160::end
+0be9  115 irq::__anon_scope_187::end
+0c5c  114 irq::__anon_scope_214::end
+0cce 4914 irq::__anon_scope_241::end
+2000 4608 sprite_data

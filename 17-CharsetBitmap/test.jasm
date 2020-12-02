@@ -1,0 +1,86 @@
+!let debug = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	charset_loptr: $FB,   ; 1 byte
+	charset_hiptr: $FC,   ; 1 byte
+	charset_ptr: $FD
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/maths" as maths
+!use "../macros/utils" as utils
+!use "../macros/spd" as spd
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+
+    nop
+start:
+
+    lda current_ptr ; 2, 3
+    asl             ; 1, 2 
+    tax             ; 1, 2
+
+    ldx current_ptr ; 2, 3
+    lda data_ptr, x            ; take lo byte of 'buf' address
+    sta copy_data+1
+    lda data_ptr+1, x           ; take hi byte of 'buf' address
+    sta copy_data+2
+
+    inx             ; 1, 2
+    inx             ; 1, 2
+    cpx #5*2
+    bne cont
+    ldx #0
+cont:
+    stx current_ptr
+
+	jsr update
+
+    jmp start
+
+update: 
+	ldy #0
+copy_data:
+	lda $1234, y
+	sta dest, y
+	iny
+	cpy #192
+	bne copy_data
+
+	rts
+}
+
+current_ptr: !byte 0
+
+; data_ptr: !word data1, data2, data3, data4, data5
+data_ptr: !byte <data1, >data2
+
+data1: !fill 192, 1
+data2: !fill 192, 2
+data3: !fill 192, 3
+data4: !fill 192, 4
+data5: !fill 192, 5
+
+* = $2000
+dest: !fill 192, 0

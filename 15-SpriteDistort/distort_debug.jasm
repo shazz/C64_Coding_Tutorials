@@ -1,0 +1,1441 @@
+0801: 0C 08 00 00 9E 32 30 36
+0809: 31 00 00 00
+080D: A9 00    entry                                            LDA #$00	; #2
+080F: 8D 20 D0                                                  STA $D020	; #4
+0812: 8D 21 D0                                                  STA $D021	; #4
+0815: A9 20                                                     LDA #$20	; #2
+0817: A2 00                                                     LDX #$00	; #2
+0819: 9D 00 04 entry::__anon_scope_5::loop                      STA $0400,X	; #5
+081C: 9D 00 05                                                  STA $0500,X	; #5
+081F: 9D 00 06                                                  STA $0600,X	; #5
+0822: 9D 00 07                                                  STA $0700,X	; #5
+0825: E8                                                        INX	; #2
+0826: D0 F1                                                     BNE $0819	; #2
+0828: 78                                                        SEI	; #2
+0829: A9 35                                                     LDA #$35	; #2
+082B: 85 01                                                     STA $01	; #3
+082D: A9 7F                                                     LDA #$7F	; #2
+082F: 8D 0D DC                                                  STA $DC0D	; #4
+0832: 8D 0D DD                                                  STA $DD0D	; #4
+0835: A9 B4                                                     LDA #$B4	; #2
+0837: A2 08                                                     LDX #$08	; #2
+0839: 8D FE FF                                                  STA $FFFE	; #4
+083C: 8E FF FF                                                  STX $FFFF	; #4
+083F: A9 01                                                     LDA #$01	; #2
+0841: 8D 1A D0                                                  STA $D01A	; #4
+0844: A9 14                                                     LDA #$14	; #2
+0846: 8D 12 D0                                                  STA $D012	; #4
+0849: AD 11 D0                                                  LDA $D011	; #4
+084C: 29 7F                                                     AND #$7F	; #2
+084E: 8D 11 D0                                                  STA $D011	; #4
+0851: 0E 19 D0                                                  ASL $D019	; #6
+0854: 2C 0D DC                                                  BIT $DC0D	; #4
+0857: 2C 0D DD                                                  BIT $DD0D	; #4
+085A: 58                                                        CLI	; #2
+085B: 4C 5B 08                                                  JMP $085B	; #3
+085E: A9 0F    enable_sprites                                   LDA #$0F	; #2
+0860: 8D 1D D0                                                  STA $D01D	; #4
+0863: 8D 17 D0                                                  STA $D017	; #4
+0866: A9 0F                                                     LDA #$0F	; #2
+0868: 8D 1C D0                                                  STA $D01C	; #4
+086B: 8D 15 D0                                                  STA $D015	; #4
+086E: A9 80                                                     LDA #$80	; #2
+0870: A2 00                                                     LDX #$00	; #2
+0872: 9D F8 07 enable_sprites::set_spr_ptr_and_color            STA $07F8,X	; #5
+0875: 18                                                        CLC	; #2
+0876: 69 01                                                     ADC #$01	; #2
+0878: A8                                                        TAY	; #2
+0879: A9 01                                                     LDA #$01	; #2
+087B: 9D 27 D0                                                  STA $D027,X	; #5
+087E: 98                                                        TYA	; #2
+087F: E8                                                        INX	; #2
+0880: E0 04                                                     CPX #$04	; #2
+0882: D0 EE                                                     BNE $0872	; #2
+0884: A9 01                                                     LDA #$01	; #2
+0886: 8D 25 D0                                                  STA $D025	; #4
+0889: 8D 26 D0                                                  STA $D026	; #4
+088C: A9 00                                                     LDA #$00	; #2
+088E: 8D 10 D0                                                  STA $D010	; #4
+0891: A0 32                                                     LDY #$32	; #2
+0893: A2 40                                                     LDX #$40	; #2
+0895: 8E 00 D0                                                  STX $D000	; #4
+0898: 8C 01 D0                                                  STY $D001	; #4
+089B: A2 58                                                     LDX #$58	; #2
+089D: 8E 02 D0                                                  STX $D002	; #4
+08A0: 8C 03 D0                                                  STY $D003	; #4
+08A3: A2 70                                                     LDX #$70	; #2
+08A5: 8E 04 D0                                                  STX $D004	; #4
+08A8: 8C 05 D0                                                  STY $D005	; #4
+08AB: A2 88                                                     LDX #$88	; #2
+08AD: 8E 06 D0                                                  STX $D006	; #4
+08B0: 8C 07 D0                                                  STY $D007	; #4
+08B3: 60                                                        RTS	; #6
+08B4: 8D E0 08 irq_top                                          STA $08E0	; #4
+08B7: 8E E2 08                                                  STX $08E2	; #4
+08BA: 8C E4 08                                                  STY $08E4	; #4
+08BD: A9 18                                                     LDA #$18	; #2
+08BF: 8D 11 D0                                                  STA $D011	; #4
+08C2: 20 5E 08                                                  JSR $085E	; #6
+08C5: 0E 19 D0                                                  ASL $D019	; #6
+08C8: A9 E6                                                     LDA #$E6	; #2
+08CA: 8D FE FF                                                  STA $FFFE	; #4
+08CD: A9 08                                                     LDA #$08	; #2
+08CF: 8D FF FF                                                  STA $FFFF	; #4
+08D2: A9 31                                                     LDA #$31	; #2
+08D4: 8D 12 D0                                                  STA $D012	; #4
+08D7: AD 11 D0                                                  LDA $D011	; #4
+08DA: 29 7F                                                     AND #$7F	; #2
+08DC: 8D 11 D0                                                  STA $D011	; #4
+08DF: A9 00                                                     LDA #$00	; #2
+08E1: A2 00                                                     LDX #$00	; #2
+08E3: A0 00                                                     LDY #$00	; #2
+08E5: 40                                                        RTI	; #6
+08E6: 8D 17 0F irq_top::end                                     STA $0F17	; #4
+08E9: 8E 19 0F                                                  STX $0F19	; #4
+08EC: 8C 1B 0F                                                  STY $0F1B	; #4
+08EF: A9 08                                                     LDA #$08	; #2
+08F1: A2 09                                                     LDX #$09	; #2
+08F3: 8D FE FF                                                  STA $FFFE	; #4
+08F6: 8E FF FF                                                  STX $FFFF	; #4
+08F9: EE 12 D0                                                  INC $D012	; #6
+08FC: 0E 19 D0                                                  ASL $D019	; #6
+08FF: BA                                                        TSX	; #2
+0900: 58                                                        CLI	; #2
+0901: EA                                                        NOP	; #2
+0902: EA                                                        NOP	; #2
+0903: EA                                                        NOP	; #2
+0904: EA                                                        NOP	; #2
+0905: EA                                                        NOP	; #2
+0906: EA                                                        NOP	; #2
+0907: EA                                                        NOP	; #2
+0908: 9A       irq_warp::irq                                    TXS	; #2
+0909: 24 FE                                                     BIT $FE	; #3
+090B: A9 1B                                                     LDA #$1B	; #2
+090D: 8D 11 D0                                                  STA $D011	; #4
+0910: AD 00 11                                                  LDA $1100	; #4
+0913: AE 01 11                                                  LDX $1101	; #4
+0916: AC 02 11                                                  LDY $1102	; #4
+0919: 8D 00 D0                                                  STA $D000	; #4
+091C: 8E 02 D0                                                  STX $D002	; #4
+091F: 8C 04 D0                                                  STY $D004	; #4
+0922: AD 03 11                                                  LDA $1103	; #4
+0925: 8D 06 D0                                                  STA $D006	; #4
+0928: EA                                                        NOP	; #2
+0929: EA                                                        NOP	; #2
+092A: EA                                                        NOP	; #2
+092B: EA                                                        NOP	; #2
+092C: EA                                                        NOP	; #2
+092D: EA                                                        NOP	; #2
+092E: EA                                                        NOP	; #2
+092F: A9 1C                                                     LDA #$1C	; #2
+0931: 8D 11 D0                                                  STA $D011	; #4
+0934: AD 04 11                                                  LDA $1104	; #4
+0937: AE 05 11                                                  LDX $1105	; #4
+093A: AC 06 11                                                  LDY $1106	; #4
+093D: 8D 00 D0                                                  STA $D000	; #4
+0940: 8E 02 D0                                                  STX $D002	; #4
+0943: 8C 04 D0                                                  STY $D004	; #4
+0946: AD 07 11                                                  LDA $1107	; #4
+0949: 8D 06 D0                                                  STA $D006	; #4
+094C: EA                                                        NOP	; #2
+094D: EA                                                        NOP	; #2
+094E: EA                                                        NOP	; #2
+094F: EA                                                        NOP	; #2
+0950: EA                                                        NOP	; #2
+0951: EA                                                        NOP	; #2
+0952: EA                                                        NOP	; #2
+0953: A9 1D                                                     LDA #$1D	; #2
+0955: 8D 11 D0                                                  STA $D011	; #4
+0958: AD 08 11                                                  LDA $1108	; #4
+095B: AE 09 11                                                  LDX $1109	; #4
+095E: AC 0A 11                                                  LDY $110A	; #4
+0961: 8D 00 D0                                                  STA $D000	; #4
+0964: 8E 02 D0                                                  STX $D002	; #4
+0967: 8C 04 D0                                                  STY $D004	; #4
+096A: AD 0B 11                                                  LDA $110B	; #4
+096D: 8D 06 D0                                                  STA $D006	; #4
+0970: EA                                                        NOP	; #2
+0971: EA                                                        NOP	; #2
+0972: EA                                                        NOP	; #2
+0973: EA                                                        NOP	; #2
+0974: EA                                                        NOP	; #2
+0975: EA                                                        NOP	; #2
+0976: EA                                                        NOP	; #2
+0977: A9 1E                                                     LDA #$1E	; #2
+0979: 8D 11 D0                                                  STA $D011	; #4
+097C: AD 0C 11                                                  LDA $110C	; #4
+097F: AE 0D 11                                                  LDX $110D	; #4
+0982: AC 0E 11                                                  LDY $110E	; #4
+0985: 8D 00 D0                                                  STA $D000	; #4
+0988: 8E 02 D0                                                  STX $D002	; #4
+098B: 8C 04 D0                                                  STY $D004	; #4
+098E: AD 0F 11                                                  LDA $110F	; #4
+0991: 8D 06 D0                                                  STA $D006	; #4
+0994: EA                                                        NOP	; #2
+0995: EA                                                        NOP	; #2
+0996: EA                                                        NOP	; #2
+0997: EA                                                        NOP	; #2
+0998: EA                                                        NOP	; #2
+0999: EA                                                        NOP	; #2
+099A: EA                                                        NOP	; #2
+099B: A9 1F                                                     LDA #$1F	; #2
+099D: 8D 11 D0                                                  STA $D011	; #4
+09A0: AD 10 11                                                  LDA $1110	; #4
+09A3: AE 11 11                                                  LDX $1111	; #4
+09A6: AC 12 11                                                  LDY $1112	; #4
+09A9: 8D 00 D0                                                  STA $D000	; #4
+09AC: 8E 02 D0                                                  STX $D002	; #4
+09AF: 8C 04 D0                                                  STY $D004	; #4
+09B2: AD 13 11                                                  LDA $1113	; #4
+09B5: 8D 06 D0                                                  STA $D006	; #4
+09B8: EA                                                        NOP	; #2
+09B9: EA                                                        NOP	; #2
+09BA: EA                                                        NOP	; #2
+09BB: EA                                                        NOP	; #2
+09BC: EA                                                        NOP	; #2
+09BD: EA                                                        NOP	; #2
+09BE: EA                                                        NOP	; #2
+09BF: A9 18                                                     LDA #$18	; #2
+09C1: 8D 11 D0                                                  STA $D011	; #4
+09C4: AD 14 11                                                  LDA $1114	; #4
+09C7: AE 15 11                                                  LDX $1115	; #4
+09CA: AC 16 11                                                  LDY $1116	; #4
+09CD: 8D 00 D0                                                  STA $D000	; #4
+09D0: 8E 02 D0                                                  STX $D002	; #4
+09D3: 8C 04 D0                                                  STY $D004	; #4
+09D6: AD 17 11                                                  LDA $1117	; #4
+09D9: 8D 06 D0                                                  STA $D006	; #4
+09DC: EA                                                        NOP	; #2
+09DD: EA                                                        NOP	; #2
+09DE: EA                                                        NOP	; #2
+09DF: EA                                                        NOP	; #2
+09E0: EA                                                        NOP	; #2
+09E1: EA                                                        NOP	; #2
+09E2: EA                                                        NOP	; #2
+09E3: A9 19                                                     LDA #$19	; #2
+09E5: 8D 11 D0                                                  STA $D011	; #4
+09E8: AD 18 11                                                  LDA $1118	; #4
+09EB: AE 19 11                                                  LDX $1119	; #4
+09EE: AC 1A 11                                                  LDY $111A	; #4
+09F1: 8D 00 D0                                                  STA $D000	; #4
+09F4: 8E 02 D0                                                  STX $D002	; #4
+09F7: 8C 04 D0                                                  STY $D004	; #4
+09FA: AD 1B 11                                                  LDA $111B	; #4
+09FD: 8D 06 D0                                                  STA $D006	; #4
+0A00: EA                                                        NOP	; #2
+0A01: EA                                                        NOP	; #2
+0A02: EA                                                        NOP	; #2
+0A03: EA                                                        NOP	; #2
+0A04: EA                                                        NOP	; #2
+0A05: EA                                                        NOP	; #2
+0A06: EA                                                        NOP	; #2
+0A07: A9 1A                                                     LDA #$1A	; #2
+0A09: 8D 11 D0                                                  STA $D011	; #4
+0A0C: AD 1C 11                                                  LDA $111C	; #4
+0A0F: AE 1D 11                                                  LDX $111D	; #4
+0A12: AC 1E 11                                                  LDY $111E	; #4
+0A15: 8D 00 D0                                                  STA $D000	; #4
+0A18: 8E 02 D0                                                  STX $D002	; #4
+0A1B: 8C 04 D0                                                  STY $D004	; #4
+0A1E: AD 1F 11                                                  LDA $111F	; #4
+0A21: 8D 06 D0                                                  STA $D006	; #4
+0A24: EA                                                        NOP	; #2
+0A25: EA                                                        NOP	; #2
+0A26: EA                                                        NOP	; #2
+0A27: EA                                                        NOP	; #2
+0A28: EA                                                        NOP	; #2
+0A29: EA                                                        NOP	; #2
+0A2A: EA                                                        NOP	; #2
+0A2B: A9 1B                                                     LDA #$1B	; #2
+0A2D: 8D 11 D0                                                  STA $D011	; #4
+0A30: AD 20 11                                                  LDA $1120	; #4
+0A33: AE 21 11                                                  LDX $1121	; #4
+0A36: AC 22 11                                                  LDY $1122	; #4
+0A39: 8D 00 D0                                                  STA $D000	; #4
+0A3C: 8E 02 D0                                                  STX $D002	; #4
+0A3F: 8C 04 D0                                                  STY $D004	; #4
+0A42: AD 23 11                                                  LDA $1123	; #4
+0A45: 8D 06 D0                                                  STA $D006	; #4
+0A48: EA                                                        NOP	; #2
+0A49: EA                                                        NOP	; #2
+0A4A: EA                                                        NOP	; #2
+0A4B: EA                                                        NOP	; #2
+0A4C: EA                                                        NOP	; #2
+0A4D: EA                                                        NOP	; #2
+0A4E: EA                                                        NOP	; #2
+0A4F: A9 1C                                                     LDA #$1C	; #2
+0A51: 8D 11 D0                                                  STA $D011	; #4
+0A54: AD 24 11                                                  LDA $1124	; #4
+0A57: AE 25 11                                                  LDX $1125	; #4
+0A5A: AC 26 11                                                  LDY $1126	; #4
+0A5D: 8D 00 D0                                                  STA $D000	; #4
+0A60: 8E 02 D0                                                  STX $D002	; #4
+0A63: 8C 04 D0                                                  STY $D004	; #4
+0A66: AD 27 11                                                  LDA $1127	; #4
+0A69: 8D 06 D0                                                  STA $D006	; #4
+0A6C: EA                                                        NOP	; #2
+0A6D: EA                                                        NOP	; #2
+0A6E: EA                                                        NOP	; #2
+0A6F: EA                                                        NOP	; #2
+0A70: EA                                                        NOP	; #2
+0A71: EA                                                        NOP	; #2
+0A72: EA                                                        NOP	; #2
+0A73: A9 1D                                                     LDA #$1D	; #2
+0A75: 8D 11 D0                                                  STA $D011	; #4
+0A78: AD 28 11                                                  LDA $1128	; #4
+0A7B: AE 29 11                                                  LDX $1129	; #4
+0A7E: AC 2A 11                                                  LDY $112A	; #4
+0A81: 8D 00 D0                                                  STA $D000	; #4
+0A84: 8E 02 D0                                                  STX $D002	; #4
+0A87: 8C 04 D0                                                  STY $D004	; #4
+0A8A: AD 2B 11                                                  LDA $112B	; #4
+0A8D: 8D 06 D0                                                  STA $D006	; #4
+0A90: EA                                                        NOP	; #2
+0A91: EA                                                        NOP	; #2
+0A92: EA                                                        NOP	; #2
+0A93: EA                                                        NOP	; #2
+0A94: EA                                                        NOP	; #2
+0A95: EA                                                        NOP	; #2
+0A96: EA                                                        NOP	; #2
+0A97: A9 1E                                                     LDA #$1E	; #2
+0A99: 8D 11 D0                                                  STA $D011	; #4
+0A9C: AD 2C 11                                                  LDA $112C	; #4
+0A9F: AE 2D 11                                                  LDX $112D	; #4
+0AA2: AC 2E 11                                                  LDY $112E	; #4
+0AA5: 8D 00 D0                                                  STA $D000	; #4
+0AA8: 8E 02 D0                                                  STX $D002	; #4
+0AAB: 8C 04 D0                                                  STY $D004	; #4
+0AAE: AD 2F 11                                                  LDA $112F	; #4
+0AB1: 8D 06 D0                                                  STA $D006	; #4
+0AB4: EA                                                        NOP	; #2
+0AB5: EA                                                        NOP	; #2
+0AB6: EA                                                        NOP	; #2
+0AB7: EA                                                        NOP	; #2
+0AB8: EA                                                        NOP	; #2
+0AB9: EA                                                        NOP	; #2
+0ABA: EA                                                        NOP	; #2
+0ABB: A9 1F                                                     LDA #$1F	; #2
+0ABD: 8D 11 D0                                                  STA $D011	; #4
+0AC0: AD 30 11                                                  LDA $1130	; #4
+0AC3: AE 31 11                                                  LDX $1131	; #4
+0AC6: AC 32 11                                                  LDY $1132	; #4
+0AC9: 8D 00 D0                                                  STA $D000	; #4
+0ACC: 8E 02 D0                                                  STX $D002	; #4
+0ACF: 8C 04 D0                                                  STY $D004	; #4
+0AD2: AD 33 11                                                  LDA $1133	; #4
+0AD5: 8D 06 D0                                                  STA $D006	; #4
+0AD8: EA                                                        NOP	; #2
+0AD9: EA                                                        NOP	; #2
+0ADA: EA                                                        NOP	; #2
+0ADB: EA                                                        NOP	; #2
+0ADC: EA                                                        NOP	; #2
+0ADD: EA                                                        NOP	; #2
+0ADE: EA                                                        NOP	; #2
+0ADF: A9 18                                                     LDA #$18	; #2
+0AE1: 8D 11 D0                                                  STA $D011	; #4
+0AE4: AD 34 11                                                  LDA $1134	; #4
+0AE7: AE 35 11                                                  LDX $1135	; #4
+0AEA: AC 36 11                                                  LDY $1136	; #4
+0AED: 8D 00 D0                                                  STA $D000	; #4
+0AF0: 8E 02 D0                                                  STX $D002	; #4
+0AF3: 8C 04 D0                                                  STY $D004	; #4
+0AF6: AD 37 11                                                  LDA $1137	; #4
+0AF9: 8D 06 D0                                                  STA $D006	; #4
+0AFC: EA                                                        NOP	; #2
+0AFD: EA                                                        NOP	; #2
+0AFE: EA                                                        NOP	; #2
+0AFF: EA                                                        NOP	; #2
+0B00: EA                                                        NOP	; #2
+0B01: EA                                                        NOP	; #2
+0B02: EA                                                        NOP	; #2
+0B03: A9 19                                                     LDA #$19	; #2
+0B05: 8D 11 D0                                                  STA $D011	; #4
+0B08: AD 38 11                                                  LDA $1138	; #4
+0B0B: AE 39 11                                                  LDX $1139	; #4
+0B0E: AC 3A 11                                                  LDY $113A	; #4
+0B11: 8D 00 D0                                                  STA $D000	; #4
+0B14: 8E 02 D0                                                  STX $D002	; #4
+0B17: 8C 04 D0                                                  STY $D004	; #4
+0B1A: AD 3B 11                                                  LDA $113B	; #4
+0B1D: 8D 06 D0                                                  STA $D006	; #4
+0B20: EA                                                        NOP	; #2
+0B21: EA                                                        NOP	; #2
+0B22: EA                                                        NOP	; #2
+0B23: EA                                                        NOP	; #2
+0B24: EA                                                        NOP	; #2
+0B25: EA                                                        NOP	; #2
+0B26: EA                                                        NOP	; #2
+0B27: A9 1A                                                     LDA #$1A	; #2
+0B29: 8D 11 D0                                                  STA $D011	; #4
+0B2C: AD 3C 11                                                  LDA $113C	; #4
+0B2F: AE 3D 11                                                  LDX $113D	; #4
+0B32: AC 3E 11                                                  LDY $113E	; #4
+0B35: 8D 00 D0                                                  STA $D000	; #4
+0B38: 8E 02 D0                                                  STX $D002	; #4
+0B3B: 8C 04 D0                                                  STY $D004	; #4
+0B3E: AD 3F 11                                                  LDA $113F	; #4
+0B41: 8D 06 D0                                                  STA $D006	; #4
+0B44: EA                                                        NOP	; #2
+0B45: EA                                                        NOP	; #2
+0B46: EA                                                        NOP	; #2
+0B47: EA                                                        NOP	; #2
+0B48: EA                                                        NOP	; #2
+0B49: EA                                                        NOP	; #2
+0B4A: EA                                                        NOP	; #2
+0B4B: A9 1B                                                     LDA #$1B	; #2
+0B4D: 8D 11 D0                                                  STA $D011	; #4
+0B50: AD 40 11                                                  LDA $1140	; #4
+0B53: AE 41 11                                                  LDX $1141	; #4
+0B56: AC 42 11                                                  LDY $1142	; #4
+0B59: 8D 00 D0                                                  STA $D000	; #4
+0B5C: 8E 02 D0                                                  STX $D002	; #4
+0B5F: 8C 04 D0                                                  STY $D004	; #4
+0B62: AD 43 11                                                  LDA $1143	; #4
+0B65: 8D 06 D0                                                  STA $D006	; #4
+0B68: EA                                                        NOP	; #2
+0B69: EA                                                        NOP	; #2
+0B6A: EA                                                        NOP	; #2
+0B6B: EA                                                        NOP	; #2
+0B6C: EA                                                        NOP	; #2
+0B6D: EA                                                        NOP	; #2
+0B6E: EA                                                        NOP	; #2
+0B6F: A9 1C                                                     LDA #$1C	; #2
+0B71: 8D 11 D0                                                  STA $D011	; #4
+0B74: AD 44 11                                                  LDA $1144	; #4
+0B77: AE 45 11                                                  LDX $1145	; #4
+0B7A: AC 46 11                                                  LDY $1146	; #4
+0B7D: 8D 00 D0                                                  STA $D000	; #4
+0B80: 8E 02 D0                                                  STX $D002	; #4
+0B83: 8C 04 D0                                                  STY $D004	; #4
+0B86: AD 47 11                                                  LDA $1147	; #4
+0B89: 8D 06 D0                                                  STA $D006	; #4
+0B8C: EA                                                        NOP	; #2
+0B8D: EA                                                        NOP	; #2
+0B8E: EA                                                        NOP	; #2
+0B8F: EA                                                        NOP	; #2
+0B90: EA                                                        NOP	; #2
+0B91: EA                                                        NOP	; #2
+0B92: EA                                                        NOP	; #2
+0B93: A9 1D                                                     LDA #$1D	; #2
+0B95: 8D 11 D0                                                  STA $D011	; #4
+0B98: AD 48 11                                                  LDA $1148	; #4
+0B9B: AE 49 11                                                  LDX $1149	; #4
+0B9E: AC 4A 11                                                  LDY $114A	; #4
+0BA1: 8D 00 D0                                                  STA $D000	; #4
+0BA4: 8E 02 D0                                                  STX $D002	; #4
+0BA7: 8C 04 D0                                                  STY $D004	; #4
+0BAA: AD 4B 11                                                  LDA $114B	; #4
+0BAD: 8D 06 D0                                                  STA $D006	; #4
+0BB0: EA                                                        NOP	; #2
+0BB1: EA                                                        NOP	; #2
+0BB2: EA                                                        NOP	; #2
+0BB3: EA                                                        NOP	; #2
+0BB4: EA                                                        NOP	; #2
+0BB5: EA                                                        NOP	; #2
+0BB6: EA                                                        NOP	; #2
+0BB7: A9 1E                                                     LDA #$1E	; #2
+0BB9: 8D 11 D0                                                  STA $D011	; #4
+0BBC: AD 4C 11                                                  LDA $114C	; #4
+0BBF: AE 4D 11                                                  LDX $114D	; #4
+0BC2: AC 4E 11                                                  LDY $114E	; #4
+0BC5: 8D 00 D0                                                  STA $D000	; #4
+0BC8: 8E 02 D0                                                  STX $D002	; #4
+0BCB: 8C 04 D0                                                  STY $D004	; #4
+0BCE: AD 4F 11                                                  LDA $114F	; #4
+0BD1: 8D 06 D0                                                  STA $D006	; #4
+0BD4: EA                                                        NOP	; #2
+0BD5: EA                                                        NOP	; #2
+0BD6: EA                                                        NOP	; #2
+0BD7: EA                                                        NOP	; #2
+0BD8: EA                                                        NOP	; #2
+0BD9: EA                                                        NOP	; #2
+0BDA: EA                                                        NOP	; #2
+0BDB: A9 1F                                                     LDA #$1F	; #2
+0BDD: 8D 11 D0                                                  STA $D011	; #4
+0BE0: AD 50 11                                                  LDA $1150	; #4
+0BE3: AE 51 11                                                  LDX $1151	; #4
+0BE6: AC 52 11                                                  LDY $1152	; #4
+0BE9: 8D 00 D0                                                  STA $D000	; #4
+0BEC: 8E 02 D0                                                  STX $D002	; #4
+0BEF: 8C 04 D0                                                  STY $D004	; #4
+0BF2: AD 53 11                                                  LDA $1153	; #4
+0BF5: 8D 06 D0                                                  STA $D006	; #4
+0BF8: EA                                                        NOP	; #2
+0BF9: EA                                                        NOP	; #2
+0BFA: EA                                                        NOP	; #2
+0BFB: EA                                                        NOP	; #2
+0BFC: EA                                                        NOP	; #2
+0BFD: EA                                                        NOP	; #2
+0BFE: EA                                                        NOP	; #2
+0BFF: A9 18                                                     LDA #$18	; #2
+0C01: 8D 11 D0                                                  STA $D011	; #4
+0C04: AD 54 11                                                  LDA $1154	; #4
+0C07: AE 55 11                                                  LDX $1155	; #4
+0C0A: AC 56 11                                                  LDY $1156	; #4
+0C0D: 8D 00 D0                                                  STA $D000	; #4
+0C10: 8E 02 D0                                                  STX $D002	; #4
+0C13: 8C 04 D0                                                  STY $D004	; #4
+0C16: AD 57 11                                                  LDA $1157	; #4
+0C19: 8D 06 D0                                                  STA $D006	; #4
+0C1C: EA                                                        NOP	; #2
+0C1D: EA                                                        NOP	; #2
+0C1E: EA                                                        NOP	; #2
+0C1F: EA                                                        NOP	; #2
+0C20: EA                                                        NOP	; #2
+0C21: EA                                                        NOP	; #2
+0C22: EA                                                        NOP	; #2
+0C23: A9 19                                                     LDA #$19	; #2
+0C25: 8D 11 D0                                                  STA $D011	; #4
+0C28: AD 58 11                                                  LDA $1158	; #4
+0C2B: AE 59 11                                                  LDX $1159	; #4
+0C2E: AC 5A 11                                                  LDY $115A	; #4
+0C31: 8D 00 D0                                                  STA $D000	; #4
+0C34: 8E 02 D0                                                  STX $D002	; #4
+0C37: 8C 04 D0                                                  STY $D004	; #4
+0C3A: AD 5B 11                                                  LDA $115B	; #4
+0C3D: 8D 06 D0                                                  STA $D006	; #4
+0C40: EA                                                        NOP	; #2
+0C41: EA                                                        NOP	; #2
+0C42: EA                                                        NOP	; #2
+0C43: EA                                                        NOP	; #2
+0C44: EA                                                        NOP	; #2
+0C45: EA                                                        NOP	; #2
+0C46: EA                                                        NOP	; #2
+0C47: A9 1A                                                     LDA #$1A	; #2
+0C49: 8D 11 D0                                                  STA $D011	; #4
+0C4C: AD 5C 11                                                  LDA $115C	; #4
+0C4F: AE 5D 11                                                  LDX $115D	; #4
+0C52: AC 5E 11                                                  LDY $115E	; #4
+0C55: 8D 00 D0                                                  STA $D000	; #4
+0C58: 8E 02 D0                                                  STX $D002	; #4
+0C5B: 8C 04 D0                                                  STY $D004	; #4
+0C5E: AD 5F 11                                                  LDA $115F	; #4
+0C61: 8D 06 D0                                                  STA $D006	; #4
+0C64: EA                                                        NOP	; #2
+0C65: EA                                                        NOP	; #2
+0C66: EA                                                        NOP	; #2
+0C67: EA                                                        NOP	; #2
+0C68: EA                                                        NOP	; #2
+0C69: EA                                                        NOP	; #2
+0C6A: EA                                                        NOP	; #2
+0C6B: A9 1B                                                     LDA #$1B	; #2
+0C6D: 8D 11 D0                                                  STA $D011	; #4
+0C70: AD 60 11                                                  LDA $1160	; #4
+0C73: AE 61 11                                                  LDX $1161	; #4
+0C76: AC 62 11                                                  LDY $1162	; #4
+0C79: 8D 00 D0                                                  STA $D000	; #4
+0C7C: 8E 02 D0                                                  STX $D002	; #4
+0C7F: 8C 04 D0                                                  STY $D004	; #4
+0C82: AD 63 11                                                  LDA $1163	; #4
+0C85: 8D 06 D0                                                  STA $D006	; #4
+0C88: EA                                                        NOP	; #2
+0C89: EA                                                        NOP	; #2
+0C8A: EA                                                        NOP	; #2
+0C8B: EA                                                        NOP	; #2
+0C8C: EA                                                        NOP	; #2
+0C8D: EA                                                        NOP	; #2
+0C8E: EA                                                        NOP	; #2
+0C8F: A9 1C                                                     LDA #$1C	; #2
+0C91: 8D 11 D0                                                  STA $D011	; #4
+0C94: AD 64 11                                                  LDA $1164	; #4
+0C97: AE 65 11                                                  LDX $1165	; #4
+0C9A: AC 66 11                                                  LDY $1166	; #4
+0C9D: 8D 00 D0                                                  STA $D000	; #4
+0CA0: 8E 02 D0                                                  STX $D002	; #4
+0CA3: 8C 04 D0                                                  STY $D004	; #4
+0CA6: AD 67 11                                                  LDA $1167	; #4
+0CA9: 8D 06 D0                                                  STA $D006	; #4
+0CAC: EA                                                        NOP	; #2
+0CAD: EA                                                        NOP	; #2
+0CAE: EA                                                        NOP	; #2
+0CAF: EA                                                        NOP	; #2
+0CB0: EA                                                        NOP	; #2
+0CB1: EA                                                        NOP	; #2
+0CB2: EA                                                        NOP	; #2
+0CB3: A9 1D                                                     LDA #$1D	; #2
+0CB5: 8D 11 D0                                                  STA $D011	; #4
+0CB8: AD 68 11                                                  LDA $1168	; #4
+0CBB: AE 69 11                                                  LDX $1169	; #4
+0CBE: AC 6A 11                                                  LDY $116A	; #4
+0CC1: 8D 00 D0                                                  STA $D000	; #4
+0CC4: 8E 02 D0                                                  STX $D002	; #4
+0CC7: 8C 04 D0                                                  STY $D004	; #4
+0CCA: AD 6B 11                                                  LDA $116B	; #4
+0CCD: 8D 06 D0                                                  STA $D006	; #4
+0CD0: EA                                                        NOP	; #2
+0CD1: EA                                                        NOP	; #2
+0CD2: EA                                                        NOP	; #2
+0CD3: EA                                                        NOP	; #2
+0CD4: EA                                                        NOP	; #2
+0CD5: EA                                                        NOP	; #2
+0CD6: EA                                                        NOP	; #2
+0CD7: A9 1E                                                     LDA #$1E	; #2
+0CD9: 8D 11 D0                                                  STA $D011	; #4
+0CDC: AD 6C 11                                                  LDA $116C	; #4
+0CDF: AE 6D 11                                                  LDX $116D	; #4
+0CE2: AC 6E 11                                                  LDY $116E	; #4
+0CE5: 8D 00 D0                                                  STA $D000	; #4
+0CE8: 8E 02 D0                                                  STX $D002	; #4
+0CEB: 8C 04 D0                                                  STY $D004	; #4
+0CEE: AD 6F 11                                                  LDA $116F	; #4
+0CF1: 8D 06 D0                                                  STA $D006	; #4
+0CF4: EA                                                        NOP	; #2
+0CF5: EA                                                        NOP	; #2
+0CF6: EA                                                        NOP	; #2
+0CF7: EA                                                        NOP	; #2
+0CF8: EA                                                        NOP	; #2
+0CF9: EA                                                        NOP	; #2
+0CFA: EA                                                        NOP	; #2
+0CFB: A9 1F                                                     LDA #$1F	; #2
+0CFD: 8D 11 D0                                                  STA $D011	; #4
+0D00: AD 70 11                                                  LDA $1170	; #4
+0D03: AE 71 11                                                  LDX $1171	; #4
+0D06: AC 72 11                                                  LDY $1172	; #4
+0D09: 8D 00 D0                                                  STA $D000	; #4
+0D0C: 8E 02 D0                                                  STX $D002	; #4
+0D0F: 8C 04 D0                                                  STY $D004	; #4
+0D12: AD 73 11                                                  LDA $1173	; #4
+0D15: 8D 06 D0                                                  STA $D006	; #4
+0D18: EA                                                        NOP	; #2
+0D19: EA                                                        NOP	; #2
+0D1A: EA                                                        NOP	; #2
+0D1B: EA                                                        NOP	; #2
+0D1C: EA                                                        NOP	; #2
+0D1D: EA                                                        NOP	; #2
+0D1E: EA                                                        NOP	; #2
+0D1F: A9 18                                                     LDA #$18	; #2
+0D21: 8D 11 D0                                                  STA $D011	; #4
+0D24: AD 74 11                                                  LDA $1174	; #4
+0D27: AE 75 11                                                  LDX $1175	; #4
+0D2A: AC 76 11                                                  LDY $1176	; #4
+0D2D: 8D 00 D0                                                  STA $D000	; #4
+0D30: 8E 02 D0                                                  STX $D002	; #4
+0D33: 8C 04 D0                                                  STY $D004	; #4
+0D36: AD 77 11                                                  LDA $1177	; #4
+0D39: 8D 06 D0                                                  STA $D006	; #4
+0D3C: EA                                                        NOP	; #2
+0D3D: EA                                                        NOP	; #2
+0D3E: EA                                                        NOP	; #2
+0D3F: EA                                                        NOP	; #2
+0D40: EA                                                        NOP	; #2
+0D41: EA                                                        NOP	; #2
+0D42: EA                                                        NOP	; #2
+0D43: A9 19                                                     LDA #$19	; #2
+0D45: 8D 11 D0                                                  STA $D011	; #4
+0D48: AD 78 11                                                  LDA $1178	; #4
+0D4B: AE 79 11                                                  LDX $1179	; #4
+0D4E: AC 7A 11                                                  LDY $117A	; #4
+0D51: 8D 00 D0                                                  STA $D000	; #4
+0D54: 8E 02 D0                                                  STX $D002	; #4
+0D57: 8C 04 D0                                                  STY $D004	; #4
+0D5A: AD 7B 11                                                  LDA $117B	; #4
+0D5D: 8D 06 D0                                                  STA $D006	; #4
+0D60: EA                                                        NOP	; #2
+0D61: EA                                                        NOP	; #2
+0D62: EA                                                        NOP	; #2
+0D63: EA                                                        NOP	; #2
+0D64: EA                                                        NOP	; #2
+0D65: EA                                                        NOP	; #2
+0D66: EA                                                        NOP	; #2
+0D67: A9 1A                                                     LDA #$1A	; #2
+0D69: 8D 11 D0                                                  STA $D011	; #4
+0D6C: AD 7C 11                                                  LDA $117C	; #4
+0D6F: AE 7D 11                                                  LDX $117D	; #4
+0D72: AC 7E 11                                                  LDY $117E	; #4
+0D75: 8D 00 D0                                                  STA $D000	; #4
+0D78: 8E 02 D0                                                  STX $D002	; #4
+0D7B: 8C 04 D0                                                  STY $D004	; #4
+0D7E: AD 7F 11                                                  LDA $117F	; #4
+0D81: 8D 06 D0                                                  STA $D006	; #4
+0D84: EA                                                        NOP	; #2
+0D85: EA                                                        NOP	; #2
+0D86: EA                                                        NOP	; #2
+0D87: EA                                                        NOP	; #2
+0D88: EA                                                        NOP	; #2
+0D89: EA                                                        NOP	; #2
+0D8A: EA                                                        NOP	; #2
+0D8B: A9 1B                                                     LDA #$1B	; #2
+0D8D: 8D 11 D0                                                  STA $D011	; #4
+0D90: AD 80 11                                                  LDA $1180	; #4
+0D93: AE 81 11                                                  LDX $1181	; #4
+0D96: AC 82 11                                                  LDY $1182	; #4
+0D99: 8D 00 D0                                                  STA $D000	; #4
+0D9C: 8E 02 D0                                                  STX $D002	; #4
+0D9F: 8C 04 D0                                                  STY $D004	; #4
+0DA2: AD 83 11                                                  LDA $1183	; #4
+0DA5: 8D 06 D0                                                  STA $D006	; #4
+0DA8: EA                                                        NOP	; #2
+0DA9: EA                                                        NOP	; #2
+0DAA: EA                                                        NOP	; #2
+0DAB: EA                                                        NOP	; #2
+0DAC: EA                                                        NOP	; #2
+0DAD: EA                                                        NOP	; #2
+0DAE: EA                                                        NOP	; #2
+0DAF: A9 1C                                                     LDA #$1C	; #2
+0DB1: 8D 11 D0                                                  STA $D011	; #4
+0DB4: AD 84 11                                                  LDA $1184	; #4
+0DB7: AE 85 11                                                  LDX $1185	; #4
+0DBA: AC 86 11                                                  LDY $1186	; #4
+0DBD: 8D 00 D0                                                  STA $D000	; #4
+0DC0: 8E 02 D0                                                  STX $D002	; #4
+0DC3: 8C 04 D0                                                  STY $D004	; #4
+0DC6: AD 87 11                                                  LDA $1187	; #4
+0DC9: 8D 06 D0                                                  STA $D006	; #4
+0DCC: EA                                                        NOP	; #2
+0DCD: EA                                                        NOP	; #2
+0DCE: EA                                                        NOP	; #2
+0DCF: EA                                                        NOP	; #2
+0DD0: EA                                                        NOP	; #2
+0DD1: EA                                                        NOP	; #2
+0DD2: EA                                                        NOP	; #2
+0DD3: A9 1D                                                     LDA #$1D	; #2
+0DD5: 8D 11 D0                                                  STA $D011	; #4
+0DD8: AD 88 11                                                  LDA $1188	; #4
+0DDB: AE 89 11                                                  LDX $1189	; #4
+0DDE: AC 8A 11                                                  LDY $118A	; #4
+0DE1: 8D 00 D0                                                  STA $D000	; #4
+0DE4: 8E 02 D0                                                  STX $D002	; #4
+0DE7: 8C 04 D0                                                  STY $D004	; #4
+0DEA: AD 8B 11                                                  LDA $118B	; #4
+0DED: 8D 06 D0                                                  STA $D006	; #4
+0DF0: EA                                                        NOP	; #2
+0DF1: EA                                                        NOP	; #2
+0DF2: EA                                                        NOP	; #2
+0DF3: EA                                                        NOP	; #2
+0DF4: EA                                                        NOP	; #2
+0DF5: EA                                                        NOP	; #2
+0DF6: EA                                                        NOP	; #2
+0DF7: A9 1E                                                     LDA #$1E	; #2
+0DF9: 8D 11 D0                                                  STA $D011	; #4
+0DFC: AD 8C 11                                                  LDA $118C	; #4
+0DFF: AE 8D 11                                                  LDX $118D	; #4
+0E02: AC 8E 11                                                  LDY $118E	; #4
+0E05: 8D 00 D0                                                  STA $D000	; #4
+0E08: 8E 02 D0                                                  STX $D002	; #4
+0E0B: 8C 04 D0                                                  STY $D004	; #4
+0E0E: AD 8F 11                                                  LDA $118F	; #4
+0E11: 8D 06 D0                                                  STA $D006	; #4
+0E14: EA                                                        NOP	; #2
+0E15: EA                                                        NOP	; #2
+0E16: EA                                                        NOP	; #2
+0E17: EA                                                        NOP	; #2
+0E18: EA                                                        NOP	; #2
+0E19: EA                                                        NOP	; #2
+0E1A: EA                                                        NOP	; #2
+0E1B: A9 1F                                                     LDA #$1F	; #2
+0E1D: 8D 11 D0                                                  STA $D011	; #4
+0E20: AD 90 11                                                  LDA $1190	; #4
+0E23: AE 91 11                                                  LDX $1191	; #4
+0E26: AC 92 11                                                  LDY $1192	; #4
+0E29: 8D 00 D0                                                  STA $D000	; #4
+0E2C: 8E 02 D0                                                  STX $D002	; #4
+0E2F: 8C 04 D0                                                  STY $D004	; #4
+0E32: AD 93 11                                                  LDA $1193	; #4
+0E35: 8D 06 D0                                                  STA $D006	; #4
+0E38: EA                                                        NOP	; #2
+0E39: EA                                                        NOP	; #2
+0E3A: EA                                                        NOP	; #2
+0E3B: EA                                                        NOP	; #2
+0E3C: EA                                                        NOP	; #2
+0E3D: EA                                                        NOP	; #2
+0E3E: EA                                                        NOP	; #2
+0E3F: A9 18                                                     LDA #$18	; #2
+0E41: 8D 11 D0                                                  STA $D011	; #4
+0E44: AD 94 11                                                  LDA $1194	; #4
+0E47: AE 95 11                                                  LDX $1195	; #4
+0E4A: AC 96 11                                                  LDY $1196	; #4
+0E4D: 8D 00 D0                                                  STA $D000	; #4
+0E50: 8E 02 D0                                                  STX $D002	; #4
+0E53: 8C 04 D0                                                  STY $D004	; #4
+0E56: AD 97 11                                                  LDA $1197	; #4
+0E59: 8D 06 D0                                                  STA $D006	; #4
+0E5C: EA                                                        NOP	; #2
+0E5D: EA                                                        NOP	; #2
+0E5E: EA                                                        NOP	; #2
+0E5F: EA                                                        NOP	; #2
+0E60: EA                                                        NOP	; #2
+0E61: EA                                                        NOP	; #2
+0E62: EA                                                        NOP	; #2
+0E63: A9 19                                                     LDA #$19	; #2
+0E65: 8D 11 D0                                                  STA $D011	; #4
+0E68: AD 98 11                                                  LDA $1198	; #4
+0E6B: AE 99 11                                                  LDX $1199	; #4
+0E6E: AC 9A 11                                                  LDY $119A	; #4
+0E71: 8D 00 D0                                                  STA $D000	; #4
+0E74: 8E 02 D0                                                  STX $D002	; #4
+0E77: 8C 04 D0                                                  STY $D004	; #4
+0E7A: AD 9B 11                                                  LDA $119B	; #4
+0E7D: 8D 06 D0                                                  STA $D006	; #4
+0E80: EA                                                        NOP	; #2
+0E81: EA                                                        NOP	; #2
+0E82: EA                                                        NOP	; #2
+0E83: EA                                                        NOP	; #2
+0E84: EA                                                        NOP	; #2
+0E85: EA                                                        NOP	; #2
+0E86: EA                                                        NOP	; #2
+0E87: A9 1A                                                     LDA #$1A	; #2
+0E89: 8D 11 D0                                                  STA $D011	; #4
+0E8C: AD 9C 11                                                  LDA $119C	; #4
+0E8F: AE 9D 11                                                  LDX $119D	; #4
+0E92: AC 9E 11                                                  LDY $119E	; #4
+0E95: 8D 00 D0                                                  STA $D000	; #4
+0E98: 8E 02 D0                                                  STX $D002	; #4
+0E9B: 8C 04 D0                                                  STY $D004	; #4
+0E9E: AD 9F 11                                                  LDA $119F	; #4
+0EA1: 8D 06 D0                                                  STA $D006	; #4
+0EA4: EA                                                        NOP	; #2
+0EA5: EA                                                        NOP	; #2
+0EA6: EA                                                        NOP	; #2
+0EA7: EA                                                        NOP	; #2
+0EA8: EA                                                        NOP	; #2
+0EA9: EA                                                        NOP	; #2
+0EAA: EA                                                        NOP	; #2
+0EAB: A9 1B                                                     LDA #$1B	; #2
+0EAD: 8D 11 D0                                                  STA $D011	; #4
+0EB0: AD A0 11                                                  LDA $11A0	; #4
+0EB3: AE A1 11                                                  LDX $11A1	; #4
+0EB6: AC A2 11                                                  LDY $11A2	; #4
+0EB9: 8D 00 D0                                                  STA $D000	; #4
+0EBC: 8E 02 D0                                                  STX $D002	; #4
+0EBF: 8C 04 D0                                                  STY $D004	; #4
+0EC2: AD A3 11                                                  LDA $11A3	; #4
+0EC5: 8D 06 D0                                                  STA $D006	; #4
+0EC8: EA                                                        NOP	; #2
+0EC9: EA                                                        NOP	; #2
+0ECA: EA                                                        NOP	; #2
+0ECB: EA                                                        NOP	; #2
+0ECC: EA                                                        NOP	; #2
+0ECD: EA                                                        NOP	; #2
+0ECE: EA                                                        NOP	; #2
+0ECF: A9 1C                                                     LDA #$1C	; #2
+0ED1: 8D 11 D0                                                  STA $D011	; #4
+0ED4: AD A4 11                                                  LDA $11A4	; #4
+0ED7: AE A5 11                                                  LDX $11A5	; #4
+0EDA: AC A6 11                                                  LDY $11A6	; #4
+0EDD: 8D 00 D0                                                  STA $D000	; #4
+0EE0: 8E 02 D0                                                  STX $D002	; #4
+0EE3: 8C 04 D0                                                  STY $D004	; #4
+0EE6: AD A7 11                                                  LDA $11A7	; #4
+0EE9: 8D 06 D0                                                  STA $D006	; #4
+0EEC: EA                                                        NOP	; #2
+0EED: EA                                                        NOP	; #2
+0EEE: EA                                                        NOP	; #2
+0EEF: EA                                                        NOP	; #2
+0EF0: EA                                                        NOP	; #2
+0EF1: EA                                                        NOP	; #2
+0EF2: EA                                                        NOP	; #2
+0EF3: EE 20 D0                                                  INC $D020	; #6
+0EF6: 20 1D 0F                                                  JSR $0F1D	; #6
+0EF9: CE 20 D0                                                  DEC $D020	; #6
+0EFC: 0E 19 D0                                                  ASL $D019	; #6
+0EFF: A9 B4                                                     LDA #$B4	; #2
+0F01: 8D FE FF                                                  STA $FFFE	; #4
+0F04: A9 08                                                     LDA #$08	; #2
+0F06: 8D FF FF                                                  STA $FFFF	; #4
+0F09: A9 14                                                     LDA #$14	; #2
+0F0B: 8D 12 D0                                                  STA $D012	; #4
+0F0E: AD 11 D0                                                  LDA $D011	; #4
+0F11: 29 7F                                                     AND #$7F	; #2
+0F13: 8D 11 D0                                                  STA $D011	; #4
+0F16: A9 00                                                     LDA #$00	; #2
+0F18: A2 00                                                     LDX #$00	; #2
+0F1A: A0 00                                                     LDY #$00	; #2
+0F1C: 40                                                        RTI	; #6
+0F1D: A2 00    irq_warp::end                                    LDX #$00	; #2
+0F1F: 8A       update_logo_wobble::yloop                        TXA	; #2
+0F20: 18                                                        CLC	; #2
+0F21: 6D 59 0F                                                  ADC $0F59	; #4
+0F24: A8                                                        TAY	; #2
+0F25: B9 00 10                                                  LDA $1000,Y	; #4
+0F28: 85 64                                                     STA $64	; #3
+0F2A: 8A                                                        TXA	; #2
+0F2B: A8                                                        TAY	; #2
+0F2C: A5 64                                                     LDA $64	; #3
+0F2E: 18                                                        CLC	; #2
+0F2F: 69 40                                                     ADC #$40	; #2
+0F31: 99 00 11                                                  STA $1100,Y	; #5
+0F34: 18                                                        CLC	; #2
+0F35: 69 30                                                     ADC #$30	; #2
+0F37: 99 01 11                                                  STA $1101,Y	; #5
+0F3A: 18                                                        CLC	; #2
+0F3B: 69 30                                                     ADC #$30	; #2
+0F3D: 99 02 11                                                  STA $1102,Y	; #5
+0F40: 18                                                        CLC	; #2
+0F41: 69 30                                                     ADC #$30	; #2
+0F43: 99 03 11                                                  STA $1103,Y	; #5
+0F46: 8A                                                        TXA	; #2
+0F47: 18                                                        CLC	; #2
+0F48: 69 04                                                     ADC #$04	; #2
+0F4A: AA                                                        TAX	; #2
+0F4B: E0 A8                                                     CPX #$A8	; #2
+0F4D: D0 D0                                                     BNE $0F1F	; #2
+0F4F: AD 59 0F                                                  LDA $0F59	; #4
+0F52: 18                                                        CLC	; #2
+0F53: 69 FB                                                     ADC #$FB	; #2
+0F55: 8D 59 0F                                                  STA $0F59	; #4
+0F58: 60                                                        RTS	; #6
+0F59: 00 00 00 00 00 00 00 00
+0F61: 00 00 00 00 00 00 00 00
+0F69: 00 00 00 00 00 00 00 00
+0F71: 00 00 00 00 00 00 00 00
+0F79: 00 00 00 00 00 00 00 00
+0F81: 00 00 00 00 00 00 00 00
+0F89: 00 00 00 00 00 00 00 00
+0F91: 00 00 00 00 00 00 00 00
+0F99: 00 00 00 00 00 00 00 00
+0FA1: 00 00 00 00 00 00 00 00
+0FA9: 00 00 00 00 00 00 00 00
+0FB1: 00 00 00 00 00 00 00 00
+0FB9: 00 00 00 00 00 00 00 00
+0FC1: 00 00 00 00 00 00 00 00
+0FC9: 00 00 00 00 00 00 00 00
+0FD1: 00 00 00 00 00 00 00 00
+0FD9: 00 00 00 00 00 00 00 00
+0FE1: 00 00 00 00 00 00 00 00
+0FE9: 00 00 00 00 00 00 00 00
+0FF1: 00 00 00 00 00 00 00 00
+0FF9: 00 00 00 00 00 00 00 0C
+1001: 0C 0C 0C 0D 0D 0D 0E 0E
+1009: 0E 0E 0F 0F 0F 10 10 10
+1011: 10 11 11 11 11 12 12 12
+1019: 12 13 13 13 13 14 14 14
+1021: 14 14 15 15 15 15 15 15
+1029: 16 16 16 16 16 16 16 17
+1031: 17 17 17 17 17 17 17 17
+1039: 17 17 17 17 17 17 17 18
+1041: 17 17 17 17 17 17 17 17
+1049: 17 17 17 17 17 17 17 17
+1051: 16 16 16 16 16 16 16 15
+1059: 15 15 15 15 15 14 14 14
+1061: 14 14 13 13 13 13 12 12
+1069: 12 12 11 11 11 11 10 10
+1071: 10 10 0F 0F 0F 0E 0E 0E
+1079: 0E 0D 0D 0D 0C 0C 0C 0C
+1081: 0B 0B 0B 0A 0A 0A 09 09
+1089: 09 09 08 08 08 07 07 07
+1091: 07 06 06 06 06 05 05 05
+1099: 05 04 04 04 04 03 03 03
+10A1: 03 03 02 02 02 02 02 02
+10A9: 01 01 01 01 01 01 01 00
+10B1: 00 00 00 00 00 00 00 00
+10B9: 00 00 00 00 00 00 00 00
+10C1: 00 00 00 00 00 00 00 00
+10C9: 00 00 00 00 00 00 00 00
+10D1: 01 01 01 01 01 01 01 02
+10D9: 02 02 02 02 02 03 03 03
+10E1: 03 03 04 04 04 04 05 05
+10E9: 05 05 06 06 06 06 07 07
+10F1: 07 07 08 08 08 09 09 09
+10F9: 09 0A 0A 0A 0B 0B 0B 40
+1101: 70 A0 D0 40 70 A0 D0 40
+1109: 70 A0 D0 40 70 A0 D0 40
+1111: 70 A0 D0 40 70 A0 D0 40
+1119: 70 A0 D0 40 70 A0 D0 40
+1121: 70 A0 D0 40 70 A0 D0 40
+1129: 70 A0 D0 40 70 A0 D0 40
+1131: 70 A0 D0 40 70 A0 D0 40
+1139: 70 A0 D0 40 70 A0 D0 40
+1141: 70 A0 D0 40 70 A0 D0 40
+1149: 70 A0 D0 40 70 A0 D0 40
+1151: 70 A0 D0 40 70 A0 D0 40
+1159: 70 A0 D0 40 70 A0 D0 40
+1161: 70 A0 D0 40 70 A0 D0 40
+1169: 70 A0 D0 40 70 A0 D0 40
+1171: 70 A0 D0 40 70 A0 D0 40
+1179: 70 A0 D0 40 70 A0 D0 40
+1181: 70 A0 D0 40 70 A0 D0 40
+1189: 70 A0 D0 40 70 A0 D0 40
+1191: 70 A0 D0 40 70 A0 D0 40
+1199: 70 A0 D0 40 70 A0 D0 40
+11A1: 70 A0 D0 40 70 A0 D0 00
+11A9: 00 00 00 00 00 00 00 00
+11B1: 00 00 00 00 00 00 00 00
+11B9: 00 00 00 00 00 00 00 00
+11C1: 00 00 00 00 00 00 00 00
+11C9: 00 00 00 00 00 00 00 00
+11D1: 00 00 00 00 00 00 00 00
+11D9: 00 00 00 00 00 00 00 00
+11E1: 00 00 00 00 00 00 00 00
+11E9: 00 00 00 00 00 00 00 00
+11F1: 00 00 00 00 00 00 00 00
+11F9: 00 00 00 00 00 00 00 00
+1201: 00 00 00 00 00 00 00 00
+1209: 00 00 00 00 00 00 00 00
+1211: 00 00 00 00 00 00 00 00
+1219: 00 00 00 00 00 00 00 00
+1221: 00 00 00 00 00 00 00 00
+1229: 00 00 00 00 00 00 00 00
+1231: 00 00 00 00 00 00 00 00
+1239: 00 00 00 00 00 00 00 00
+1241: 00 00 00 00 00 00 00 00
+1249: 00 00 00 00 00 00 00 00
+1251: 00 00 00 00 00 00 00 00
+1259: 00 00 00 00 00 00 00 00
+1261: 00 00 00 00 00 00 00 00
+1269: 00 00 00 00 00 00 00 00
+1271: 00 00 00 00 00 00 00 00
+1279: 00 00 00 00 00 00 00 00
+1281: 00 00 00 00 00 00 00 00
+1289: 00 00 00 00 00 00 00 00
+1291: 00 00 00 00 00 00 00 00
+1299: 00 00 00 00 00 00 00 00
+12A1: 00 00 00 00 00 00 00 00
+12A9: 00 00 00 00 00 00 00 00
+12B1: 00 00 00 00 00 00 00 00
+12B9: 00 00 00 00 00 00 00 00
+12C1: 00 00 00 00 00 00 00 00
+12C9: 00 00 00 00 00 00 00 00
+12D1: 00 00 00 00 00 00 00 00
+12D9: 00 00 00 00 00 00 00 00
+12E1: 00 00 00 00 00 00 00 00
+12E9: 00 00 00 00 00 00 00 00
+12F1: 00 00 00 00 00 00 00 00
+12F9: 00 00 00 00 00 00 00 00
+1301: 00 00 00 00 00 00 00 00
+1309: 00 00 00 00 00 00 00 00
+1311: 00 00 00 00 00 00 00 00
+1319: 00 00 00 00 00 00 00 00
+1321: 00 00 00 00 00 00 00 00
+1329: 00 00 00 00 00 00 00 00
+1331: 00 00 00 00 00 00 00 00
+1339: 00 00 00 00 00 00 00 00
+1341: 00 00 00 00 00 00 00 00
+1349: 00 00 00 00 00 00 00 00
+1351: 00 00 00 00 00 00 00 00
+1359: 00 00 00 00 00 00 00 00
+1361: 00 00 00 00 00 00 00 00
+1369: 00 00 00 00 00 00 00 00
+1371: 00 00 00 00 00 00 00 00
+1379: 00 00 00 00 00 00 00 00
+1381: 00 00 00 00 00 00 00 00
+1389: 00 00 00 00 00 00 00 00
+1391: 00 00 00 00 00 00 00 00
+1399: 00 00 00 00 00 00 00 00
+13A1: 00 00 00 00 00 00 00 00
+13A9: 00 00 00 00 00 00 00 00
+13B1: 00 00 00 00 00 00 00 00
+13B9: 00 00 00 00 00 00 00 00
+13C1: 00 00 00 00 00 00 00 00
+13C9: 00 00 00 00 00 00 00 00
+13D1: 00 00 00 00 00 00 00 00
+13D9: 00 00 00 00 00 00 00 00
+13E1: 00 00 00 00 00 00 00 00
+13E9: 00 00 00 00 00 00 00 00
+13F1: 00 00 00 00 00 00 00 00
+13F9: 00 00 00 00 00 00 00 00
+1401: 00 00 00 00 00 00 00 00
+1409: 00 00 00 00 00 00 00 00
+1411: 00 00 00 00 00 00 00 00
+1419: 00 00 00 00 00 00 00 00
+1421: 00 00 00 00 00 00 00 00
+1429: 00 00 00 00 00 00 00 00
+1431: 00 00 00 00 00 00 00 00
+1439: 00 00 00 00 00 00 00 00
+1441: 00 00 00 00 00 00 00 00
+1449: 00 00 00 00 00 00 00 00
+1451: 00 00 00 00 00 00 00 00
+1459: 00 00 00 00 00 00 00 00
+1461: 00 00 00 00 00 00 00 00
+1469: 00 00 00 00 00 00 00 00
+1471: 00 00 00 00 00 00 00 00
+1479: 00 00 00 00 00 00 00 00
+1481: 00 00 00 00 00 00 00 00
+1489: 00 00 00 00 00 00 00 00
+1491: 00 00 00 00 00 00 00 00
+1499: 00 00 00 00 00 00 00 00
+14A1: 00 00 00 00 00 00 00 00
+14A9: 00 00 00 00 00 00 00 00
+14B1: 00 00 00 00 00 00 00 00
+14B9: 00 00 00 00 00 00 00 00
+14C1: 00 00 00 00 00 00 00 00
+14C9: 00 00 00 00 00 00 00 00
+14D1: 00 00 00 00 00 00 00 00
+14D9: 00 00 00 00 00 00 00 00
+14E1: 00 00 00 00 00 00 00 00
+14E9: 00 00 00 00 00 00 00 00
+14F1: 00 00 00 00 00 00 00 00
+14F9: 00 00 00 00 00 00 00 00
+1501: 00 00 00 00 00 00 00 00
+1509: 00 00 00 00 00 00 00 00
+1511: 00 00 00 00 00 00 00 00
+1519: 00 00 00 00 00 00 00 00
+1521: 00 00 00 00 00 00 00 00
+1529: 00 00 00 00 00 00 00 00
+1531: 00 00 00 00 00 00 00 00
+1539: 00 00 00 00 00 00 00 00
+1541: 00 00 00 00 00 00 00 00
+1549: 00 00 00 00 00 00 00 00
+1551: 00 00 00 00 00 00 00 00
+1559: 00 00 00 00 00 00 00 00
+1561: 00 00 00 00 00 00 00 00
+1569: 00 00 00 00 00 00 00 00
+1571: 00 00 00 00 00 00 00 00
+1579: 00 00 00 00 00 00 00 00
+1581: 00 00 00 00 00 00 00 00
+1589: 00 00 00 00 00 00 00 00
+1591: 00 00 00 00 00 00 00 00
+1599: 00 00 00 00 00 00 00 00
+15A1: 00 00 00 00 00 00 00 00
+15A9: 00 00 00 00 00 00 00 00
+15B1: 00 00 00 00 00 00 00 00
+15B9: 00 00 00 00 00 00 00 00
+15C1: 00 00 00 00 00 00 00 00
+15C9: 00 00 00 00 00 00 00 00
+15D1: 00 00 00 00 00 00 00 00
+15D9: 00 00 00 00 00 00 00 00
+15E1: 00 00 00 00 00 00 00 00
+15E9: 00 00 00 00 00 00 00 00
+15F1: 00 00 00 00 00 00 00 00
+15F9: 00 00 00 00 00 00 00 00
+1601: 00 00 00 00 00 00 00 00
+1609: 00 00 00 00 00 00 00 00
+1611: 00 00 00 00 00 00 00 00
+1619: 00 00 00 00 00 00 00 00
+1621: 00 00 00 00 00 00 00 00
+1629: 00 00 00 00 00 00 00 00
+1631: 00 00 00 00 00 00 00 00
+1639: 00 00 00 00 00 00 00 00
+1641: 00 00 00 00 00 00 00 00
+1649: 00 00 00 00 00 00 00 00
+1651: 00 00 00 00 00 00 00 00
+1659: 00 00 00 00 00 00 00 00
+1661: 00 00 00 00 00 00 00 00
+1669: 00 00 00 00 00 00 00 00
+1671: 00 00 00 00 00 00 00 00
+1679: 00 00 00 00 00 00 00 00
+1681: 00 00 00 00 00 00 00 00
+1689: 00 00 00 00 00 00 00 00
+1691: 00 00 00 00 00 00 00 00
+1699: 00 00 00 00 00 00 00 00
+16A1: 00 00 00 00 00 00 00 00
+16A9: 00 00 00 00 00 00 00 00
+16B1: 00 00 00 00 00 00 00 00
+16B9: 00 00 00 00 00 00 00 00
+16C1: 00 00 00 00 00 00 00 00
+16C9: 00 00 00 00 00 00 00 00
+16D1: 00 00 00 00 00 00 00 00
+16D9: 00 00 00 00 00 00 00 00
+16E1: 00 00 00 00 00 00 00 00
+16E9: 00 00 00 00 00 00 00 00
+16F1: 00 00 00 00 00 00 00 00
+16F9: 00 00 00 00 00 00 00 00
+1701: 00 00 00 00 00 00 00 00
+1709: 00 00 00 00 00 00 00 00
+1711: 00 00 00 00 00 00 00 00
+1719: 00 00 00 00 00 00 00 00
+1721: 00 00 00 00 00 00 00 00
+1729: 00 00 00 00 00 00 00 00
+1731: 00 00 00 00 00 00 00 00
+1739: 00 00 00 00 00 00 00 00
+1741: 00 00 00 00 00 00 00 00
+1749: 00 00 00 00 00 00 00 00
+1751: 00 00 00 00 00 00 00 00
+1759: 00 00 00 00 00 00 00 00
+1761: 00 00 00 00 00 00 00 00
+1769: 00 00 00 00 00 00 00 00
+1771: 00 00 00 00 00 00 00 00
+1779: 00 00 00 00 00 00 00 00
+1781: 00 00 00 00 00 00 00 00
+1789: 00 00 00 00 00 00 00 00
+1791: 00 00 00 00 00 00 00 00
+1799: 00 00 00 00 00 00 00 00
+17A1: 00 00 00 00 00 00 00 00
+17A9: 00 00 00 00 00 00 00 00
+17B1: 00 00 00 00 00 00 00 00
+17B9: 00 00 00 00 00 00 00 00
+17C1: 00 00 00 00 00 00 00 00
+17C9: 00 00 00 00 00 00 00 00
+17D1: 00 00 00 00 00 00 00 00
+17D9: 00 00 00 00 00 00 00 00
+17E1: 00 00 00 00 00 00 00 00
+17E9: 00 00 00 00 00 00 00 00
+17F1: 00 00 00 00 00 00 00 00
+17F9: 00 00 00 00 00 00 00 00
+1801: 00 00 00 00 00 00 00 00
+1809: 00 00 00 00 00 00 00 00
+1811: 00 00 00 00 00 00 00 00
+1819: 00 00 00 00 00 00 00 00
+1821: 00 00 00 00 00 00 00 00
+1829: 00 00 00 00 00 00 00 00
+1831: 00 00 00 00 00 00 00 00
+1839: 00 00 00 00 00 00 00 00
+1841: 00 00 00 00 00 00 00 00
+1849: 00 00 00 00 00 00 00 00
+1851: 00 00 00 00 00 00 00 00
+1859: 00 00 00 00 00 00 00 00
+1861: 00 00 00 00 00 00 00 00
+1869: 00 00 00 00 00 00 00 00
+1871: 00 00 00 00 00 00 00 00
+1879: 00 00 00 00 00 00 00 00
+1881: 00 00 00 00 00 00 00 00
+1889: 00 00 00 00 00 00 00 00
+1891: 00 00 00 00 00 00 00 00
+1899: 00 00 00 00 00 00 00 00
+18A1: 00 00 00 00 00 00 00 00
+18A9: 00 00 00 00 00 00 00 00
+18B1: 00 00 00 00 00 00 00 00
+18B9: 00 00 00 00 00 00 00 00
+18C1: 00 00 00 00 00 00 00 00
+18C9: 00 00 00 00 00 00 00 00
+18D1: 00 00 00 00 00 00 00 00
+18D9: 00 00 00 00 00 00 00 00
+18E1: 00 00 00 00 00 00 00 00
+18E9: 00 00 00 00 00 00 00 00
+18F1: 00 00 00 00 00 00 00 00
+18F9: 00 00 00 00 00 00 00 00
+1901: 00 00 00 00 00 00 00 00
+1909: 00 00 00 00 00 00 00 00
+1911: 00 00 00 00 00 00 00 00
+1919: 00 00 00 00 00 00 00 00
+1921: 00 00 00 00 00 00 00 00
+1929: 00 00 00 00 00 00 00 00
+1931: 00 00 00 00 00 00 00 00
+1939: 00 00 00 00 00 00 00 00
+1941: 00 00 00 00 00 00 00 00
+1949: 00 00 00 00 00 00 00 00
+1951: 00 00 00 00 00 00 00 00
+1959: 00 00 00 00 00 00 00 00
+1961: 00 00 00 00 00 00 00 00
+1969: 00 00 00 00 00 00 00 00
+1971: 00 00 00 00 00 00 00 00
+1979: 00 00 00 00 00 00 00 00
+1981: 00 00 00 00 00 00 00 00
+1989: 00 00 00 00 00 00 00 00
+1991: 00 00 00 00 00 00 00 00
+1999: 00 00 00 00 00 00 00 00
+19A1: 00 00 00 00 00 00 00 00
+19A9: 00 00 00 00 00 00 00 00
+19B1: 00 00 00 00 00 00 00 00
+19B9: 00 00 00 00 00 00 00 00
+19C1: 00 00 00 00 00 00 00 00
+19C9: 00 00 00 00 00 00 00 00
+19D1: 00 00 00 00 00 00 00 00
+19D9: 00 00 00 00 00 00 00 00
+19E1: 00 00 00 00 00 00 00 00
+19E9: 00 00 00 00 00 00 00 00
+19F1: 00 00 00 00 00 00 00 00
+19F9: 00 00 00 00 00 00 00 00
+1A01: 00 00 00 00 00 00 00 00
+1A09: 00 00 00 00 00 00 00 00
+1A11: 00 00 00 00 00 00 00 00
+1A19: 00 00 00 00 00 00 00 00
+1A21: 00 00 00 00 00 00 00 00
+1A29: 00 00 00 00 00 00 00 00
+1A31: 00 00 00 00 00 00 00 00
+1A39: 00 00 00 00 00 00 00 00
+1A41: 00 00 00 00 00 00 00 00
+1A49: 00 00 00 00 00 00 00 00
+1A51: 00 00 00 00 00 00 00 00
+1A59: 00 00 00 00 00 00 00 00
+1A61: 00 00 00 00 00 00 00 00
+1A69: 00 00 00 00 00 00 00 00
+1A71: 00 00 00 00 00 00 00 00
+1A79: 00 00 00 00 00 00 00 00
+1A81: 00 00 00 00 00 00 00 00
+1A89: 00 00 00 00 00 00 00 00
+1A91: 00 00 00 00 00 00 00 00
+1A99: 00 00 00 00 00 00 00 00
+1AA1: 00 00 00 00 00 00 00 00
+1AA9: 00 00 00 00 00 00 00 00
+1AB1: 00 00 00 00 00 00 00 00
+1AB9: 00 00 00 00 00 00 00 00
+1AC1: 00 00 00 00 00 00 00 00
+1AC9: 00 00 00 00 00 00 00 00
+1AD1: 00 00 00 00 00 00 00 00
+1AD9: 00 00 00 00 00 00 00 00
+1AE1: 00 00 00 00 00 00 00 00
+1AE9: 00 00 00 00 00 00 00 00
+1AF1: 00 00 00 00 00 00 00 00
+1AF9: 00 00 00 00 00 00 00 00
+1B01: 00 00 00 00 00 00 00 00
+1B09: 00 00 00 00 00 00 00 00
+1B11: 00 00 00 00 00 00 00 00
+1B19: 00 00 00 00 00 00 00 00
+1B21: 00 00 00 00 00 00 00 00
+1B29: 00 00 00 00 00 00 00 00
+1B31: 00 00 00 00 00 00 00 00
+1B39: 00 00 00 00 00 00 00 00
+1B41: 00 00 00 00 00 00 00 00
+1B49: 00 00 00 00 00 00 00 00
+1B51: 00 00 00 00 00 00 00 00
+1B59: 00 00 00 00 00 00 00 00
+1B61: 00 00 00 00 00 00 00 00
+1B69: 00 00 00 00 00 00 00 00
+1B71: 00 00 00 00 00 00 00 00
+1B79: 00 00 00 00 00 00 00 00
+1B81: 00 00 00 00 00 00 00 00
+1B89: 00 00 00 00 00 00 00 00
+1B91: 00 00 00 00 00 00 00 00
+1B99: 00 00 00 00 00 00 00 00
+1BA1: 00 00 00 00 00 00 00 00
+1BA9: 00 00 00 00 00 00 00 00
+1BB1: 00 00 00 00 00 00 00 00
+1BB9: 00 00 00 00 00 00 00 00
+1BC1: 00 00 00 00 00 00 00 00
+1BC9: 00 00 00 00 00 00 00 00
+1BD1: 00 00 00 00 00 00 00 00
+1BD9: 00 00 00 00 00 00 00 00
+1BE1: 00 00 00 00 00 00 00 00
+1BE9: 00 00 00 00 00 00 00 00
+1BF1: 00 00 00 00 00 00 00 00
+1BF9: 00 00 00 00 00 00 00 00
+1C01: 00 00 00 00 00 00 00 00
+1C09: 00 00 00 00 00 00 00 00
+1C11: 00 00 00 00 00 00 00 00
+1C19: 00 00 00 00 00 00 00 00
+1C21: 00 00 00 00 00 00 00 00
+1C29: 00 00 00 00 00 00 00 00
+1C31: 00 00 00 00 00 00 00 00
+1C39: 00 00 00 00 00 00 00 00
+1C41: 00 00 00 00 00 00 00 00
+1C49: 00 00 00 00 00 00 00 00
+1C51: 00 00 00 00 00 00 00 00
+1C59: 00 00 00 00 00 00 00 00
+1C61: 00 00 00 00 00 00 00 00
+1C69: 00 00 00 00 00 00 00 00
+1C71: 00 00 00 00 00 00 00 00
+1C79: 00 00 00 00 00 00 00 00
+1C81: 00 00 00 00 00 00 00 00
+1C89: 00 00 00 00 00 00 00 00
+1C91: 00 00 00 00 00 00 00 00
+1C99: 00 00 00 00 00 00 00 00
+1CA1: 00 00 00 00 00 00 00 00
+1CA9: 00 00 00 00 00 00 00 00
+1CB1: 00 00 00 00 00 00 00 00
+1CB9: 00 00 00 00 00 00 00 00
+1CC1: 00 00 00 00 00 00 00 00
+1CC9: 00 00 00 00 00 00 00 00
+1CD1: 00 00 00 00 00 00 00 00
+1CD9: 00 00 00 00 00 00 00 00
+1CE1: 00 00 00 00 00 00 00 00
+1CE9: 00 00 00 00 00 00 00 00
+1CF1: 00 00 00 00 00 00 00 00
+1CF9: 00 00 00 00 00 00 00 00
+1D01: 00 00 00 00 00 00 00 00
+1D09: 00 00 00 00 00 00 00 00
+1D11: 00 00 00 00 00 00 00 00
+1D19: 00 00 00 00 00 00 00 00
+1D21: 00 00 00 00 00 00 00 00
+1D29: 00 00 00 00 00 00 00 00
+1D31: 00 00 00 00 00 00 00 00
+1D39: 00 00 00 00 00 00 00 00
+1D41: 00 00 00 00 00 00 00 00
+1D49: 00 00 00 00 00 00 00 00
+1D51: 00 00 00 00 00 00 00 00
+1D59: 00 00 00 00 00 00 00 00
+1D61: 00 00 00 00 00 00 00 00
+1D69: 00 00 00 00 00 00 00 00
+1D71: 00 00 00 00 00 00 00 00
+1D79: 00 00 00 00 00 00 00 00
+1D81: 00 00 00 00 00 00 00 00
+1D89: 00 00 00 00 00 00 00 00
+1D91: 00 00 00 00 00 00 00 00
+1D99: 00 00 00 00 00 00 00 00
+1DA1: 00 00 00 00 00 00 00 00
+1DA9: 00 00 00 00 00 00 00 00
+1DB1: 00 00 00 00 00 00 00 00
+1DB9: 00 00 00 00 00 00 00 00
+1DC1: 00 00 00 00 00 00 00 00
+1DC9: 00 00 00 00 00 00 00 00
+1DD1: 00 00 00 00 00 00 00 00
+1DD9: 00 00 00 00 00 00 00 00
+1DE1: 00 00 00 00 00 00 00 00
+1DE9: 00 00 00 00 00 00 00 00
+1DF1: 00 00 00 00 00 00 00 00
+1DF9: 00 00 00 00 00 00 00 00
+1E01: 00 00 00 00 00 00 00 00
+1E09: 00 00 00 00 00 00 00 00
+1E11: 00 00 00 00 00 00 00 00
+1E19: 00 00 00 00 00 00 00 00
+1E21: 00 00 00 00 00 00 00 00
+1E29: 00 00 00 00 00 00 00 00
+1E31: 00 00 00 00 00 00 00 00
+1E39: 00 00 00 00 00 00 00 00
+1E41: 00 00 00 00 00 00 00 00
+1E49: 00 00 00 00 00 00 00 00
+1E51: 00 00 00 00 00 00 00 00
+1E59: 00 00 00 00 00 00 00 00
+1E61: 00 00 00 00 00 00 00 00
+1E69: 00 00 00 00 00 00 00 00
+1E71: 00 00 00 00 00 00 00 00
+1E79: 00 00 00 00 00 00 00 00
+1E81: 00 00 00 00 00 00 00 00
+1E89: 00 00 00 00 00 00 00 00
+1E91: 00 00 00 00 00 00 00 00
+1E99: 00 00 00 00 00 00 00 00
+1EA1: 00 00 00 00 00 00 00 00
+1EA9: 00 00 00 00 00 00 00 00
+1EB1: 00 00 00 00 00 00 00 00
+1EB9: 00 00 00 00 00 00 00 00
+1EC1: 00 00 00 00 00 00 00 00
+1EC9: 00 00 00 00 00 00 00 00
+1ED1: 00 00 00 00 00 00 00 00
+1ED9: 00 00 00 00 00 00 00 00
+1EE1: 00 00 00 00 00 00 00 00
+1EE9: 00 00 00 00 00 00 00 00
+1EF1: 00 00 00 00 00 00 00 00
+1EF9: 00 00 00 00 00 00 00 00
+1F01: 00 00 00 00 00 00 00 00
+1F09: 00 00 00 00 00 00 00 00
+1F11: 00 00 00 00 00 00 00 00
+1F19: 00 00 00 00 00 00 00 00
+1F21: 00 00 00 00 00 00 00 00
+1F29: 00 00 00 00 00 00 00 00
+1F31: 00 00 00 00 00 00 00 00
+1F39: 00 00 00 00 00 00 00 00
+1F41: 00 00 00 00 00 00 00 00
+1F49: 00 00 00 00 00 00 00 00
+1F51: 00 00 00 00 00 00 00 00
+1F59: 00 00 00 00 00 00 00 00
+1F61: 00 00 00 00 00 00 00 00
+1F69: 00 00 00 00 00 00 00 00
+1F71: 00 00 00 00 00 00 00 00
+1F79: 00 00 00 00 00 00 00 00
+1F81: 00 00 00 00 00 00 00 00
+1F89: 00 00 00 00 00 00 00 00
+1F91: 00 00 00 00 00 00 00 00
+1F99: 00 00 00 00 00 00 00 00
+1FA1: 00 00 00 00 00 00 00 00
+1FA9: 00 00 00 00 00 00 00 00
+1FB1: 00 00 00 00 00 00 00 00
+1FB9: 00 00 00 00 00 00 00 00
+1FC1: 00 00 00 00 00 00 00 00
+1FC9: 00 00 00 00 00 00 00 00
+1FD1: 00 00 00 00 00 00 00 00
+1FD9: 00 00 00 00 00 00 00 00
+1FE1: 00 00 00 00 00 00 00 00
+1FE9: 00 00 00 00 00 00 00 00
+1FF1: 00 00 00 00 00 00 00 00
+1FF9: 00 00 00 00 00 00 00 00
+2001: 00 C0 00 00 C0 00 00 00
+2009: 00 00 00 1F F0 80 1F F8
+2011: C0 18 38 C0 18 1C C0 18
+2019: 0C C0 18 0C C0 18 0C C0
+2021: 08 0C C0 08 18 C0 0C 38
+2029: E0 0C F0 60 0F C0 60 07
+2031: 00 60 00 00 00 00 00 00
+2039: 00 00 00 00 00 00 01 00
+2041: 00 00 0F E0 00 3F E0 00
+2049: 70 00 40 60 00 C0 60 01
+2051: 80 40 01 80 C0 01 E0 CF
+2059: E1 80 FF F1 80 78 71 00
+2061: 00 33 00 00 33 00 00 73
+2069: 00 80 F3 00 83 E3 00 FF
+2071: C1 FC FE 00 FC 00 00 00
+2079: 00 00 00 00 00 00 01 00
+2081: 00 00 00 00 00 00 00 00
+2089: 00 00 00 1F C0 00 3F E3
+2091: 00 20 63 00 60 27 F8 60
+2099: 27 FC 60 26 0C 60 6E 04
+20A1: 60 EE 00 63 CC 00 7F 8C
+20A9: 00 7E 1C 00 30 18 00 00
+20B1: 18 00 00 00 00 00 00 00
+20B9: 00 00 00 00 00 00 01 00
+20C1: 00 00 00 01 C0 00 01 C0
+20C9: 00 01 C0 60 01 C0 60 01
+20D1: C0 60 00 C0 3C 00 C0 3C
+20D9: 00 C0 30 00 C0 30 00 C0
+20E1: 30 00 C0 30 00 C0 30 18
+20E9: 40 10 30 40 18 60 00 19
+20F1: C0 00 0F 80 60 00 00 60
+20F9: 00 00 00 00 00 00 01

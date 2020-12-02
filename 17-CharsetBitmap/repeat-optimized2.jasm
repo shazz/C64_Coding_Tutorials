@@ -1,0 +1,179 @@
+!let debug = 0
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/maths" as maths
+!use "../macros/utils" as utils
+!use "../macros/spd" as spd
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let desc = loadJson("data/charset_40s_5x4_padded.json")
+!!utils.debug(desc)
+!let DATA_FILE = desc.datafile
+!let COLOR_FILE = desc.colorfile
+!let NB_CHARSETS = desc.steps
+!let CHARSET_WIDTH = desc.charset_width
+!let CHARSET_HEIGHT = desc.charset_height
+!let CHARSET_SIZE = CHARSET_WIDTH*CHARSET_HEIGHT*8
+!let UPDATE_CHARSET_RASTERLINE = 250
+!let UPDATE_EVERY = 8
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+
+    ; lda #$35                  ; Bank out kernal and basic
+    ; sta $01                   ; $e000-$ffff
+
+    lda vic.scr_ctrl2           ; activate multicolor mode
+    ora #16                     ; set bit 4 to 1
+    sta vic.scr_ctrl2
+
+    +clear_screen({"clearByte": $20, "screen": $0400, usePtr: FALSE})
+
+    jsr update_charset
+    
+    lda charcolors+0
+    sta vic.bck_col         ; set window color to charset transparent color
+    sta vic.border_col      ; set border color to charset transparent color
+
+    lda charcolors+1        ; set charset first color
+    sta vic.back_extra_col1
+
+    lda charcolors+2        ; set charset 2nd color
+    sta vic.back_extra_col2
+
+    lda #$18                ; a = $18 = 0001 100 0
+    sta vic.mem_setup       ; set Memory setup register to char memory 4 (3 bits $2000-$27FF,) screen memory to 1 ($0400-$07FF)
+
+; copy the character memory tiles bitmap to $0400
+; this code is not generic, it implied the tile is 4 lines height
+!for y in range(7) {        ; copy 25 lines (only copy the first line for line 25)
+    ldx #0
+copy_line:  
+    !if (y != 6) {
+        !for i in range(4) {
+            lda screencodes+(i*40),x
+            sta $0400+(i*40)+(y*160),x
+        }
+    } else {                ; special case for last line
+        !for i in range(1) {
+            lda screencodes+(i*40),x
+            sta $0400+(i*40)+(y*160),x
+        }
+    }
+
+    inx
+    cpx #40
+    bne copy_line
+}
+
+; poke char multicolor byte in Color Ram for all characters
++clear_screen({ screen: $d800, clearByte: charcolors+3, usePtr: TRUE})
+
+; no irq, just check we are at the end of the character window (or any other line)
+loop:
+    lda vic.raster_line
+    cmp #UPDATE_CHARSET_RASTERLINE
+    beq time_to_update
+    jmp loop
+
+; set the params to the update_charset routine
+time_to_update:
+    ldx frame_counter                           ; we update the charset only every UPDATE_EVERY frame
+    cpx #UPDATE_EVERY                           ; else this is too fast (or would need more banks)
+    beq do_update
+    inx
+    stx frame_counter
+    jmp loop
+
+do_update:
+    +cpu_time_set_color(color.green)
+    ldx #0
+    stx frame_counter                           ; reset frame counter
+
+    clc
+    lda current_ptr                             ; patching the MSB is enough as each bank is stored at 256 boundary ($7000, $7100...)
+    adc #>charsets                              ; means $70, $71, $72... dependening of the bank to read
+
+!for i in range(8) {
+    sta update_charset::start+(i*6)+2           ; self-modify the MSB, 8 times as we write 8 bytes
+}
+    ldx current_ptr                             ; set the charset ptr to the next charset
+    inx            
+    cpx #NB_CHARSETS                            ; or reset if last bank
+
+    bne no_reset
+    ldx #0
+no_reset:
+    stx current_ptr
+    +cpu_time_set_color(color.blue)
+    jsr update_charset
+    +cpu_time_set_color(color.black)
+    jmp loop    
+}
+
+; routine to update the charset in $2000 
+update_charset: {
+    ldy #CHARSET_SIZE/8                         ; loop n times, n = charset size / 8
+start:                                          ; as we write per batch of 8 bytes
+!for i in range(8) { 
+    lda $ee00+(i*CHARSET_SIZE/8),y              ; copy 8 bytes in n loops
+    sta current_charset+(i*CHARSET_SIZE/8),y    ; msb ($ee) is self-modified by caller
+}
+    dey
+    bpl start
+    rts
+}
+
+; ------------------------------------------------------------------------------------------
+; Data
+; ------------------------------------------------------------------------------------------
+; current charset displayed
+current_ptr: !byte 0
+
+; slow down the effet
+frame_counter: !byte 0
+
+; character memory template for tilemap
+screencodes:
+!for y in range(25) {
+    !for x in range(40) {
+        ; !!utils.debug((y*CHARSET_WIDTH)+(x % CHARSET_WIDTH))
+        !byte (y*CHARSET_WIDTH)+(x % CHARSET_WIDTH)
+    }
+}
+
+; charset colors
+charcolors: !binary COLOR_FILE
+
+; ------------------------------------------------------------------------------------------
+; Segment $2000: displayed charset, set by vic.mem_setup
+; ------------------------------------------------------------------------------------------
+* = $2000
+current_charset: !fill CHARSET_WIDTH, 0
+
+; ------------------------------------------------------------------------------------------
+; Segment $7000: charsets banks
+; ------------------------------------------------------------------------------------------
+* = $7000
+charsets: !binary DATA_FILE

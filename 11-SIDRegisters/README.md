@@ -371,4 +371,8 @@ What do we have now to sync a little graphical effect with the music?
 Let's take a look at lft's tune: https://deepsid.chordian.net/?file=/MUSICIANS/L/Lft/A_Mind_is_Born.sid
 
 As you can see the ramping bass line is on voice 3 while the generated melody on voice 2 and the rythm on voice 1.
- 
+And if you remember the 2 last examples, we took the opportunity to save, in addition to the registers values, the voice 3 upper 8bits values that we can consider as an amplitude or volume.
+
+Let's use this information to sync the graphics with the music:
+- if the volume is bigger than x,...
+- if the ....

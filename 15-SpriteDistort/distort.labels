@@ -1,0 +1,15 @@
+080d   12 entry
+0819   69 entry::__anon_scope_5::loop
+085e   20 enable_sprites
+0872   66 enable_sprites::set_spr_ptr_and_color
+08b4   50 irq_top
+08e6    0 irq_warp
+08e6   34 irq_top::end
+0908 1557 irq_warp::irq
+0f1d    0 update_logo_wobble
+0f1d    2 irq_warp::end
+0f1f   58 update_logo_wobble::yloop
+0f59  167 logo_phase
+1000  256 sintab
+1100 3840 logo_spritex
+2000  256 bintris_sprite

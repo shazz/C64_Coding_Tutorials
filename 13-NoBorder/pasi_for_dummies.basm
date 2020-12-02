@@ -1,0 +1,98 @@
+; opening the top and bottom borders while displaying a pattern in those borders
+; original code by pasi 'albert' ojala published in c=hacking issue 6
+; ported to bass and simplified by shazz^trsi for educational purpose
+
+IMAGE   = $cf00   ; buffer to copy some character rom data
+RASTER  = 250     ; rasterline for the interrupt
+DUMMY   = $cfff   ; dummy-address for timing (refer to missing_cycles-article)
+
+        !org	$c000	; begin (sys49152)
+
+        sei             ; disable interrupts
+        lda #$7f        ; disable timer interrupts (cia)
+        sta $dc0d
+        sta $dd0d
+
+        lda #RASTER     ; set the raster compare to $fa=250
+        sta $d012       
+
+        lda #RASTER-20  ; sprite 0 is situated 20 lines before the interrupt
+        sta $d001       ; sprite  0 y = 250-20 = 230th rasterline
+
+        lda #<irq
+        sta $0314       ; interrupt vector to our routine
+        lda #>irq
+        sta $0315
+
+        ldy #0
+        sty $d017       ; disable sprite y-expand
+        
+        lda #$32        ; $32 = 0011 0010: %0xx: character rom visible at $d000-$dfff.
+        sta $01         ; character rom is visible on memory map
+
+        ldx #111        ; copy loop = 112 bytes
+copy    lda $d000,x     ; copy 112 bytes of character rom (14 uppercase characters, @ to m) from end to start
+        sta IMAGE,y
+        iny             
+        dex
+        bpl copy        ; until we copied enough
+        
+        lda #$37        ; $37 = 0011 0111 => %1xx: i/o area visible at $d000-$dfff.
+        sta $01         ; disable character rom on memory map and vic registers become visible
+
+        lda #1
+        sta $d019       ; acknowledge the raster interrupt
+        sta $d015       ; enable sprite (so enable the timing sprite)
+
+        lda #$7f        ; reset raster irq MSB 0111 1111
+        and $d011       
+        sta $d011
+
+        lda #$1
+        sta $d01a       ; enable raster interrupts (vic)
+
+        cli             ; enable interrupts
+
+forever 
+        jmp forever     ; loop forever, rts will go back to basic but irq still remains
+
+                        ; irq is triggered on rasterline 250
+                        ; at best, 38 cycles have already elapsed before the irq is available to us plus a 0-6 cycles jitter
+                        ; c64debugger tells me that each time, the jitter is 0 cycle but sometimes 1 or 2 (IRQ routine starts exactly at 38 cycles)
+                        ; now we need to open the border and sync (stabilize) the code with the beam for the next rasterline
+irq     lda #$13        ; open the bottom border (top border will open too)
+        sta $d011       ; $13 = 0001 0011 => set smooth scroll to default 3 pixels, 24 rows, screen on, text mode, no 9th raster bit
+        
+                        ; 
+        ldy #111	; 112 loops
+        nop             ; 
+                        ; at this point, about 38 + jitter + 2 + 4 + 2 + 2 = 48 + jitter cycles have be consumed 
+                        ; then, we need to reach cycle 58 where the VIC will grab the bus to fetch sprite 0
+        inc DUMMY       ; 6 cycles => we are at cycle 54+jitter  
+        ; BUS grabbed by the VIC for 2 cycles, CPU halted => we are at cycle 60
+        bit $ea         ; 3 more cycles and done! 63 cycles ! we are in sync!
+
+                        ; loop 112 times = from rasterline 251 to 363 meaning to top raster line 363-312 = 41
+                        ; 312 - 284 lines are visible = 28 are not durng vbl times, that about 3.5 characters? 
+                        ; Set vice in full border mode to see those missing characters
+loop    
+        !rept 4 { nop } ; those are 8 cycles are in the left border, you can use do do anything, load register x for example
+
+        lda IMAGE,y     ; get char rom pixel in a. advance also each loop in the character image byte per byte
+        sta $3fff       ; loop size = (4x2) + 4 + 4 + (21x2) + 2 + 3 = 63 cycles (pal has 63 cycles per line)
+
+        !rept 21 { nop }; 21 nop (42 cycles) repeat is equivalent to 10 sta $3fff + nop 
+                        ; a sta $3fff takes 4 cycles so the pattern can be updated *at best* only every 32 pixels
+                  
+        dey
+        bpl loop        ; this loop is sync'ed with the raster beam and one pass lasts exactly one rasterline
+
+                        ; at this point we are near from the first visible line (top). time to reset the vic to normal
+        sta $3fff       ; clear the graphics
+        lda #$1b
+        sta $d011       ; normal screen (be ready to open the border again)
+
+        lda #1
+        sta $d019       ; acknowledge the raster interrupt
+
+        jmp $ea31       ; jump to the normal irq-handler

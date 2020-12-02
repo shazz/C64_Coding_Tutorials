@@ -1,0 +1,148 @@
+!let debug = 1 
+
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	counters: $20,
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/maths" as maths
+!use "../macros/log" as log
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let SPRITES_NB = 8
+!let SPRITES_SPACING = 38
+!let SIN_LEN = 80
+!let SIN_SCALE = 60
+!let SIN_SPACE = 10
+!let irq_top_line = 10
+!let RASTERLINE = 30
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: 
+    sei
+    lda #$35        			; Bank out kernal and basic
+    sta $01         			; $e000-$ffff
+    +setup_irq(irq_top, irq_top_line)
+    cli							; set up a dummy irq to replace the kernal IRQ
+
+	+clear_screen({ screen: $0400, clearByte: $20 })
+
+	lda #0
+	sta vic.border_col
+	sta vic.bck_col
+    sta vic.sprite_dblx  	    ; no double width
+    sta vic.sprite_dblh			; no double height
+    sta vic.sprite_colmode		; single color sprites	
+	sta vic.sprite_pri			; no priority
+
+	lda #(1<<SPRITES_NB)-1		; set one bit per sprite
+	sta vic.sprite_en			; set 1 to register enable sprite 1 (Bit #x: 1 = Sprite #x is enabled, drawn onto the screen.)		
+
+!for i in range(SPRITES_NB) {
+	lda #i*SIN_SPACE			; initialize the sprites offset in the sintab
+	sta zp.counters+i			; easier with a macro to compute *SIN_SPACE
+
+	lda spr_cols+i				; set sprites 1st color
+	sta vic.sprite0_color+i	
+}
+
+frame_loop:
+    jsr wait_first_line
+
+	+cpu_time_start()
+
+    ldy #sprite_data/64			; a = $80 (128) to set sprite pointer to $2000, see next line
+    !for i in range(SPRITES_NB) {
+		sty $07f8+i	     		; set default area for sprite pointer 0 to 128*64 = 8192 ($2000) when our sprite data is located. *64 because each sprite is 64K
+		
+		lda lb_pos_x+i			; read sprite X position (low byte)
+		sta vic.sprite0_x+(i*2)	;
+
+		ldx zp.counters+i		; get position in sintab
+		lda sintab, x
+		sta vic.sprite0_y+(i*2)	; set Sprite #i Y-coordinate to 128    
+
+		inc zp.counters+i		; if counter[i] = len(sintab) then counter[i] = 0
+		lda #SIN_LEN
+		cmp zp.counters+i
+		bne cont				; *+6 or *+7 if zp or not, go to next iteration in the loop (bne+lda+sta = 6/7 bytes)
+		lda #0
+  		sta zp.counters+i
+cont:
+	}
+	lda hb_pos_x				; read sprite X position (high bit set/unset mask)
+	sta vic.sprites_x
+
+	+cpu_time_stop()
+
+	jmp frame_loop
+
+wait_first_line: {
+    ldx $d012
+    lda $d011
+    and #$80
+    bne wait_first_line
+    cpx #RASTERLINE
+    bne wait_first_line
+    rts
+}
+
+irq_top: {
+    +irq_start(end)
+    +irq_end(irq_top, irq_top_line)
+end:
+}
+
+; counters:
+; 	!for i in range(SPRITES_NB) {
+; 		!byte i*SIN_SPACE
+; 	}
+; }
+
+lb_pos_x:  
+    !for i in range(SPRITES_NB) {
+        !let pos_l = ((320/SPRITES_NB)+(i*SPRITES_SPACING)) & $ff
+		!!log.debug(pos_l)
+		!byte pos_l
+    }
+
+hb_pos_x: 
+	!!log.debug("Computing high byte")
+	!let mask = 0
+    !for i in range(SPRITES_NB) {
+		mask = mask | (((320/SPRITES_NB)+(i*SPRITES_SPACING) & $100) >> (8-i))
+    }
+	!!log.debug(maths.int_to_bin(mask))
+	!byte mask
+
+spr_cols: !byte color.white, color.red, color.blue, color.green, color.cyan, color.yellow, color.orange, color.purple 
+
+!let sinvals = maths.sintab(SIN_LEN, SIN_SCALE)
+sintab:
+!for v in sinvals {
+    !byte (100+SIN_SCALE/2)+v
+}
+end_sintag:
+
+* = $2000
+sprite_data: !binary "sprite3.spr"       ; all of sprite3.spr, set to $2000 (8192)
+!! log.debug("-- End of pass --")

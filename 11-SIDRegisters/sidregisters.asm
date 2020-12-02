@@ -27,7 +27,7 @@
 	stx $0315	; set Execution address+1 of interrupt service routine to high byte irq address
 	sty $d012	; set Raster line to generate interrupt at raster line 126
 
-	; read interrupt registes clear them
+	; read interrupt registers clear them
 	lda $dc0d	; read interrupt control register 1 in a
 	lda $dd0d	; read interrupt control register 2 in a
 	asl $d019	; Ack raster interrupt

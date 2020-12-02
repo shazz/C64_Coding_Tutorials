@@ -1,0 +1,29 @@
+; Simple Text Writer
+;
+		; program start
+		!section "main", $801
+		!byte $0b,$08,$01,$00,$9e,$32,$30,$36
+		!byte $31,$00,$00,$00 ;= SYS 2061
+
+		ldx #40				; init colour map to color 1 (white) on line 24
+set_colors:	
+		lda #01				
+		sta $dbc0,X			; set color RAM to 1 since cell 920 => line 23 to 24
+		dex	
+		bpl set_colors		; loop 40 times = 1 line
+
+		ldx #00 			
+write_text:
+		lda message,X
+		sta $07c0,X			; $07c0 = cell 960 => line 24 of screen mem ($0400-$07e7)
+		inx
+		cpx #40
+		bne write_text
+
+done:
+   	 	jmp done
+
+;message:    .dc "THIS IS THE LAST LINE BEFORE THE BORDER!"
+message:	
+		!byte 20, 8, 9, 19, 32, 9, 19, 32, 20, 8, 5, 32, 12, 1, 19, 20, 32, 12, 9, 14, 5, 32, 2, 5, 6, 15, 18, 5, 32, 20, 8, 5, 32, 2, 15, 18, 4, 5, 18, 33
+        !byte 255

@@ -1,0 +1,91 @@
+#ASM source for file A_Mind_Is_Born.sid
+#Init addr: $101C, Play addr: $1000
+#Load addr: $1000, End addr: $10C6, Length: 199 bytes
+#----------------------------------------------------------------
+1000: EE 9A 10 :INC $109A
+1003: EE 9A 10 :INC $109A
+1006: D0 03    :BNE $03
+1008: EE A7 10 :INC $10A7
+100B: A9 61    :LDA #$61
+100D: 8D A3 10 :STA $10A3
+1010: AF        :Illegal opcode
+1011: A7        :Illegal opcode
+1012: 10 E0    :BPL $E0
+1014: 3F        :Illegal opcode
+1015: F0 10    :BEQ $10
+1017: 90 13    :BCC $13
+1019: 4E 9A 10 :LSR $109A
+101C: A2 18    :LDX #$18
+101E: A9 00    :LDA #$00
+1020: 9D 00 D4 :STA $D400,X
+1023: CA       :DEX
+1024: 10 FA    :BPL $FA
+1026: 60       :RTS
+1027: A0 6D    :LDY #$6D
+1029: 8C A9 10 :STY $10A9
+102C: 4A       :LSR A
+102D: 4B        :Illegal opcode
+102E: 1C        :Illegal opcode
+102F: A8       :TAY
+1030: AD 9A 10 :LDA $109A
+1033: 29 30    :AND #$30
+1035: D0 03    :BNE $03
+1037: CE A3 10 :DEC $10A3
+103A: E0 2F    :CPX #$2F
+103C: F0 15    :BEQ $15
+103E: B0 02    :BCS $02
+1040: A2 02    :LDX #$02
+1042: C9 10    :CMP #$10
+1044: F0 0D    :BEQ $0D
+1046: 8A       :TXA
+1047: 29 03    :AND #$03
+1049: AA       :TAX
+104A: BD BA 10 :LDA $10BA,X
+104D: 8D 91 10 :STA $1091
+1050: 29 03    :AND #$03
+1052: 0C        :Illegal opcode
+1053: AB        :Illegal opcode
+1054: 00       :BRK
+1055: B0 10    :BCS $10
+1057: B9 AB 10 :LDA $10AB,Y
+105A: BE AA 10 :LDX $10AA,Y
+105D: 9D 00 10 :STA $1000,X
+1060: AD 9A 10 :LDA $109A
+1063: 4B        :Illegal opcode
+1064: 0E 49 07 :ASL $0749
+1067: 8D 92 10 :STA $1092
+106A: AD 9A 10 :LDA $109A
+106D: 29 0F    :AND #$0F
+106F: D0 13    :BNE $13
+1071: A9 B8    :LDA #$B8
+1073: 4F        :Illegal opcode
+1074: 9B        :Illegal opcode
+1075: 10 90    :BPL $90
+1077: 03        :Illegal opcode
+1078: 8D 9B 10 :STA $109B
+107B: 29 07    :AND #$07
+107D: AA       :TAX
+107E: BD BE 10 :LDA $10BE,X
+1081: 8D 99 10 :STA $1099
+1084: A9 18    :LDA #$18
+1086: A8       :TAY
+1087: B9 91 10 :LDA $1091,Y
+108A: 99 00 D4 :STA $D400,Y
+108D: 88       :DEY
+108E: 10 F7    :BPL $F7
+1090: 60       :RTS
+-------
+1091: 00 00 00 19 
+1095: 41 1C D0 00 
+1099: DC 00 00 11 
+109D: D0 E0 0B 10 
+10A1: 33 0E 61 90 
+10A5: F5 07 00 FF 
+10A9: 1F C6 FF 9B 
+10AD: 41 C6 FF 9C 
+10B1: 25 9C 53 9C 
+10B5: 61 C6 FF A2 
+10B9: 0F 2B AA 02 
+10BD: 62 00 18 26 
+10C1: 20 12 24 13 
+10C5: 10 FF 

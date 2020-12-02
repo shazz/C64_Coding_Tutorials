@@ -1,0 +1,470 @@
+!let use_illegal = 1
+!let debug = 0
+!let unroll = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	sintab_counters: 2,   ; 8 bytes
+	x_positions:     10,  ; 16 bytes
+    y_positions:     26,  ; 8 bytes
+    scroll_offset:   34,  ; 1 byte
+    scroll_offsets:  35,  ; 8 bytes
+    tmp:             43,  ; 1 byte
+    curr_sprite:     44,  ; 1 byte
+    d017_table:      45   ; D017_TABLE_LEN bytes (around 40 bytes) 
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/maths" as maths
+!use "../macros/utils" as utils
+!use "../macros/spd" as spd
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let SPRITES_NB = 8
+!let CUBES_SPRITES_NB = 10
+!let SPRITES_SPACING = Math.floor(384 / SPRITES_NB)
+!!utils.debug(["Spacing", SPRITES_SPACING])
+
+!let SPEED_X = 4
+!let SIN_LEN = 80
+!let SIN_SCALE = 8
+!let SIN_SPACE = 10
+!let D017_TABLE_LEN = SIN_SCALE*2+21+1
+!!utils.debug(["D017_TABLE_LEN", D017_TABLE_LEN])
+
+!let TOP_Y_POS = 32
+!let NB_LINES = 5
+
+!let IRQ_TOP_LINE = 10
+!let IRQ_STRECHER_LINE = TOP_Y_POS-1
+!let IRQ_OPEN_BORDER_LINE = 250
+
+!let CUBES_SPD = spd("final-cube.spd")
+!let NB_CUBES = 10
+!let FULLSCREEN_COLOR = color.blue
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+
+    lda #FULLSCREEN_COLOR                ; set borders and window to black
+    sta vic.border_col
+
+    lda #FULLSCREEN_COLOR
+    sta vic.bck_col
+
+    +clear_screen({"clearByte": $20, "screen": $0400})
+
+    sei
+    lda #$35                    ; Bank out kernal and basic
+    sta $01                     ; $e000-$ffff
+
+	lda #0
+	; sta vic.border_col
+	; sta vic.bck_col
+    sta vic.sprite_dblx  	    ; no double width
+    sta vic.sprite_dblh			; no double height
+	sta vic.sprite_pri			; no priority
+    sta zp.curr_sprite          ; set current sprite as the first one
+
+	lda #(1<<SPRITES_NB)-1
+	sta vic.sprite_colmode		; single color sprites	
+
+    ; lda #CUBES_SPD.multicol1		; set extra colors
+    lda #$e
+    sta vic.sprite_extra_col1   ; 
+    lda #CUBES_SPD.multicol2
+    sta vic.sprite_extra_col2
+
+	lda #(1<<SPRITES_NB)-1		; set one bit per sprite
+	sta vic.sprite_en			; set 1 to register enable sprite 1 (Bit #x: 1 = Sprite #x is enabled, drawn onto the screen.)		
+
+    !for i in range(NB_LINES) {
+        lda offsets+i
+        sta zp.scroll_offsets+i
+    }
+
+    jsr clear_d017_table
+
+    !for i in range(SPRITES_NB) {
+        lda #i*SIN_SPACE			; initialize the sprites offset in the sintab
+        sta zp.sintab_counters+i	; easier with a macro to compute *SIN_SPACE
+
+        ; !let pos_l = (((SPRITES_SPACING/2) - 12) + (i*SPRITES_SPACING) & $0ff) >> 0
+        ; !let pos_h = (((SPRITES_SPACING/2) - 12) + (i*SPRITES_SPACING) & $100) >> 8
+        !let pos_l = ((SPRITES_SPACING/2) + (i*SPRITES_SPACING) & $0ff) >> 0
+        !let pos_h = ((SPRITES_SPACING/2) + (i*SPRITES_SPACING) & $100) >> 8
+        !!utils.debug([i*SPRITES_SPACING, pos_l, pos_h])
+        lda #pos_l
+        sta zp.x_positions+(2*i)
+        lda #pos_h
+        sta zp.x_positions+(2*i)+1
+
+        lda #CUBES_SPD.colors[0]
+        sta vic.sprite0_color+i         ; set main sprite color
+    }
+
+    ; set sprites pointers
+    lda #cube_sprites/64		        ; a = $80 (128) to set sprite pointer to $2000, see next line
+    !for i in range(SPRITES_NB) {
+        ; lda #cube_sprites/64+i	
+        sta $07f8+i	     			    ; set default area for sprite pointer 0 to 128*64 = 8192 ($2000) when our sprite data is located. *64 because each sprite is 64K
+    }
+
+    +setup_irq(irq_top, IRQ_TOP_LINE)
+    cli                                 ; set IRQ then loop forever
+
+    jmp *
+}
+
+; ------------------------------------------------------------------------------------------
+; top irq
+; At top rasterline, set the sprites registers then set the double irq
+; ------------------------------------------------------------------------------------------
+irq_top: {
+    +irq_start(end)             ; save registers
+
+   	+cpu_time_set_color(color.white)
+
+    lda #$18                            ; $18 = 0001 1000
+    sta vic.scr_ctrl                    ; set screen control: no vertical scroll, 25 rows, bitmap mode
+
+    lda #TOP_Y_POS                      ; set default sprite Y position at the top, strecher will place them accordingly
+    !for i in range(SPRITES_NB) {
+        sta vic.sprite0_y+(i*2)		    ; set sprite #i Y-coordinate to 128    
+    }
+
+    lda #NB_LINES
+    sta zp.scroll_offset                ; reset scroll offset
+
+    ldx zp.curr_sprite                  ; set current sprite pointers
+    lda spr_pointers, x
+    !for i in range(SPRITES_NB) {
+        sta $07f8+i	   
+    }
+    inx
+    txa
+    cmp #CUBES_SPRITES_NB*2
+    bne cont
+    lda #0
+cont:
+    sta zp.curr_sprite
+    
+    !for i in range(SPRITES_NB) {
+		+dec16(zp.x_positions+(2*i), SPEED_X); move sprites to the left
+
+		lda zp.x_positions+(2*i)	    ; read sprite X position (low byte)
+		cmp #SPEED_X				    ; lsb_x - incr.x
+		; bne positive
+        bcs positive				; if negative, re-set the sprite to the far right
+
+		lda zp.x_positions+(2*i)+1	; check msb is set (means x > 255)
+		bne positive					
+		lda #100+28					; if yes, reset msb and lsb to 1 and 84 = 340
+		sta zp.x_positions+(2*i)	
+		lda #1
+		sta zp.x_positions+(2*i)+1
+positive:
+		ldx zp.sintab_counters+i	; get position in sintab
+		lda sintab, x
+        sta zp.y_positions+i        ; store virtual y position
+
+		lda zp.x_positions+(i*2)	; read sprite X position (low byte)
+		sta vic.sprite0_x+(i*2)		;
+check_y:
+		inc zp.sintab_counters+i	; if counter[i] = len(sintab) then counter[i] = 0
+		lda #SIN_LEN
+		cmp zp.sintab_counters+i
+		bne cont					; *+6 or *+7 if zp or not, go to next iteration in the loop (bne+lda+sta = 6/7 bytes)
+		lda #0
+  		sta zp.sintab_counters+i
+cont:
+	}
+	lda zp.x_positions+(2*(SPRITES_NB-1))+1		; get msb7 [6,5,4,3,2,1,0] 
+	!for i in utils.reverse(range(SPRITES_NB)) { 	
+		asl							; msb << 1
+		ora zp.x_positions+(2*i)+1	; or with msb-1
+	}
+	sta vic.sprites_x
+
+    +cpu_time_set_color(FULLSCREEN_COLOR)
+
+    ; +irq_end(irq_top, IRQ_TOP_LINE, TRUE) ; set the next raster IRQ to IRQ_STRECHER_LINE, 1 line before sprites
+    +irq_end(irq_strecher, IRQ_STRECHER_LINE, TRUE) ; set the next raster IRQ to IRQ_STRECHER_LINE, 1 line before sprites
+end:
+}
+
+; ------------------------------------------------------------------------------------------
+; strecher irq
+; At rasterline Y_Sprite - 1, set the double irq, take ? cycles to setup
+; ------------------------------------------------------------------------------------------
+irq_strecher: {
+    +double_irq(end, irq)
+
+!align 256                  ; align to avoid bne extra cycle cost
+irq:
+    txs                     ; 2 restore the stack pointer
+
+	lda #(1<<SPRITES_NB)-1	; set one bit per sprite
+	sta vic.sprite_en
+
+    ;+waste_cycles(7)        ; waste 7 cycles to align
+
+    ldy #0
+    ldx #0
+raster:       
+    sty $d017               ; set Y-stretch to false
+    lda zp.d017_table,x     ; set Y-stretch to true for selected sprites
+    sta $d017
+    lda d011_table + 0,x
+    bit $ea
+    nop
+    nop
+    dec $d016               ; open side border and do FLD to inhibit
+    sta $d011               ; bad lines
+    inc $d016
+    inx
+    cpx #D017_TABLE_LEN
+    bne raster   
+
+    lda #$1b                ; end of the strecher
+    sta $d011
+
+    ; generate next scroller line
+    ldx zp.scroll_offset
+    dex
+    bne cont
+    ; +cpu_time_set_color(color.yellow)
+    stx zp.scroll_offset
+    jmp finish_irq
+
+cont:
+    ; re-set sprite y pos
+    stx zp.scroll_offset
+    ldy zp.scroll_offsets, x
+    !for i in range(SPRITES_NB) {
+        sty vic.sprite0_y+(i*2)		; set sprite #i Y-coordinate to new offsets    
+    }
+    dey                             ; set raster line 1 minus the next y pos
+    sty zp.tmp
+    
+    lda #0
+    sta vic.sprite_en                      ; disable sprites
+
+    +irq_end(irq_strecher, zp.tmp, FALSE) 
+
+finish_irq:
+    ;lda #0
+    ;sta vic.sprite_en                      ; disable sprites, not really needed
+
+!if (debug) {
+    +cpu_time_set_color(FULLSCREEN_COLOR)
+} else {
+    +waste_cycles(13)                       ; If not wasted, borders don't open !!! ???
+}    
+    +irq_end(irq_noborder, IRQ_OPEN_BORDER_LINE, TRUE)
+end:
+}
+
+; Values for $d011 in the stretcher
+d011_table:
+    !for i in range(D017_TABLE_LEN) {
+        !byte i & 7 | $10
+    }
+
+; -----------------------------------------------------------------------------------------
+; irq
+; remove top/bottom border then clear/update strecher table for next frame
+; ------------------------------------------------------------------------------------------
+irq_noborder: {
+    +irq_start(end_irq_noborder)             ; save registers
+
+    +waste_cycles(13)   ; open top/bottom borders to allow us to open the side borders earlier in the $d017 stretcher
+    lda #0
+    sta $d011           ; open border           
+    sta $d017           ; disable stretch
+
+    ; +waste_cycles(28)
+    lda #252                            ; 2
+    !for i in range(6) {                ; 4*6
+        sta vic.sprite0_y+(i*2)		; set sprite #i Y-coordinate to new offsets    
+    }
+    +waste_cycles(2)
+
+    ldx #$1b
+    stx $d011
+
+    sta vic.sprite6_y
+    sta vic.sprite7_y
+
+    +waste_cycles(6)
+
+    ldy #0
+    ldx #0
+raster:       
+    sty $d017               ; set Y-stretch to false
+    lda zp.d017_table,x     ; set Y-stretch to true for selected sprites
+    sta $d017
+    lda d011_table + 0,x
+    bit $ea
+    nop
+    nop
+    dec $d016               ; open side border and do FLD to inhibit
+    sta $d011               ; bad lines
+    inc $d016
+    inx
+    cpx #D017_TABLE_LEN
+    bne raster   
+
+    lda #$1b                ; end of the strecher
+    sta $d011    
+
+    jsr clear_d017_table
+    jsr update_d017_table
+
+    +irq_end(irq_top, IRQ_TOP_LINE, TRUE)
+    ; +irq_end(irq_update, 251, TRUE)
+end_irq_noborder:
+}
+
+; irq_update: {
+;     +irq_start(end_irq_update)             ; save registers
+;     +cpu_time_start()
+;     +irq_end(irq_top, IRQ_TOP_LINE, TRUE)
+; end_irq_update:
+; }
+
+; ------------------------------------------------------------------------------------------
+; Update the $d017 'stretcher' table
+;
+; This is what creates the D.Y.S.P. effect
+;
+; For each sprite, we get its Y-position and mask out the proper bits in the
+; $d017 table. We only mask out bits for 19 lines, line 0 and line 20 are
+; always stretched to keep the timing in the loop constant
+; ------------------------------------------------------------------------------------------
+update_d017_table: {
+    +cpu_time_set_color(color.red)
+
+!if (use_illegal) {
+    !for i in range(SPRITES_NB) {	    ; => 8*(160+5) = 1320 cycles (21 lines)
+        ldy zp.y_positions+i	        ; 3 
+        ldx #(255 - (1 << i))           ; 2
+        !!utils.debug(["sprite", i, "mask", (255 - (1 << i))])
+        !for l in range(20) {	        ; 
+            lda zp.d017_table+l, y	    ; 4
+            sax zp.d017_table+l, y	    ; 4 => 8*20 = 160 cycles cycles
+        }
+    }   
+} else {
+!if (unroll) {
+    !for i in range(SPRITES_NB) {	    ; => 8*(220+3) = 1784 cycles (29 lines)
+        ldx zp.y_positions+i	        ; 3 
+        !!utils.debug(["sprite", i, "mask", (255 - (1 << i))])
+        !for l in range(20) {	        ; WHY 20 and not 19 ???? Should work with 19!!!
+            lda zp.d017_table+l, x	    ; 4
+            and #(255 - (1 << i))	    ; 2
+            sta zp.d017_table+l, x	    ; 5 => 11*20 = 220 cycles
+        }
+    }
+} else {
+    !for i in range(SPRITES_NB) {       ; => 8*(359+5) = 2912 (47 lines)
+            ldx zp.y_positions+i        ; 3
+            ldy #19                     ; 2, WHY 19 and not 18 ????             
+    loop:
+            lda zp.d017_table, x        ; 4
+            and #(255 - (1 << i))       ; 2
+            !!utils.debug(["sprite", i, "mask", (255 - (1 << i))])
+            sta zp.d017_table, x        ; 5
+            inx                         ; 2
+            dey                         ; 2
+            bpl loop                    ; 2+1 => 18*20 = 359 cycles
+    }                               
+}
+}
+    +cpu_time_set_color(FULLSCREEN_COLOR)
+    rts
+}
+
+; ------------------------------------------------------------------------------------------
+; Clear the $d017 'stretcher' table by storing $ff in it
+;
+; We later mask out bits in this table with the $d017 update routine
+; ------------------------------------------------------------------------------------------
+clear_d017_table: {
+    +cpu_time_set_color(color.cyan)
+    lda #$ff                    ; 2
+
+!if (unroll) {
+    !for i in range(D017_TABLE_LEN) {
+        sta zp.d017_table+i     ; 4
+    }                           ; total: 4*40 + 2 = 162 cycles (3 lines), ram: 64*3+2 = 194 bytes
+} else {
+    ldx #D017_TABLE_LEN-1       ; 2
+loop:
+    sta zp.d017_table, x        ; 5
+    dex                         ; 2
+    bpl loop                    ; 2+1
+}                               ; total = 4 + (10*40) = 404 cycles (7 lines), ram = 2+2+5+2 = 11 bytes 
+
+    +cpu_time_set_color(FULLSCREEN_COLOR)
+    rts 
+}
+
+!!utils.debug(["mem location before data", *, "bytes used", *-entry])
+
+data:
+; ------------------------------------------------------------------------------------------
+; data
+; ------------------------------------------------------------------------------------------
+!let sinvals = maths.sintab(SIN_LEN, SIN_SCALE)
+sintab:
+!for v in sinvals {
+    !byte 1+SIN_SCALE+v       ; center the sin wave
+}
+end_sintab:
+    
+spr_pointers:
+!for i in range(CUBES_SPRITES_NB) {
+    !byte cube_sprites/64+i
+    !byte cube_sprites/64+i
+}
+
+offsets:
+    !byte 0, TOP_Y_POS+42+42+44+42, TOP_Y_POS+42+42+44, TOP_Y_POS+42+43, TOP_Y_POS+42
+    ; TOP_Y_POS = 32
+    ; 32 -> 76 -> 121 -> 165 -> 
+    ; $d1, $a5, $79, $4c, 
+
+; Don't overwrite music with code/data
+; !if(* > $0fff) {
+;     !error "code section too long"
+; }
+!!utils.debug(["mem location after data", *, "bytes used", *-data])
+
+
+; ------------------------------------------------------------------------------------------
+; Sprite data set at $2000 (by specs)
+; ------------------------------------------------------------------------------------------
+* = $2000
+cube_sprites: 
+!for i in range(CUBES_SPD.numSprites) {
+    !byte CUBES_SPD.data[i]
+}
+!! utils.debug("-- End of pass --")
+

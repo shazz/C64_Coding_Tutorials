@@ -1,0 +1,53 @@
+!include "../macros/macros.jasm"
+
+!let scroly   =   $d011
+!let raster   =   $d012
+!let vicirq   =   $d019
+!let irqmsk   =   $d01a
+!let ciaicr   =   $dc0d
+!let ci2icr   =   $dd0d
+!let garbage  =   $3fff
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: 
+        sei            ; disable irq
+        ldx #$7f       ;
+        stx ciaicr     ; disable timer irq CIA 1
+        stx ci2icr     ; disable timer irq CIA 2
+        ldx #$01       ;
+        stx irqmsk     ; enable raster irq
+        ldx #<nearend  ;
+        stx $0314      ;
+        ldx #>nearend  ;
+        stx $0315      ; set handler
+        ldx #$1b       ;
+        stx scroly     ; 25 rows
+        ldx #$f9       ;
+        stx raster     ; irq at raster $f9
+        ldx #$00       ;
+        stx garbage    ; clear "garbage"
+        cli            ; enable irq
+
+
+loop:   jmp loop       
+        rts            ; done
+;
+; NEAR END HANDLER
+;
+nearend:
+        ldx #$13       ;
+        stx scroly     ; 24 rows
+delay:
+        inx            ;
+        bne delay      ;
+        ldx #$1b       ;
+        stx scroly     ; 25 rows
+        ldx #$01       ;
+        stx vicirq     ; ack irq
+        jmp $ea31      ; continue

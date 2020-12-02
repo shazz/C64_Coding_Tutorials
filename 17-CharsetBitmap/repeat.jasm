@@ -1,0 +1,180 @@
+!let debug = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	charset_loptr: $FB,   ; 1 byte
+	charset_hiptr: $FC,   ; 1 byte
+	charset_ptr: $FD
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/maths" as maths
+!use "../macros/utils" as utils
+!use "../macros/spd" as spd
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let NB_CHARSETS = 40
+!let CHARSET_WIDTH = 6
+!let CHARSET_HEIGHT = 4
+!let CHARSET_SIZE = CHARSET_WIDTH*CHARSET_HEIGHT*8
+!let UPDATE_CHARSET_RASTERLINE = 250
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+
+    ; lda #$35                	; Bank out kernal and basic
+    ; sta $01                 	; $e000-$ffff
+
+	lda vic.scr_ctrl2			; activate multicolor mode
+	ora #16						; set bit 4 to 1
+	sta vic.scr_ctrl2
+
+    +clear_screen({"clearByte": $20, "screen": $0400, usePtr: FALSE})
+
+	lda #<charsets
+	sta zp.charset_loptr
+	lda #>charsets
+	sta zp.charset_hiptr
+	lda #0
+	sta zp.charset_ptr
+
+	jsr update_charset
+	
+	lda charcolors+0
+	sta vic.bck_col			; set window color to charset transparent color
+	sta vic.border_col		; set border color to charset transparent color
+
+	lda #5			
+	sta vic.border_col		; debug
+
+	lda charcolors+1
+	sta vic.back_extra_col1
+
+	lda charcolors+2
+	sta vic.back_extra_col2
+
+	lda #$18				; a = $18 = 0001 100 0
+	sta vic.mem_setup		; set Memory setup register to char memory 4 (3 bits $2000-$27FF,) screen memory to 1 ($0400-$07FF)
+
+
+!for y in range(7) {		; copy 25 lines (only copy the first line for line 25)
+	ldx #0
+copy_line:	
+	!if (y != 6) {
+		!for i in range(4) {
+			lda screencodes+(i*40),x
+			sta $0400+(i*40)+(y*160),x
+		}
+	} else {
+		!for i in range(1) {
+			lda screencodes+(i*40),x
+			sta $0400+(i*40)+(y*160),x
+		}
+	}
+
+	inx
+	cpx #40
+	bne copy_line
+}
+
++clear_screen({ screen: $d800, clearByte: charcolors+3, usePtr: TRUE})
+
+loop:
+	lda vic.raster_line
+	cmp #UPDATE_CHARSET_RASTERLINE
+	beq	update
+	jmp loop
+
+update:
+
+  	ldx current_ptr
+    lda charsets_ptr_lsb, x           ; take lo byte of 'buf' address
+    sec
+	sbc #1
+	sta update_charset::copy+1
+    lda charsets_ptr_msb, x           ; take hi byte of 'buf' address
+    sbc #0
+	sta update_charset::copy+2
+
+    inx            
+    cpx #NB_CHARSETS
+
+    bne no_reset
+    ldx #0
+no_reset:
+    stx current_ptr
+
+	+cpu_time_start()
+	jsr update_charset
+	+cpu_time_stop()
+	jmp loop	
+}
+
+update_charset: {
+	ldx #192
+copy:
+	lda $1234, x
+	sta current_charset-1, x
+	dex
+	bne copy
+
+	rts
+}
+
+; update_charset: {
+; 	ldx #0
+; copy:
+; 	lda $1234, x
+; 	sta current_charset, x
+; 	inx
+; 	cpx #CHARSET_SIZE
+; 	bne copy
+
+; 	rts
+; }
+
+current_ptr: !byte 0
+
+charsets_ptr_lsb:
+!for i in range(NB_CHARSETS) {
+	!byte (charsets+(i*CHARSET_SIZE))
+}
+charsets_ptr_msb:
+!for i in range(NB_CHARSETS) {
+	!byte (charsets+(i*CHARSET_SIZE)>>8)
+}
+
+screencodes:
+!for y in range(25) {
+	!for x in range(40) {
+		; !!utils.debug((y*CHARSET_WIDTH)+(x % CHARSET_WIDTH))
+		!byte (y*CHARSET_WIDTH)+(x % CHARSET_WIDTH)
+	}
+}
+
+charcolors:
+!binary "charcol.bin"
+
+; charset data 
+* = $2000
+current_charset:
+!fill CHARSET_SIZE, 0
+
+* = $7000
+charsets: !binary "charset_40_steps.bin"
