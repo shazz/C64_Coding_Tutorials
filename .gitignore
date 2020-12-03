@@ -1,2 +1,5 @@
 *.prg
 *.PRG
+*.labels
+*_debug.jasm
+
