@@ -1,4 +1,4 @@
-!let debug = 1
+!let debug = 0
 ; ------------------------------------------------------------------------------------------
 ; Generic Macros
 ; ------------------------------------------------------------------------------------------
@@ -32,6 +32,8 @@
 
 !let IRQ_RASTERLINE = 10
 !let TOP_POS = 50
+!let V_SCROLL = 3
+!let CYCLES_TO_WASTE = [] 
 ; ------------------------------------------------------------------------------------------
 ; Program
 ; ------------------------------------------------------------------------------------------
@@ -80,6 +82,11 @@ entry: {
         sta vic.sprite0_x+(x*2)
     }
 
+    lda #TOP_POS
+    !for y in range(8) {
+        sta vic.sprite0_y+(y*2)                     ; set first y pos
+    }    
+
 	lda #(1<<SPRITE_COLS)-1		       
 	sta vic.sprite_en		                        ; enable sprites
 
@@ -93,15 +100,24 @@ forever:
 
 ; this IRQ will be repeated / modified for each row of sprite, then setup the next
 irq: {
+    ; by experiment, depending on the badlines, sometimes the number of cycles to start on the 20th line is different
+    !if (debug) {
+        CYCLES_TO_WASTE = [28, 28, 28, 28, 20, 28, 22, 24, 20] ;;22
+    } else {
+        CYCLES_TO_WASTE = [34, 34, 34, 34, 26, 34, 28, 30, 26]
+    }
     !for i in range(SPRITE_ROWS) {
         +irq_start(end)
 
         +cpu_time_start()
 
-        lda #TOP_POS+(i*21)-INTERLEAVE
+        lda #TOP_POS+(i*21)
         !for y in range(8) {
             sta vic.sprite0_y+(y*2)                 ; adjust next Y positions starting at TOP_POS, +21 pixels,..
         }
+
+        !!utils.debug(["at row", i, "wasting", CYCLES_TO_WASTE[i], "cycles"])
+        +waste_cycles(CYCLES_TO_WASTE[i])
 
         !for spr in range(SPRITE_COLS) {
             lda #(sprite_data+($200*i)+(spr*64))/64 ; set sprites pointer to next row (one row = 64*8=512=$200 bytes)
@@ -114,7 +130,27 @@ irq: {
             +irq_end(irq, IRQ_RASTERLINE, TRUE)     ; last loop turn, go back to top
         } else {
             nop                                     ; marker for debugging :)
-            +irq_end(*+33, TOP_POS+21+(i*21)-2-INTERLEAVE, TRUE)    ; jump to next IRQ at rasterline +20. +irq_end generates 33 bytes
+            !let next_rasterline = 0
+            !if (( (TOP_POS+21+(i*21)-1) % 8 == V_SCROLL) | ( (TOP_POS+21+(i*21)-1) % 8 == V_SCROLL+1) ) {
+                next_rasterline = TOP_POS+21+(i*21)-2-INTERLEAVE   
+            } else {
+                next_rasterline = TOP_POS+21+(i*21)-1-INTERLEAVE 
+            }
+
+            !!utils.debug([i, "at rasterline", TOP_POS+21+(i*21), "setting IRQ at", next_rasterline, "badline check", (TOP_POS+21+(i*21)-1) % 8])
+            +irq_end(*+33, next_rasterline, TRUE)    ; jump to next IRQ at rasterline +20. +irq_end generates 33 bytes
+            ; i=0 50+21+0-2-1  = 68 ($44) for y=71 ($47) 
+            ; i=1 50+21+21-2-1 = 89 ($59)     y=92 ($5C)
+            ;                                  =113  
+            ;                                  =134
+            ;                                  =155 => badline!
+            ;                                  =176
+            ;                                  =197
+            ;                                  =218
+
+            ; badlines (V_SCROLL = 0)
+            ; 48 / 56 / 64 / 72 / 80 / 88 / 96 / 104 / 112 / 120 / 128 / 136 / 144 / 152 / 160 / 168 / 176 / 184 / 192 / 200
+            ; 30 / 38 / 40 / 48 / 50 / 58 / 60 / 68  / 70  / 78 /  80  / 88  / 90  / 98  / 100 / 108 / 110 / 118 
         }
     end:
     }
