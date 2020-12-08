@@ -1,0 +1,158 @@
+!let debug = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let desc = loadJson("data/skull5.json")
+!!utils.debug(desc)
+!let DATA_FILE = desc.datafile
+!let BACK_COLOR = desc.background_color
+!let MULTI_COLOR1 = desc.multi_color1
+!let MULTI_COLOR2 = desc.multi_color2
+!let SPRITE_COLOR = desc.sprite_color
+!let SPRITE_COLS = 8
+!let SPRITE_ROWS = desc.nb_rows
+
+!let FIRST_IRQ = 10
+!let TOP_POS = 50
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+
+    lda #BACK_COLOR
+    sta vic.bck_col                                 ; set window color to sprite transparent color
+    sta vic.border_col                              ; set border color to sprite transparent color
+
+    +clear_screen({"clearByte": $20, "screen": $0400, usePtr: FALSE})
+
+    lda #%00010100                                  ; default: 0001 010 0 => text mem at $1000,    
+    sta vic.mem_setup                               ; set Memory setup register to char memory 4 (3 bits $2000-$27FF,) screen memory to 1 ($0400-$07FF)
+
+	lda #0
+    sta vic.sprite_dblx  	                        ; no double width
+    sta vic.sprite_dblh			                    ; no double height
+	sta vic.sprite_pri	        		            ; no priority
+
+    lda #%11111111                                  ; all 8 sprites multicolor
+    sta vic.sprite_colmode                          ; single color sprites
+
+    lda #MULTI_COLOR1                               ; set sprite first shared color
+    sta vic.sprite_extra_col1
+
+    lda #MULTI_COLOR2                               ; set sprite first shared color
+    sta vic.sprite_extra_col2
+
+    lda #SPRITE_COLOR                               ; set sprite specific color
+    !for i in range(SPRITE_COLS) {
+        sta vic.sprite0_color+i
+    }
+
+    lda #TOP_POS
+    !for y in range(8) {
+        sta vic.sprite0_y+(y*2)                     ; set first y pos
+    }    
+
+    lda #(1<<SPRITE_COLS)-1		       
+    sta vic.sprite_en		                        ; enable sprites
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic
+    sta $01         			                    ; $e000-$ffff
+    +setup_irq(irq, FIRST_IRQ)
+    cli							                    ; set up irq to replace the kernal IRQ    
+
+forever: 
+    jmp forever                                     ; at this point, only IRQs do something
+}
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+
+; this IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+irq: { 
+    !for i in range(SPRITE_ROWS+1) {
+        +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+    irq_stable:
+        txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+        +waste_cycles(33)                                   ; waste 29 to be at cycle 25+33=58 just before the DMA steal
+
+        ; at this point we have a stable IRQ at cycle 14 after the DMA
+        +cpu_time_start()
+
+        ; first irq, reset X pos
+        !if (i == 0) {
+            !for x in range(8) {
+                lda #80+(x*24)                              ; set fixed x positions (80+24+...)
+                sta vic.sprite0_x+(x*2)
+            }
+        }
+
+        ; last row, replace by blank data (here, first one, not that good
+        !if (i == SPRITE_ROWS) {
+            lda #(sprite_data/64)
+            sta $07f8 + 0
+            sta $07f8 + 1
+            sta $07f8 + 2
+            sta $07f8 + 3
+            sta $07f8 + 4
+            sta $07f8 + 5
+            sta $07f8 + 6
+            sta $07f8 + 7
+
+            +cpu_time_stop()
+            +irq_end(irq, FIRST_IRQ, TRUE)              ; last loop turn, go back to top
+        
+        ; for other rows
+        } else {     
+            lda #TOP_POS+(i*21)
+            !for y in range(8) {
+                sta vic.sprite0_y+(y*2)                 ; adjust next Y positions starting at TOP_POS, +21 pixels,..
+            }
+
+            ldx #((sprite_data+($200*i))/64)+4          ; optimized code to set the 8 sprites pointers
+            lda #$fb
+            sax $07f8 + 0                              
+            stx $07f8 + 4   
+            inx
+            sax $07f8 + 1
+            stx $07f8 + 5
+            inx
+            sax $07f8 + 2
+            stx $07f8 + 6
+            inx
+            sax $07f8 + 3
+            stx $07f8 + 7
+
+            +cpu_time_stop()
+
+            !let next_rasterline = TOP_POS+20+(i*20)-3  ; Set next rasterline to the next 20 pixels blocks - 3 to set the stable irq
+            !!utils.debug([i, "setting IRQ at", next_rasterline])
+            +irq_end(end_loop, next_rasterline, TRUE)       ; jump to next IRQ at rasterline +20. +irq_end generates *+33 bytes
+        end_loop:
+        }
+    end:
+    }
+}
+
+; ------------------------------------------------------------------------------------------
+; Segment $2000: displayed sprites, set by vic.mem_setup
+; ------------------------------------------------------------------------------------------
+* = $2000
+sprite_data: !binary DATA_FILE
