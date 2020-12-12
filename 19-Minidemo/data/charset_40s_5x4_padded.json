@@ -1,0 +1,19 @@
+{
+    "source": "multiball_20x32_8c.png",
+    "source_width": 20,
+    "source_height": 32,
+    "datafile": "data/charset_40s_5x4_padded.bin",
+    "colorfile": "data/charcol.bin",
+    "colors_used": [
+        0,
+        10,
+        7,
+        2
+    ],
+    "charset_width": 5,
+    "charset_height": 4,
+    "charset_size": 160,
+    "steps": 40,
+    "padding": true,
+    "total_charset_size": 10240
+}
