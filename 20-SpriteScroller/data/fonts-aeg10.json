@@ -1,0 +1,9 @@
+{
+    "source": "fonts-aeg10.png",
+    "source_width": 1416,
+    "source_height": 21,
+    "mode": 0,
+    "datafile": "data/fonts-aeg10.bin",
+    "background_color": 0,
+    "sprite_color": 1
+}

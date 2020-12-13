@@ -38,7 +38,7 @@
     !byte $30 + addr % 10
     !byte 0, 0, 0
 
-    !!utils.debug(["After basic header, program start at", *, maths.int_to_hex(*)])
+    !!utils.debug(["After basic header, program start at", *])
 }
 
 ; ------------------------------------------------------------------------------------------
