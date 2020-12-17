@@ -30,7 +30,7 @@
 !let CHARSET_HEIGHT = desc.charset_height
 !let CHARSET_SIZE = CHARSET_WIDTH*CHARSET_HEIGHT*8
 !let UPDATE_CHARSET_RASTERLINE = 250
-!let UPDATE_EVERY = 8
+!let UPDATE_EVERY = 2
 
 ; ------------------------------------------------------------------------------------------
 ; Program

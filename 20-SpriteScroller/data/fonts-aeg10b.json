@@ -2,6 +2,7 @@
     "source": "fonts-aeg10b.png",
     "source_width": 1416,
     "source_height": 21,
+    "nb_chars": 59,
     "mode": 0,
     "datafile": "data/fonts-aeg10b.bin",
     "background_color": 0,

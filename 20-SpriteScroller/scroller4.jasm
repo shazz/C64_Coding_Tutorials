@@ -1,0 +1,324 @@
+!let debug = 0
+!let use_music = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	xsintab_counter:    $03,
+    ysintab_counter:    $04,
+    x_positions:        $05,    ; 16 bytes
+    y_positions:        $15,    ; nb_rows bytes (9)
+    irq_lines:          $1E,    ; nb_rows bytes (9)
+    text_x_pos:         $30,    ; 16 bytes
+    scrolltext_pos:     $50,
+    scrolltext_ptr:     $51
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+!use "../macros/sid"   as sid_loader
+
+; ------------------------------------------------------------------------------------------
+; Segments
+; ------------------------------------------------------------------------------------------
+!let SEGMENT_INIT = $4000
+!let SEGMENT_TABLES = $5000
+!let SEGMENT_SPRITES_DATA = $2000
+
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let fonts_spr = loadJson("data/fonts-aeg10c.json")
+!!utils.debug(fonts_spr)
+
+!let sid = {}
+!if (use_music) { 
+    sid = sid_loader("data/Meetro.sid")
+    !!utils.debug(sid)
+}
+
+!let SCROLL_SPEED = 4
+!let SCROLL_Y_POS = 252
+!let SCROLL_SPACING = 2
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+    jsr init                                        ; relocated in another segment else music doesn't fit
+
+forever: 
+    jmp forever                                     ; at this point, only IRQs do something
+}
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+textscroller_set_irq: {
+    +irq_start(end)
+
+    +cpu_time_start()
+
+    ; display the sprite in the top border
+    lda #20
+    !for y in range(8) {
+        sta vic.sprite0_y+(y*2)                     ; set first y pos
+    }  
+
+    !for i in utils.reverse(range(8)) {
+		+dec16(zp.text_x_pos+(2*i), SCROLL_SPEED)
+
+        lda zp.text_x_pos+(2*i)+1  ; if lower part, just got to next sprite
+        beq next_sprite 
+        
+        lda #$1                     ; else reset hi to 1
+        sta zp.text_x_pos+(2*i)+1        
+
+        lda zp.text_x_pos+(2*i)     ; if right part "visible, that's ok too
+        cmp #100
+        bcc next_sprite
+
+        cmp #247                    ; if right part more than 503 (invisible) reset to 503 to end left scroll
+        bcc noreset                 ; 510 disappear, 503 come back
+
+        lda #247-SCROLL_SPEED                    
+        sta zp.text_x_pos+(2*i)   
+        jmp next_sprite
+
+    noreset:
+        cmp #207                    ; if end of left scroll (from 247 to 207) not done, just display
+        bcs next_sprite
+
+        ; advance scroller pos or reset if last char
+        ldx zp.scrolltext_pos
+        inx
+        cpx #end_scrolltext-scrolltext-7    ; the warping workswith [ ] but is incorrect, to fix someday
+        bne cont
+        ldx #0
+    cont:
+        stx zp.scrolltext_pos	 
+
+        ; compute new sprite pointer
+        lda scrolltext+7, x                 ; the warping works with [ ] but is incorrect, to fix someday
+        clc
+        adc #sprite_data/64
+        sta zp.scrolltext_ptr+i
+
+        ; get character width offset
+        lda scrolltext+7, x
+        tay
+
+        ; reset to the right of the previous sprite
+        !if (i==0) {
+            lda zp.text_x_pos+(2*7)
+            clc
+            adc #48+SCROLL_SPACING ;+SCROLL_SPEED
+            sec
+            sbc scrolltext_offsets, y     
+            sta zp.text_x_pos	 
+            lda zp.text_x_pos+(2*7)+1
+            sta zp.text_x_pos+1	  
+        } else {
+            lda zp.text_x_pos+(2*(i-1))
+            clc
+            adc #48+SCROLL_SPACING-SCROLL_SPEED 
+            sec
+            sbc scrolltext_offsets, y      
+            sta zp.text_x_pos+(2*i)	 
+            lda zp.text_x_pos+(2*(i-1))+1
+            sta zp.text_x_pos+(2*i)+1	     
+        }
+        next_sprite:
+    }
+
+    ; re-enable borders
+	lda #$1b
+	sta $d011
+
+    ; reset next sprites pos at the bottom
+    lda #SCROLL_Y_POS
+    !for y in range(8) {
+        sta vic.sprite0_y+(y*2)                     ; set first y pos
+    } 
+
+    +cpu_time_stop()
+
+    +irq_end(textscroller_irq, 250, TRUE) 
+end:
+}
+
+textscroller_irq: { 
+    +irq_start(end)
+
+    +cpu_time_start()
+
+    ; disable borders
+	lda #$00
+	sta $d011 
+
+    ; compute next positions
+    !for i in range(8) {
+        lda zp.scrolltext_ptr+i
+        sta $07f8+i
+    }
+
+    ; set sprite x pos LSB
+    !for i in range(8) {
+        lda zp.text_x_pos+(i*2)	
+		sta vic.sprite0_x+(i*2)
+    }
+
+    ; set sprite x pos MSB
+    lda zp.text_x_pos+(2*(8-1))+1		; get msb7 [7,6,5,4,3,2,1,0] 
+	!for i in utils.reverse(range(8)) { 	
+		asl							    ; msb << 1
+		ora zp.text_x_pos+(2*i)+1	    ; or with msb-1
+	}
+	sta vic.sprites_x
+
+    !if (use_music) { 
+        +cpu_time_start()
+        jsr sid.play	; call sid player
+        +cpu_time_stop()
+    } else {
+        ; simulate SID player 
+        +cpu_time_start()
+        +waste_cycles(800)
+        +cpu_time_stop()
+    }
+
+    +cpu_time_stop()
+
+    +irq_end(textscroller_set_irq, 19, TRUE) 
+end:
+}
+
+!!utils.debug(["end of IRQ code", *, maths.int_to_hex(*), (*-entry), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment $1000: music driver and data
+; ------------------------------------------------------------------------------------------
+!if (use_music) { 
+* = sid.startAddress
+music:  !byte sid.data
+end_music:
+!!utils.debug(["end of MUSIC code", *, maths.int_to_hex(*), (*-sid.startAddress), "bytes"])
+}
+; ------------------------------------------------------------------------------------------
+; Segment $2000: as to be visible from selected VIC back (0: $0000 -> $3fff)
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_SPRITES_DATA
+sprite_data: !binary fonts_spr.datafile 
+!!utils.debug(["end of SPRITE data", *, maths.int_to_hex(*), (*-SEGMENT_SPRITES_DATA), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment $4000: Init
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_INIT
+init: {
+    
+    lda #fonts_spr.background_color
+    sta vic.bck_col                                 ; set window color to sprite transparent color
+    sta vic.border_col                              ; set border color to sprite transparent color
+
+    lda #%00010100                                  ; default: 0001 010 0 
+                                                    ; => character mem at $1000, default ROM char    
+    sta vic.mem_setup                               ; => screen mem at $0400
+
+    +clear_screen({"clearByte": $20, "screen": $0400, usePtr: FALSE})
+
+	lda #$ff
+    sta vic.sprite_dblx  	                        ; set double width
+    
+    lda #0
+    sta vic.sprite_dblh			                    ; no double height
+	sta vic.sprite_pri	        		            ; no priority
+
+    lda #0                                          ; all sprites hires
+    sta vic.sprite_colmode                          ; single color sprites
+
+    !if (fonts_spr.mode != 0) {
+        lda #fonts_spr.multi_color1                 ; set sprite first shared color
+        sta vic.sprite_extra_col1
+
+        lda #fonts_spr.multi_color2                 ; set sprite first shared color
+        sta vic.sprite_extra_col2
+    }
+
+    lda #fonts_spr.sprite_color                     ; set sprite specific color
+    !for i in range(8) {
+        sta vic.sprite0_color+i
+    }
+
+    lda #SCROLL_Y_POS
+    !for y in range(8) {
+        sta vic.sprite0_y+(y*2)                     ; set first y pos
+    }    
+
+    lda #(1<<8)-1		       
+    sta vic.sprite_en		                        ; enable sprites
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic
+    sta $01         			                    ; $e000-$ffff
+
+    ldx #0
+    stx zp.scrolltext_pos
+    !for i in range(8) {
+        lda scrolltext, x
+        clc
+        adc #sprite_data/64
+        sta zp.scrolltext_ptr+i
+        inx
+    }
+
+    ; set text initial positions
+    !for i in range(8) {
+        lda #SCROLL_SPEED+(i*(48+SCROLL_SPACING)) & $ff
+        sta zp.text_x_pos+(2*i)
+   	    lda #SCROLL_SPEED+(i*(48+SCROLL_SPACING)) >> 8
+	    sta zp.text_x_pos+(2*i)+1     
+    }
+
+    !if (use_music) { 
+        lda #0                                      ; init music to song 0
+        tax
+        tay			
+        jsr sid.init	                            ; jump to sid player init
+    }
+
+    +setup_irq(textscroller_set_irq, 20)
+    cli							                    ; set up irq to replace the kernal IRQ   
+
+    rts
+}
+
+!!utils.debug(["end of INIT code", *, maths.int_to_hex(*), (*-SEGMENT_INIT), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment $5000: tables
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_TABLES
+!let text = utils.ascii_to_byte("        ABCDEFGHIJKLMNOPQRSTUVWXYZ -+ 0123456789 !!!     ", fonts_spr.ascii_offset) ; first 8 characters has to be blank
+
+scrolltext:
+!for b in text {
+    !byte b
+}
+end_scrolltext:
+scrolltext_offsets: !binary fonts_spr.offsetsfile
+!!utils.debug(["end of TABLES", *, maths.int_to_hex(*), (*-SEGMENT_TABLES), "bytes"])
