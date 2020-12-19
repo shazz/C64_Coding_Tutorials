@@ -38,12 +38,12 @@
 ; $3000 Tables
 ; $4000 VIC II data ($4000 - $7FFF)
 ;  + $0000-$1200 big sprites sprites (has to be aligned on 64 bytes)  (4608 bytes)
-;  + $1400-$1800 screen memory (tiles, written once)                  (1024 bytes)
-;  + $2000-$2005 charset (has to be at CHAR_VIC_MEM_ADDR)             (5 bytes)
-;  + $3000-$3fc0 font sprites (has to be aligned on 64 bytes)         (4032 bytes)
+;  + $1c00-$1FFF screen memory (tiles, written once)                  (1024 bytes)
+;  + $2000-$27FF charset (has to be at CHAR_VIC_MEM_ADDR)             (2048 bytes, first 5 bytes used only)
+;  + $2800-$37c0 font sprites (has to be aligned on 64 bytes)         (4032 bytes, 2112 bytes remaining in VIC memory)
 ; $8000-$b200 precomputed charset data                                (12800 bytes)
 
-!let SCR_VIC_MEM_ADDR       = $1400 ; where tiles will be set one time
+!let SCR_VIC_MEM_ADDR       = $1c00 ; where tiles will be set one time
 !let BITMAP_VIC_MEM_ADDR    = $2000 ; not used here
 !let CHAR_VIC_MEM_ADDR      = $2000 ; where charset will be copied
 
@@ -676,11 +676,11 @@ scrolltext_offsets: !binary fonts_spr.offsetsfile
 sprite_data: !binary desc.datafile
 !!utils.debug(["BIG SPRITE data from", maths.int_to_hex(sprite_data), "to", maths.int_to_hex(*), (*-sprite_data), "bytes"])
 
-* = BANK_ADDR+$2000
+* = BANK_ADDR+CHAR_VIC_MEM_ADDR
 current_charset: !fill CHARSET_WIDTH, 0
 !!utils.debug(["Current CHARSET DATA from", maths.int_to_hex(current_charset), "to", maths.int_to_hex(*), (*-current_charset), "bytes"])
 
-* = BANK_ADDR+$3000
+* = BANK_ADDR+CHAR_VIC_MEM_ADDR+$800
 fonts_sprite_data: !binary fonts_spr.datafile 
 !!utils.debug(["SPRITE FONTS data from", maths.int_to_hex(fonts_sprite_data), "to", maths.int_to_hex(*), (*-fonts_sprite_data), "bytes"])
 
