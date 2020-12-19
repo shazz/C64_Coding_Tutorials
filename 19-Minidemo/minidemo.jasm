@@ -36,11 +36,12 @@
 ; $2300 IRQ
 ; $2e00 Routines
 ; $3000 Tables
-; $4000 VIC II data
-;  - font sprites (has to be aligned on 64 bytes)
-;  - logo sprites (has to be aligned on 64 bytes) 
-;  - $6000 charset (has to be at CHAR_VIC_MEM_ADDR)
-; $8000 charset data
+; $4000 VIC II data ($4000 - $7FFF)
+;  + $0000-$1200 big sprites sprites (has to be aligned on 64 bytes)  (4608 bytes)
+;  + $1400-$1800 screen memory (tiles, written once)                  (1024 bytes)
+;  + $2000-$2005 charset (has to be at CHAR_VIC_MEM_ADDR)             (5 bytes)
+;  + $3000-$3fc0 font sprites (has to be aligned on 64 bytes)         (4032 bytes)
+; $8000-$b200 precomputed charset data                                (12800 bytes)
 
 !let SCR_VIC_MEM_ADDR       = $1400 ; where tiles will be set one time
 !let BITMAP_VIC_MEM_ADDR    = $2000 ; not used here
