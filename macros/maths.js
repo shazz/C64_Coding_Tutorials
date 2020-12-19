@@ -15,5 +15,8 @@ module.exports = {
     },
     int_to_hex: ({}, val) => {
         return `0x${(val >>> 0).toString(16)}`;
+    },
+    str_to_int: ({}, val) => {
+        return parseInt(val);
     }        
 }

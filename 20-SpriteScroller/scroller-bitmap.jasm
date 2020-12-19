@@ -30,10 +30,15 @@
 ; ------------------------------------------------------------------------------------------
 ; Segments
 ; ------------------------------------------------------------------------------------------
-!let SEGMENT_INIT = $4000
-!let SEGMENT_TABLES = $5000
-!let SEGMENT_SPRITES_DATA = $2000
+!let SEGMENT_INIT = $2000
+!let SEGMENT_TABLES = $3000
+!let SEGMENT_SPRITES_DATA = $3000
 
+!let BANK_ADDR = $4000
+!let SCR_MEM = BANK_ADDR+$1000
+!let BITMAP_ADDR = $2000
+!let CHAR_MEM_ADDR = $0
+!let SCREEN_MEM_ADDR = $1000
 
 ; ------------------------------------------------------------------------------------------
 ; Variables
@@ -50,6 +55,7 @@
 !let SCROLL_SPEED = 4
 !let SCROLL_Y_POS = 252
 !let SCROLL_SPACING = 2
+
 ; ------------------------------------------------------------------------------------------
 ; Program
 ; ------------------------------------------------------------------------------------------
@@ -146,8 +152,9 @@ textscroller_set_irq: {
     }
 
     ; re-enable borders
-	lda #$1b
-	sta $d011
+    lda $d011
+    ora #$08
+    sta $d011
 
     ; reset next sprites pos at the bottom
     lda #SCROLL_Y_POS
@@ -167,13 +174,14 @@ textscroller_irq: {
     +cpu_time_start()
 
     ; disable borders
-	lda #$00
+    lda $d011
+    and #$f7
 	sta $d011 
 
     ; compute next positions
     !for i in range(8) {
         lda zp.scrolltext_ptr+i
-        sta $07f8+i
+        sta SCR_MEM + $03f8 + i
     }
 
     ; set sprite x pos LSB
@@ -218,15 +226,10 @@ music:  !byte sid.data
 end_music:
 !!utils.debug(["end of MUSIC code", *, maths.int_to_hex(*), (*-sid.startAddress), "bytes"])
 }
-; ------------------------------------------------------------------------------------------
-; Segment $2000: as to be visible from selected VIC back (0: $0000 -> $3fff)
-; ------------------------------------------------------------------------------------------
-* = SEGMENT_SPRITES_DATA
-sprite_data: !binary fonts_spr.datafile 
-!!utils.debug(["end of SPRITE data", *, maths.int_to_hex(*), (*-SEGMENT_SPRITES_DATA), "bytes"])
+
 
 ; ------------------------------------------------------------------------------------------
-; Segment $4000: Init
+; Segment Init
 ; ------------------------------------------------------------------------------------------
 * = SEGMENT_INIT
 init: {
@@ -235,11 +238,40 @@ init: {
     sta vic.bck_col                                 ; set window color to sprite transparent color
     sta vic.border_col                              ; set border color to sprite transparent color
 
-    lda #%00010100                                  ; default: 0001 010 0 
-                                                    ; => character mem at $1000, default ROM char    
-    sta vic.mem_setup                               ; => screen mem at $0400
+    +setup_banks(BANK_ADDR)                         ; set VIC bank
+    !!utils.debug(["Setting VIC memory", "BITMAP_ADDR", maths.int_to_hex(BITMAP_ADDR), "CHAR_MEM_ADDR", maths.int_to_hex(CHAR_MEM_ADDR), "SCREEN_MEM_ADDR", maths.int_to_hex(SCREEN_MEM_ADDR)])
+    
+    +setup_vic_memory(BITMAP_ADDR, CHAR_MEM_ADDR, SCREEN_MEM_ADDR)  
+    !!utils.debug(["Bitmap at", maths.int_to_hex(BANK_ADDR+$2000), "screen mem at", maths.int_to_hex(SCR_MEM)]) 
 
-    +clear_screen({"clearByte": $20, "screen": $0400, usePtr: FALSE})
+    +clear_screen({"clearByte": $20, "screen": SCR_MEM, usePtr: FALSE})
+
+copy_bitmap:
+	lda bitmap_scr,x	                            ; load charmem + x to a
+	sta SCR_MEM,x	       
+	lda bitmap_scr+$100,x	        
+	sta SCR_MEM+$100,x
+	lda bitmap_scr+$200,x
+	sta SCR_MEM+$200,x
+	lda bitmap_scr+$300,x 
+	sta SCR_MEM+$300,x
+
+	lda bitmap_col,x                                ; copy colormem + x to $d800 Color RAM (1000 bytes, only bits #0-#3).
+	sta $d800,x
+	lda bitmap_col+$100,x 
+	sta $d900,x
+	lda bitmap_col+$200,x 
+	sta $da00,x
+	lda bitmap_col+$300,x 
+	sta $db00,x
+
+	inx
+	bne copy_bitmap
+
+	lda #$3b	                                    ; a = $3b = 0011 1011
+	sta $d011	                                    ; set screen control register 1 to bitmap mode (bit 5=1 for bitmap) (Remember Default: $1B, %0001 1011)
+	lda #$18	                                    ; a = $18 = 0001 1000
+	sta $d016	                                    ; set screen control register 2 to multicolor mode (bit 4=1) (Default: $C8, %1100 1000)
 
 	lda #$ff
     sta vic.sprite_dblx  	                        ; set double width
@@ -310,10 +342,10 @@ init: {
 !!utils.debug(["end of INIT code", *, maths.int_to_hex(*), (*-SEGMENT_INIT), "bytes"])
 
 ; ------------------------------------------------------------------------------------------
-; Segment $5000: tables
+; Segment tables
 ; ------------------------------------------------------------------------------------------
 * = SEGMENT_TABLES
-!let text = utils.ascii_to_byte("        ]]] IL NE MANQUE PLUS QU'UN JOLI CHAPEAU [[[        01234567890-+<>%$#?            ", fonts_spr.ascii_offset) ; first 8 characters has to be blank
+!let text = utils.ascii_to_byte("        ]]] CA C'EST DU CHAPEAU STEAMPUNK QUI EN JETE ! NON ? ]]]      ", fonts_spr.ascii_offset) ; first 8 characters has to be blank
 
 scrolltext:
 !for b in text {
@@ -322,3 +354,20 @@ scrolltext:
 end_scrolltext:
 scrolltext_offsets: !binary fonts_spr.offsetsfile
 !!utils.debug(["end of TABLES", *, maths.int_to_hex(*), (*-SEGMENT_TABLES), "bytes"])
+
+bitmap_scr: !binary "data/hat.scr"
+bitmap_col: !binary "data/hat.col"
+
+; ------------------------------------------------------------------------------------------
+; Segment $2000: as to be visible from selected VIC back (0: $0000 -> $3fff)
+; ------------------------------------------------------------------------------------------
+* = BANK_ADDR+$000
+sprite_data: !binary fonts_spr.datafile 
+!!utils.debug(["SPRITE data from", maths.int_to_hex(sprite_data), "to", maths.int_to_hex(*), (*-sprite_data), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment $2000: 
+; ------------------------------------------------------------------------------------------
+* = BANK_ADDR+$2000
+bitmap_data: !binary "data/hat.map" 
+!!utils.debug(["BITMAP data from", maths.int_to_hex(bitmap_data), "to", maths.int_to_hex(*), (*-bitmap_data), "bytes"])

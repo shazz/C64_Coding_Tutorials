@@ -140,6 +140,28 @@ loop:
     bne loop
 }
 
+!macro setup_banks(bank_start) {
+    !if (bank_start == 0) {
+        lda #%01100011      
+    } elif (bank_start == $4000) {
+        lda #%01100010      
+    } elif (bank_start == $8000) {
+        lda #%01100001      
+    } elif (bank_start == $C000) {
+        lda #%01100000      
+    } else {
+        !error "incompatible bank"
+    }    
+    sta $dd00
+}
+
+!macro setup_vic_memory(BITMAP_ADDR, CHAR_MEM_ADDR, SCREEN_MEM_ADDR) {
+    !let reg = utils.generate_d018(CHAR_MEM_ADDR, BITMAP_ADDR, SCREEN_MEM_ADDR)
+    !!utils.debug(["VIC setup:", reg])
+    lda #reg
+    sta vic.mem_setup
+}
+
 ;------------------------------------------------------------------------
 ; setup_irq(irq_addr, irq_line) 
 ; Set raster IRQ

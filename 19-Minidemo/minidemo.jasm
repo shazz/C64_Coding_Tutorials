@@ -1,0 +1,692 @@
+!let debug = 0
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	xsintab_counter:    $03,
+    ysintab_counter:    $04,
+    x_positions:        $05,    ; 16 bytes
+    y_positions:        $15,    ; nb_rows bytes (9)
+    irq_lines:          $1E,    ; nb_rows bytes (9)
+    text_x_pos:         $30,    ; 16 bytes
+    scrolltext_pos:     $50,
+    scrolltext_ptr:     $51    
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+!use "../macros/sid"   as sid_loader
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+
+; $0801 Start
+;
+; $1000 Music
+;
+; $2000 Init
+; $3000 IRQ
+;  
+
+; $4000 - Gfx data
+;       - font sprites
+;       - logo sprites  
+;        - charset
+
+!let BANK_ADDR              = $4000
+!let SCR_VIC_MEM_ADDR       = $1400
+!let SCR_MEM                = BANK_ADDR+SCR_VIC_MEM_ADDR
+!let BITMAP_VIC_MEM_ADDR    = $2000
+!let CHAR_VIC_MEM_ADDR      = $0
+; this means all gfx data should be between $4000 and $7FFF
+
+!let SEGMENT_INIT           = $2000
+!let SEGMENT_IRQ            = $2300
+!let SEGMENT_ROUTINES       = $2e00
+!let SEGMENT_TABLES         = $3000
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let desc = loadJson("data/skull5.json")
+!!utils.debug(desc)
+!let sid = sid_loader("data/Meetro.sid")
+!!utils.debug(sid)
+!let fonts_spr = loadJson("data/fonts-aeg10c.json")
+!!utils.debug(fonts_spr)
+
+!let SPRITE_COLS = 8
+
+!let FIRST_SPRITE_IRQ = 40
+!let TOP_POS = 56
+
+; sprite X sine movement
+!let SINX_LEN = 60
+!let SINX_SCALE = 30
+!let SINX_PAD = 80
+
+; sprite Y sine movement
+!let SINY_LEN = 40
+!let SINY_SCALE = 6
+!let SINY_PAD = TOP_POS+SINY_SCALE
+
+!let desc_charset = loadJson("data/charset_50s_5x4_padded.json")
+!!utils.debug(desc_charset)
+!let CHARSET_WIDTH = desc_charset.charset_width
+!let CHARSET_HEIGHT = desc_charset.charset_height
+!let CHARSET_SIZE = CHARSET_WIDTH*CHARSET_HEIGHT*8
+!let UPDATE_EVERY = 2
+
+!let SCROLL_SPEED = 4
+!let SCROLL_TOP_Y_POS = 20
+!let SCROLL_BOTTOM_Y_POS = 255
+!let SCROLL_SPACING = 2
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: {
+    jsr init_vic
+    jsr init_sprites                                       ; relocated in another segment else music doesn't fit
+    jsr init_charset
+    jsr init_system
+
+forever: 
+    jmp forever                                             ; at this point, only IRQs do something
+}
+
+; ------------------------------------------------------------------------------------------
+; Segment $1000: music driver and data
+; ------------------------------------------------------------------------------------------
+* = sid.startAddress
+music:  !byte sid.data
+end_music:
+!!utils.debug(["MUSIC code from", maths.int_to_hex(sid.startAddress), "to", maths.int_to_hex(*), (*-sid.startAddress), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment Init
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_INIT
+init_vic: {
+    +setup_banks(BANK_ADDR)                         ; set VIC bank
+    !!utils.debug(["Setting VIC memory", "BITMAP_VIC_MEM_ADDR", maths.int_to_hex(BITMAP_VIC_MEM_ADDR), "CHAR_VIC_MEM_ADDR", maths.int_to_hex(CHAR_VIC_MEM_ADDR), "SCR_VIC_MEM_ADDR", maths.int_to_hex(SCR_VIC_MEM_ADDR)])
+    
+    +setup_vic_memory(BITMAP_VIC_MEM_ADDR, CHAR_VIC_MEM_ADDR, SCR_VIC_MEM_ADDR)  
+    !!utils.debug(["Bitmap at", maths.int_to_hex(BANK_ADDR+$2000), "screen mem at", maths.int_to_hex(SCR_MEM)]) 
+
+    +clear_screen({"clearByte": $20, "screen": SCR_MEM, usePtr: FALSE})
+
+    rts
+}
+
+init_sprites: {
+    
+    lda #desc.background_color
+    sta vic.bck_col                                 ; set window color to sprite transparent color
+    sta vic.border_col                              ; set border color to sprite transparent color
+
+    lda vic.scr_ctrl2                               ; activate multicolor mode
+    ora #16                                         ; set bit 4 to 1
+    sta vic.scr_ctrl2
+
+	lda #0
+    sta vic.sprite_dblx  	                        ; no double width
+    sta vic.sprite_dblh			                    ; no double height
+	sta vic.sprite_pri	        		            ; no priority
+
+    lda #%11111111                                  ; all sprites multicolor
+    sta vic.sprite_colmode                          ; single color sprites
+
+    lda #desc.multi_color1                               ; set sprite first shared color
+    sta vic.sprite_extra_col1
+
+    lda #desc.multi_color2                               ; set sprite first shared color
+    sta vic.sprite_extra_col2
+
+    lda #desc.sprite_color                               ; set sprite specific color
+    !for i in range(SPRITE_COLS) {
+        sta vic.sprite0_color+i
+    }
+
+    ; lda #TOP_POS
+    ; !for y in range(SPRITE_COLS) {
+    ;     sta vic.sprite0_y+(y*2)                     ; set first y pos
+    ; }    
+
+    lda #(1<<SPRITE_COLS)-1		       
+    sta vic.sprite_en		                        ; enable sprites
+
+    rts
+}
+
+init_charset: {
+
+    jsr update_charset
+
+    lda charcolors+0
+    sta vic.bck_col         ; set window color to charset transparent color
+    sta vic.border_col      ; set border color to charset transparent color
+
+    lda charcolors+1        ; set charset first color
+    sta vic.back_extra_col1
+
+    lda charcolors+2                    ; set charset 2nd color
+    sta vic.back_extra_col2
+
+    ; copy the character memory tiles bitmap to $0400
+    ; this code is not generic, it implied the tile is 4 lines height
+    !for y in range(7) {                    ; copy 25 lines (only copy the first line for line 25)
+        ldx #0
+    copy_line:  
+        !if (y != 6) {
+            !for i in range(4) {
+                lda screencodes+(i*40),x
+                sta SCR_MEM+(i*40)+(y*160),x
+            }
+        } else {                            ; special case for last line
+            !for i in range(1) {
+                lda screencodes+(i*40),x
+                sta SCR_MEM+(i*40)+(y*160),x
+            }
+        }
+
+        inx
+        cpx #40
+        bne copy_line
+    }
+
+    ; poke char multicolor byte in Color Ram for all characters
+    +clear_screen({ screen: $d800, clearByte: charcolors+3, usePtr: TRUE})
+
+    rts
+}
+
+init_system: {
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic
+    sta $01         			                    ; $e000-$ffff
+
+    ; init music
+	lda #0
+	tax			
+	tay			
+    jsr sid.init	; jump to sid player init
+
+    lda #0
+    sta zp.xsintab_counter
+    sta zp.ysintab_counter
+
+    ; set all msb to 0 in case of
+    !for i in range(SPRITE_COLS) {
+        sta zp.x_positions+(i*2)+1
+    }    
+
+    ; set initial positions, first sinus position
+    ldx xsintab
+    !for i in range(SPRITE_COLS) {
+        stx zp.x_positions+(i*2)
+        +inc16(zp.x_positions+(i*2), 24*i)
+    }
+
+    ; set up initial y postions
+    !for i in range(desc.nb_rows) {
+        ; !let next_rasterline = TOP_POS+20+(i*20)-3  ; Set next rasterline to the next 20 pixels blocks - 3 to set the stable irq
+        lda #TOP_POS+20+(i*20)-3
+        sta zp.irq_lines+i
+    }    
+
+    ; setup scrolltext
+    ldx #0
+    stx zp.scrolltext_pos
+    !for i in range(8) {
+        lda scrolltext, x
+        clc
+        adc #fonts_sprite_data/64
+        sta zp.scrolltext_ptr+i
+        inx
+    }
+
+    ; set text initial positions
+    !for i in range(8) {
+        lda #SCROLL_SPEED+(i*(48+SCROLL_SPACING)) & $ff
+        sta zp.text_x_pos+(2*i)
+   	    lda #SCROLL_SPEED+(i*(48+SCROLL_SPACING)) >> 8
+	    sta zp.text_x_pos+(2*i)+1     
+    }    
+
+    ; +setup_irq(sprite_irqs, FIRST_SPRITE_IRQ)
+    +setup_irq(textscroller_top_irq, 19)
+    cli							                    ; set up irq to replace the kernal IRQ   
+
+    rts
+}
+
+!!utils.debug(["INIT code from", maths.int_to_hex(SEGMENT_INIT), "to", maths.int_to_hex(*), (*-SEGMENT_INIT), "bytes"])
+
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_IRQ
+; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+sprite_irqs: { 
+    !for i in range(desc.nb_rows+1) {
+        +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+    irq_stable:
+        txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+        +waste_cycles(33)                                   ; waste 29 to be at cycle 25+33=58 just before the DMA steal
+
+        ; at this point we have a stable IRQ at cycle 14 after the DMA
+        +cpu_time_start()
+
+        ; first irq, reset X pos
+        !if (i == 0) {
+
+            ; reset sprites params
+            lda #0
+            sta vic.sprite_dblx  	                            ; no double width
+
+            lda #%11111111                                      ; all sprites multicolor
+            sta vic.sprite_colmode                              ; single color sprites
+
+            lda #desc.multi_color1                               ; set sprite first shared color
+            sta vic.sprite_extra_col1
+
+            lda #desc.multi_color2                               ; set sprite first shared color
+            sta vic.sprite_extra_col2
+
+            lda #desc.sprite_color                               ; set sprite specific color
+            !for i in range(SPRITE_COLS) {
+                sta vic.sprite0_color+i
+            }
+
+            ; get sinus table pointer
+            ldx zp.ysintab_counter
+            lda ysintab,x
+
+            ; compute IRQ rasterlines based on new top Y
+            clc
+            adc #20-3
+            sta zp.irq_lines
+            !for row in range(1, desc.nb_rows) {
+                ; clc
+                adc #20
+                sta zp.irq_lines+row
+            }
+
+            ; compute row Y positions
+            lda ysintab,x
+            !for spr in range(desc.nb_rows) {
+                sta zp.y_positions+spr
+                ; clc
+                adc #21
+            }
+            inx
+            cpx #SINY_LEN
+            bne no_reset_y
+            ldx #0
+        no_reset_y:
+            stx zp.ysintab_counter
+
+            ; compute 16bits X positions
+            ldy #0
+            ldx zp.xsintab_counter
+            lda xsintab,x  
+            !for spr in range(SPRITE_COLS) {
+                sta zp.x_positions+(spr*2)
+                sty zp.x_positions+(spr*2)+1
+            }
+            !for spr in range(SPRITE_COLS) {
+                +inc16(zp.x_positions+(spr*2), 24*spr)
+                lda zp.x_positions+(2*spr)
+                sta vic.sprite0_x+(2*spr)	
+            }
+            inx
+            cpx #SINX_LEN
+            bne no_reset_x
+            ldx #0
+        no_reset_x:
+            stx zp.xsintab_counter
+
+            ; set high byte sprite x
+            lda zp.x_positions+(2*7)+1		; get msb7 [6,5,4,3,2,1,0] 
+            !for spr in utils.reverse(range(SPRITE_COLS)) { 	
+                asl							; msb << 1
+                ora zp.x_positions+(2*spr)+1	; or with msb-1
+            }
+            sta vic.sprites_x
+        }
+
+        ; last row, replace by blank data (here, first one, not that good
+        !if (i == desc.nb_rows) {
+            lda #(sprite_data/64)
+            sta SCR_MEM + $03f8 + 0
+            sta SCR_MEM + $03f8 + 1
+            sta SCR_MEM + $03f8 + 2
+            sta SCR_MEM + $03f8 + 3
+            sta SCR_MEM + $03f8 + 4
+            sta SCR_MEM + $03f8 + 5
+            sta SCR_MEM + $03f8 + 6
+            sta SCR_MEM + $03f8 + 7
+
+
+            ; reset sprites pos at the bottom
+            lda #SCROLL_BOTTOM_Y_POS
+            !for y in range(8) {
+                sta vic.sprite0_y+(y*2)                  ; set scrolltext low y pos
+            } 
+            lda #$ff
+            sta vic.sprite_dblx  	                        ; set double width
+            lda #0                                          ; all sprites hires
+            sta vic.sprite_colmode                          ; single color sprites  
+
+            +cpu_time_stop()
+
+            +irq_end(border_irq, 250, TRUE)              ; last loop turn, go to low border irq
+        
+        ; for other rows
+        } else {     
+            lda zp.y_positions+i
+            !for y in range(SPRITE_COLS) {
+                sta vic.sprite0_y+(y*2)                 ; adjust next Y positions starting at TOP_POS, +21 pixels,..
+            }
+
+            ldx #((sprite_data+($200*i))/64)+4          ; optimized code to set the sprites pointers
+            lda #$fb
+            sax SCR_MEM + $03f8 + 0                              
+            stx SCR_MEM + $03f8 + 4   
+            inx
+            sax SCR_MEM + $03f8 + 1
+            stx SCR_MEM + $03f8 + 5
+            inx
+            sax SCR_MEM + $03f8 + 2
+            stx SCR_MEM + $03f8 + 6
+            inx
+            sax SCR_MEM + $03f8 + 3
+            stx SCR_MEM + $03f8 + 7
+
+            +cpu_time_stop()
+
+            +irq_end(end_loop, zp.irq_lines+i, FALSE)
+        end_loop:
+        }
+    end:
+    }
+}
+
+border_irq: {
+    +irq_start(end)
+
+    ; disable borders
+    lda $d011
+    and #$f7
+	sta $d011 
+
+    lda #fonts_spr.sprite_color                     ; set sprite specific color
+    !for i in range(8) {
+        sta vic.sprite0_color+i
+    }
+
+    ; compute next positions
+    !for i in range(8) {
+        lda zp.scrolltext_ptr+i
+        sta SCR_MEM + $03f8 + i
+    }
+
+    ; set sprite x pos LSB
+    !for i in range(8) {
+        lda zp.text_x_pos+(i*2)	
+		sta vic.sprite0_x+(i*2)
+    }
+
+    ; set sprite x pos MSB
+    lda zp.text_x_pos+(2*(8-1))+1		; get msb7 [7,6,5,4,3,2,1,0] 
+	!for i in utils.reverse(range(8)) { 	
+		asl							    ; msb << 1
+		ora zp.text_x_pos+(2*i)+1	    ; or with msb-1
+	}
+	sta vic.sprites_x
+
+
+    +cpu_time_start()
+    jsr sid.play	; call sid player
+    +cpu_time_stop()
+
+    jsr time_to_update
+
+    +irq_end(textscroller_top_irq, 19, TRUE) 
+end:
+}
+
+textscroller_top_irq: {
+    +irq_start(end)
+
+    +cpu_time_start()
+
+    ; display the sprite in the top border
+    lda #SCROLL_TOP_Y_POS
+    !for y in range(8) {
+        sta vic.sprite0_y+(y*2)                     ; set first y pos
+    }  
+
+    !for i in utils.reverse(range(8)) {
+		+dec16(zp.text_x_pos+(2*i), SCROLL_SPEED)
+
+        lda zp.text_x_pos+(2*i)+1  ; if lower part, just got to next sprite
+        beq next_sprite 
+        
+        lda #$1                     ; else reset hi to 1
+        sta zp.text_x_pos+(2*i)+1        
+
+        lda zp.text_x_pos+(2*i)     ; if right part "visible, that's ok too
+        cmp #100
+        bcc next_sprite
+
+        cmp #247                    ; if right part more than 503 (invisible) reset to 503 to end left scroll
+        bcc noreset                 ; 510 disappear, 503 come back
+
+        lda #247-SCROLL_SPEED                    
+        sta zp.text_x_pos+(2*i)   
+        jmp next_sprite
+
+    noreset:
+        cmp #207                    ; if end of left scroll (from 247 to 207) not done, just display
+        bcs next_sprite
+
+        ; advance scroller pos or reset if last char
+        ldx zp.scrolltext_pos
+        inx
+        cpx #end_scrolltext-scrolltext-7    ; the warping workswith [ ] but is incorrect, to fix someday
+        bne cont
+        ldx #0
+    cont:
+        stx zp.scrolltext_pos	 
+
+        ; compute new sprite pointer
+        lda scrolltext+7, x                 ; the warping works with [ ] but is incorrect, to fix someday
+        clc
+        adc #fonts_sprite_data/64
+        sta zp.scrolltext_ptr+i
+
+        ; get character width offset
+        lda scrolltext+7, x
+        tay
+
+        ; reset to the right of the previous sprite
+        !if (i==0) {
+            lda zp.text_x_pos+(2*7)
+            clc
+            adc #48+SCROLL_SPACING ;+SCROLL_SPEED
+            sec
+            sbc scrolltext_offsets, y     
+            sta zp.text_x_pos	 
+            lda zp.text_x_pos+(2*7)+1
+            sta zp.text_x_pos+1	  
+        } else {
+            lda zp.text_x_pos+(2*(i-1))
+            clc
+            adc #48+SCROLL_SPACING-SCROLL_SPEED 
+            sec
+            sbc scrolltext_offsets, y      
+            sta zp.text_x_pos+(2*i)	 
+            lda zp.text_x_pos+(2*(i-1))+1
+            sta zp.text_x_pos+(2*i)+1	     
+        }
+        next_sprite:
+    }
+
+    ; re-enable borders
+    lda $d011
+    ora #$08
+    sta $d011
+
+    +cpu_time_stop()
+
+    +irq_end(sprite_irqs, FIRST_SPRITE_IRQ, TRUE)
+end:
+}
+
+!!utils.debug(["IRQ code from", maths.int_to_hex(SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-SEGMENT_IRQ), "bytes"])
+
+
+; ------------------------------------------------------------------------------------------
+; Segment: Charset IRQ and routines
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_ROUTINES
+
+time_to_update:
+
+    ldx frame_counter                           ; we update the charset only every UPDATE_EVERY frame
+    cpx #UPDATE_EVERY                           ; else this is too fast (or would need more banks)
+    beq do_update
+    inx
+    stx frame_counter
+    rts
+
+do_update: {
+    +cpu_time_set_color(color.green)
+    ldx #0
+    stx frame_counter                           ; reset frame counter
+
+    clc
+    lda current_ptr                             ; patching the MSB is enough as each bank is stored at 256 boundary ($7000, $7100...)
+    adc #>charsets                              ; means $70, $71, $72... dependening of the bank to read
+
+!for i in range(8) {
+    sta update_charset::start+(i*6)+2           ; self-modify the MSB, 8 times as we write 8 bytes
+}
+    ldx current_ptr                             ; set the charset ptr to the next charset
+    inx            
+    cpx #desc_charset.steps                     ; or reset if last bank
+
+    bne no_reset
+    ldx #0
+no_reset:
+    stx current_ptr
+    +cpu_time_set_color(color.blue)
+    jsr update_charset
+    +cpu_time_set_color(color.black)
+
+    rts
+}
+
+; routine to update the charset in $2000 
+update_charset: {
+    ldy #CHARSET_SIZE/8                         ; loop n times, n = charset size / 8
+start:                                          ; as we write per batch of 8 bytes
+!for i in range(8) { 
+    lda $ee00+(i*CHARSET_SIZE/8),y              ; copy 8 bytes in n loops
+    sta current_charset+(i*CHARSET_SIZE/8),y    ; msb ($ee) is self-modified by caller
+}
+    dey
+    bpl start
+    rts
+}
+!!utils.debug(["ROUTINES code from", maths.int_to_hex(SEGMENT_ROUTINES), "to", maths.int_to_hex(*), (*-SEGMENT_ROUTINES), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment $4400: Tables
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_TABLES
+
+; current charset displayed
+current_ptr: !byte 0
+
+; slow down the effet
+frame_counter: !byte 0
+
+; character memory template for tilemap
+screencodes:
+!for y in range(25) {
+    !for x in range(40) {
+        ; !!utils.debug((y*CHARSET_WIDTH)+(x % CHARSET_WIDTH))
+        !byte (y*CHARSET_WIDTH)+(x % CHARSET_WIDTH)
+    }
+}
+
+; charset colors
+charcolors: !binary desc_charset.colorfile
+
+!let xsinvals = maths.sintab(SINX_LEN, SINX_SCALE)
+xsintab:
+!for v in xsinvals {
+    ; !!utils.debug([Math.round(SINX_PAD+v)])
+    !byte Math.round(SINX_PAD+v)
+}
+end_xsintab:
+
+!let ysinvals = maths.sintab(SINY_LEN, SINY_SCALE)
+ysintab:
+!for v in ysinvals {
+    ; !!utils.debug(["y sin", Math.round(SINY_PAD+v)])
+    !byte Math.round(TOP_POS+v)
+}
+end_ysintab:
+
+!let text = utils.ascii_to_byte("        ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789      ", fonts_spr.ascii_offset) ; first 8 characters has to be blank
+
+scrolltext:
+!for b in text {
+    !byte b
+}
+end_scrolltext:
+scrolltext_offsets: !binary fonts_spr.offsetsfile
+
+!!utils.debug(["TABLES data from", maths.int_to_hex(SEGMENT_TABLES), "to", maths.int_to_hex(*), (*-SEGMENT_TABLES), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment as to be visible from selected VIC bank
+; ------------------------------------------------------------------------------------------
+* = BANK_ADDR+$0000
+sprite_data: !binary desc.datafile
+!!utils.debug(["BIG SPRITE data from", maths.int_to_hex(sprite_data), "to", maths.int_to_hex(*), (*-sprite_data), "bytes"])
+
+* = BANK_ADDR+$2000
+current_charset: !fill CHARSET_WIDTH, 0
+!!utils.debug(["Current CHARSET DATA from", maths.int_to_hex(current_charset), "to", maths.int_to_hex(*), (*-current_charset), "bytes"])
+
+* = BANK_ADDR+$3000
+fonts_sprite_data: !binary fonts_spr.datafile 
+!!utils.debug(["SPRITE FONTS data from", maths.int_to_hex(fonts_sprite_data), "to", maths.int_to_hex(*), (*-fonts_sprite_data), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment: charsets banks
+; ------------------------------------------------------------------------------------------
+* = $8000
+charsets: !binary desc_charset.datafile
+!!utils.debug(["CHARSET data from", maths.int_to_hex(charsets), "to", maths.int_to_hex(*), (*-charsets), "bytes"])
