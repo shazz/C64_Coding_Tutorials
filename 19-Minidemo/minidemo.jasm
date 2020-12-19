@@ -31,24 +31,23 @@
 ; ------------------------------------------------------------------------------------------
 
 ; $0801 Start
-;
 ; $1000 Music
-;
 ; $2000 Init
-; $3000 IRQ
-;  
+; $2300 IRQ
+; $2e00 Routines
+; $3000 Tables
+; $4000 VIC II data
+;  - font sprites (has to be aligned on 64 bytes)
+;  - logo sprites (has to be aligned on 64 bytes) 
+;  - $6000 charset (has to be at CHAR_VIC_MEM_ADDR)
+; $8000 charset data
 
-; $4000 - Gfx data
-;       - font sprites
-;       - logo sprites  
-;        - charset
+!let SCR_VIC_MEM_ADDR       = $1400 ; where tiles will be set one time
+!let BITMAP_VIC_MEM_ADDR    = $2000 ; not used here
+!let CHAR_VIC_MEM_ADDR      = $2000 ; where charset will be copied
 
-!let BANK_ADDR              = $4000
-!let SCR_VIC_MEM_ADDR       = $1400
+!let BANK_ADDR              = $4000 ; this means all gfx data should be between $4000 and $7FFF
 !let SCR_MEM                = BANK_ADDR+SCR_VIC_MEM_ADDR
-!let BITMAP_VIC_MEM_ADDR    = $2000
-!let CHAR_VIC_MEM_ADDR      = $0
-; this means all gfx data should be between $4000 and $7FFF
 
 !let SEGMENT_INIT           = $2000
 !let SEGMENT_IRQ            = $2300
@@ -186,7 +185,7 @@ init_charset: {
     lda charcolors+2                    ; set charset 2nd color
     sta vic.back_extra_col2
 
-    ; copy the character memory tiles bitmap to $0400
+    ; copy the character memory tiles bitmap to the Screen Memory
     ; this code is not generic, it implied the tile is 4 lines height
     !for y in range(7) {                    ; copy 25 lines (only copy the first line for line 25)
         ldx #0
