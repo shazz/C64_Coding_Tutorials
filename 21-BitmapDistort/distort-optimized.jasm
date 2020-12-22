@@ -1,0 +1,398 @@
+!let debug = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+    current_xoffset:    $03,
+    current_boffset:    $05,
+    xscroll_reg:        $07
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+!use "../macros/sid"   as sid_loader
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+
+; $0801 Start
+; $1000 Music
+; $2000 Init
+; $2300 IRQ
+; $2e00 Routines
+; $3000 Tables
+; $4000 VIC II data ($4000 - $7FFF)
+;  + $0000-$1200 big sprites sprites (has to be aligned on 64 bytes)  (4608 bytes)
+;  + $1c00-$1FFF screen memory (tiles, written once)                  (1024 bytes)
+;  + $2000-$27FF charset (has to be at CHAR_VIC_MEM_ADDR)             (2048 bytes, first 5 bytes used only)
+;  + $2800-$37c0 font sprites (has to be aligned on 64 bytes)         (4032 bytes, 2112 bytes remaining in VIC memory + 2043 bytes of unused char mem)
+; $8000-$b200 precomputed charset data                                (12800 bytes)
+
+!let VIC_FRAME0 = {             ; d018  = 0b11111000 = $f8
+    bank        : $0000,        ; dd02  = 0b11
+    bitmap_mem  : $2000,        ; mixed = 0b11111011 = $fb
+    scr_mem     : $3c00,
+    char_mem    : $2000
+}
+!let VIC_FRAME1 = {             ; d018  = 0b01110000 = $70
+    bank        : $4000,        ; dd02  = 0b01
+    bitmap_mem  : $0000,        ; mixed = 0b01110001 = $71
+    scr_mem     : $1c00,
+    char_mem    : $0000
+}
+!let VIC_FRAME2 = {
+    bank        : $4000,
+    bitmap_mem  : $2000,
+    scr_mem     : $3c00,
+    char_mem    : $2000
+}
+!let VIC_FRAME3 = {
+    bank        : $8000,        ; d018  = 0b11111000 = $f8   
+    bitmap_mem  : $2000,        ; dd02  = 0b10
+    scr_mem     : $3c00,        ; mixed = 0b11111010 = $fa
+    char_mem    : $0000
+}
+
+!let SEGMENT_INIT           = $C000
+!let SEGMENT_TABLES         = $0900
+!let SEGMENT_IRQ            = $E000
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let sid = sid_loader("data/Next_Door.sid")
+!!utils.debug(sid)
+
+; sprite X sine movement
+!let SINX_LEN = 60
+!let SINX_SCALE = 30
+!let SINX_PAD = 80
+
+!let UPDATE_IRQ = 249
+!let FIRST_IRQ = 62   ; $40 - 2
+!let NB_LINES = 8*18 ; has to be multiple of 8
+!let NB_BITMAPS = 4
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: {
+
+    jsr init
+
+forever: 
+    jmp forever                                             ; at this point, only IRQs do something
+}
+
+; ------------------------------------------------------------------------------------------
+; Segment Tables
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_TABLES
+
+xscroll_offsets:
+!let boundary = 0.5*(NB_BITMAPS*8.0-1.0)
+!!utils.debug(["boundary", boundary])
+!for i in range(NB_LINES*2) { 
+    !let sine = Math.round(boundary+(Math.sin(i/NB_LINES * 2 * Math.PI * 2.0)*boundary))
+    !let x_offset = sine % 8
+    ; !!utils.debug([i, sine, x_offset])
+    !byte (x_offset | %1000)
+}
+xscroll_offsets_end:
+
+
+bitmap_offsets:
+!for i in range(NB_LINES*2) { 
+    !let sine = Math.round(boundary+(Math.sin(i/NB_LINES * 2 * Math.PI * 2.0)*boundary))
+    !let bitmap_offset = Math.floor(sine / 8)
+    !let x_offset = sine % 8    ; for debug
+
+    !let dd02_reg = 0
+    !let d018_reg = 0
+
+    !if (bitmap_offset == 0) {
+        dd02_reg = utils.generate_dd02(VIC_FRAME0.bank)
+        d018_reg = utils.generate_d018(VIC_FRAME0.char_mem, VIC_FRAME0.bitmap_mem, VIC_FRAME0.scr_mem)
+    } elif (bitmap_offset == 1) {
+        dd02_reg = utils.generate_dd02(VIC_FRAME1.bank)
+        d018_reg = utils.generate_d018(VIC_FRAME1.char_mem, VIC_FRAME1.bitmap_mem, VIC_FRAME1.scr_mem)
+    } elif (bitmap_offset == 2) {
+        dd02_reg = utils.generate_dd02(VIC_FRAME2.bank)
+        d018_reg = utils.generate_d018(VIC_FRAME2.char_mem, VIC_FRAME2.bitmap_mem, VIC_FRAME2.scr_mem)
+    } elif (bitmap_offset == 3) {
+        dd02_reg = utils.generate_dd02(VIC_FRAME3.bank)
+        d018_reg = utils.generate_d018(VIC_FRAME3.char_mem, VIC_FRAME3.bitmap_mem, VIC_FRAME3.scr_mem)
+    }
+    !byte (dd02_reg | d018_reg)
+    ; !!utils.debug([i, sine, bitmap_offset, x_offset, dd02_reg, d018_reg])
+}
+bitmap_offsets_end:
+
+!!utils.debug(["TABLES data from", maths.int_to_hex(SEGMENT_TABLES), "to", maths.int_to_hex(*), (*-SEGMENT_TABLES), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment $1000: music driver and data
+; ------------------------------------------------------------------------------------------
+* = sid.startAddress
+music:  !byte sid.data
+end_music:
+!!utils.debug(["MUSIC code from", maths.int_to_hex(sid.startAddress), "to", maths.int_to_hex(*), (*-sid.startAddress), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment as to be visible from selected VIC bank
+; ------------------------------------------------------------------------------------------
+* = VIC_FRAME0.bank + VIC_FRAME0.bitmap_mem
+face_bitmap0: !binary "data/face0.map", (320*176/8), 0
+!!utils.debug(["BITMAP0 DATA from", maths.int_to_hex(face_bitmap0), "to", maths.int_to_hex(*), (*-face_bitmap0), "bytes"])
+
+* = VIC_FRAME0.bank+VIC_FRAME0.scr_mem
+face_screen_mem0: !binary "data/face0.scr"
+!!utils.debug(["SCREENMEM0 DATA from", maths.int_to_hex(face_screen_mem0), "to", maths.int_to_hex(*), (*-face_screen_mem0), "bytes"])
+
+* = VIC_FRAME1.bank + VIC_FRAME1.bitmap_mem
+face_bitmap1: !binary "data/face1.map", (320*176/8), 0
+!!utils.debug(["BITMAP1 DATA from", maths.int_to_hex(face_bitmap1), "to", maths.int_to_hex(*), (*-face_bitmap1), "bytes"])
+
+* = VIC_FRAME1.bank+VIC_FRAME1.scr_mem
+face_screen_mem1: !binary "data/face1.scr"
+!!utils.debug(["SCREENMEM1 DATA from", maths.int_to_hex(face_screen_mem1), "to", maths.int_to_hex(*), (*-face_screen_mem1), "bytes"])
+
+* = VIC_FRAME2.bank + VIC_FRAME2.bitmap_mem
+face_bitmap2: !binary "data/face2.map", (320*176/8), 0 
+!!utils.debug(["BITMAP2 DATA from", maths.int_to_hex(face_bitmap2), "to", maths.int_to_hex(*), (*-face_bitmap2), "bytes"])
+
+* = VIC_FRAME2.bank+VIC_FRAME2.scr_mem
+face_screen_mem2: !binary "data/face2.scr"
+!!utils.debug(["SCREENMEM2 DATA from", maths.int_to_hex(face_screen_mem2), "to", maths.int_to_hex(*), (*-face_screen_mem2), "bytes"])
+
+* = VIC_FRAME3.bank + VIC_FRAME3.bitmap_mem
+face_bitmap3: !binary "data/face3.map", (320*176/8), 0  
+!!utils.debug(["BITMAP3 DATA from", maths.int_to_hex(face_bitmap3), "to", maths.int_to_hex(*), (*-face_bitmap3), "bytes"])
+
+* = VIC_FRAME3.bank+VIC_FRAME3.scr_mem
+face_screen_mem3: !binary "data/face3.scr"
+!!utils.debug(["SCREENMEM3 DATA from", maths.int_to_hex(face_screen_mem3), "to", maths.int_to_hex(*), (*-face_screen_mem3), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment Init
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_INIT
+init: {
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic 00110 101
+    sta $01         			                    ; $e000-$ffff
+
+    lda #%00111000
+    sta vic.scr_ctrl
+
+    lda #%00001000                                  ; set hires mode, 40 columns
+    sta vic.scr_ctrl2
+
+    lda #0
+    sta $dd00
+
+    lda #0
+    sta vic.border_col
+
+    lda #0
+    sta vic.sprite_en                               ; disable sprites
+
+    +setup_banks(VIC_FRAME0.bank)       
+    +setup_vic_memory(VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)  
+
+    !!utils.debug(["BITMAP", maths.int_to_hex(VIC_FRAME0.bitmap_mem), "CHAR", maths.int_to_hex(VIC_FRAME0.char_mem), "SCREEN", maths.int_to_hex(VIC_FRAME0.scr_mem)])
+    !!utils.debug(["Bitmap at", maths.int_to_hex(VIC_FRAME0.bank+VIC_FRAME0.bitmap_mem), "screen mem at", maths.int_to_hex(VIC_FRAME0.bank+VIC_FRAME0.scr_mem)]) 
+
+    ; init music
+	lda #0
+	tax			
+	tay			
+    jsr sid.init	; jump to sid player init
+
+    ldy #0
+loop:
+    lda xscroll_offsets,y
+    sta zp.xscroll_reg,y
+    iny
+    cpy #NB_LINES
+    bne loop
+
+    lda #<xscroll_offsets
+    sta zp.current_xoffset
+    lda #>xscroll_offsets
+    sta zp.current_xoffset+1
+
+    lda #<bitmap_offsets
+    sta zp.current_boffset
+    lda #>bitmap_offsets
+    sta zp.current_boffset+1
+
+    +setup_irq(bitmap_irq, FIRST_IRQ)
+    cli							                    ; set up irq to replace the kernal IRQ   
+
+    rts
+
+}
+
+!!utils.debug(["INIT code from", maths.int_to_hex(SEGMENT_INIT), "to", maths.int_to_hex(*), (*-SEGMENT_INIT), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_IRQ
+update_irq: {
+    +irq_start(end)
+
+    +cpu_time_start()
+
+    ; disable borders
+    lda $d011
+    and #$f7
+	sta $d011 
+
+    lda #0                                          ; required to have dd02 working
+    sta $dd00
+
+    ; increment pointer and reset if arrived at half the table
+    +inc16(zp.current_xoffset, 1)
+    lda zp.current_xoffset
+    cmp #<xscroll_offsets_end-NB_LINES      ; check lsb of half the table address
+    bne cont
+    lda zp.current_xoffset+1 
+    cmp #>xscroll_offsets_end-NB_LINES      ; check msb of half the table address
+    bne cont
+
+    ; else reset
+    lda #<xscroll_offsets                   ; reset to table start
+    sta zp.current_xoffset
+    lda #>xscroll_offsets
+    sta zp.current_xoffset+1    
+
+cont:
+    !let nb_blocks = 8                       ; what is the best number... need details timing. Bigger size improces the loop speed but increase the self-modying part
+    !let block_size = NB_LINES/nb_blocks
+    ldx zp.current_xoffset                   ; modify the loop base on table pointer LSB
+    ldy zp.current_xoffset+1                 ; and MSB
+    !for i in range(nb_blocks) {
+        txa
+        !if (i != 0) {
+            clc
+            adc #(block_size*i)
+        }
+        sta loop+(i*6)+1
+        tya
+        !if (i != 0) {                        ; would be great to detect cross over rater than by default
+            adc #0                            ; if carry, update msb
+        }
+        sta loop+(i*6)+2 
+    }
+    +cpu_time_start()   
+    
+    ; to reduce the cycle cost of the zp update loop
+    ; n zp addresses are patched by turn
+    ; but it requires n instructions to be self modfied
+    ldy #block_size
+loop:
+    !for i in range(nb_blocks) {
+        lda $dead,y                             ; will be patched by previous code
+        sta zp.xscroll_reg+(i*block_size),y                    
+    }
+    dey
+    bpl loop                                  
+
+    +cpu_time_stop()
+
+update_bitmap:
+    ; increment pointer and reset if arrived at half the table
+    +inc16(zp.current_boffset, 1)
+    lda zp.current_boffset
+    cmp #<bitmap_offsets_end-NB_LINES      ; check lsb of half the table address
+    bne patch_bitmap_irq
+    lda zp.current_boffset+1 
+    cmp #>bitmap_offsets_end-NB_LINES      ; check msb of half the table address
+    bne patch_bitmap_irq
+
+    ; else reset
+    lda #<bitmap_offsets                   ; reset to table start
+    sta zp.current_boffset
+    lda #>bitmap_offsets
+    sta zp.current_boffset+1    
+
+patch_bitmap_irq:
+
+    +cpu_time_start()
+    ; now the hard part, patching the irq. takes 11 cycles per patch so 1584 cycles / 25 rasterlines
+patch_irq:
+    ldy #0
+    !for i in range(NB_LINES) {                     
+        lda (zp.current_boffset), y
+        sta bitmap_irq::loop_start+(i*16)+1         ; patch lda for dd02 and d018
+        iny
+    }
+    +cpu_time_stop()
+
+    +cpu_time_start()
+    jsr sid.play	                                ; call sid player
+    +cpu_time_stop()
+
+    ; re-enable borders
+    lda $d011
+    ora #$08
+    sta $d011
+
+    +cpu_time_stop()
+
+    +irq_end(bitmap_irq, FIRST_IRQ, TRUE) 
+end:
+}
+
+; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+bitmap_irq: { 
+    +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+irq_stable:
+    txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+
+    +waste_cycles(58)
+
+    ; keep reinit value for inc
+    ldy #$38
+
+    ; force badline on 0th rasterline, it means the stable raster has to be set as a 0th rasterline - 2
+    sty $d011 
+
+loop_start:
+    !for line in range(NB_LINES / 8) {
+        !for i in range(7) {
+            +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
+            lda zp.xscroll_reg+(line*8)+i
+            sta $d016    
+            inc $d011
+        }
+        +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
+        lda zp.xscroll_reg+(line*8)+7
+        sta $d016-$38,y         ; stupid trick to waste 1 cycle
+        sty $d011
+    }
+loop_end:
+
+    +irq_end(update_irq, UPDATE_IRQ, TRUE) 
+end:
+}
+
+!!utils.debug(["IRQ code from", maths.int_to_hex(SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-SEGMENT_IRQ), "bytes"])
+
