@@ -9,6 +9,21 @@ module.exports = {
         const res = Array(text.length).fill(0).map((v,i) => text.charCodeAt(i) - offset);
         return res;
     },
+    generate_dd02: ({}, bank_start) => {
+        var reg = 0;
+        if (bank_start == 0) {
+            reg = 0b00;      
+        } else if (bank_start == 0x4000) {
+            reg = 0b01;          // reverse from d000
+        } else if (bank_start == 0x8000) {
+            reg = 0b10;         // reverse from d000      
+        } else if (bank_start == 0xC000) {
+            reg = 0b11;      
+        } else {
+            console.log("Unknown bank!", bank_start);
+        }
+        return reg;                                    
+    },
     generate_d018: ({}, charmem, bitmap, screenmem) => {
         var reg = 0;
         const mapping_charmem = {

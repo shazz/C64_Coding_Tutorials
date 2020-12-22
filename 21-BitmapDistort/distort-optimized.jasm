@@ -1,4 +1,4 @@
-!let debug = 1
+!let debug = 0
 ; ------------------------------------------------------------------------------------------
 ; Generic Macros
 ; ------------------------------------------------------------------------------------------
@@ -26,17 +26,11 @@
 ; ------------------------------------------------------------------------------------------
 
 ; $0801 Start
+; $0900 Tables
 ; $1000 Music
-; $2000 Init
-; $2300 IRQ
-; $2e00 Routines
-; $3000 Tables
-; $4000 VIC II data ($4000 - $7FFF)
-;  + $0000-$1200 big sprites sprites (has to be aligned on 64 bytes)  (4608 bytes)
-;  + $1c00-$1FFF screen memory (tiles, written once)                  (1024 bytes)
-;  + $2000-$27FF charset (has to be at CHAR_VIC_MEM_ADDR)             (2048 bytes, first 5 bytes used only)
-;  + $2800-$37c0 font sprites (has to be aligned on 64 bytes)         (4032 bytes, 2112 bytes remaining in VIC memory + 2043 bytes of unused char mem)
-; $8000-$b200 precomputed charset data                                (12800 bytes)
+; $2000 to $BFE8 : VIC data (bitmap and screen memory for 4 images)
+; $C000 Init
+; $E000 IRQ
 
 !let VIC_FRAME0 = {             ; d018  = 0b11111000 = $f8
     bank        : $0000,        ; dd02  = 0b11
@@ -66,21 +60,18 @@
 !let SEGMENT_INIT           = $C000
 !let SEGMENT_TABLES         = $0900
 !let SEGMENT_IRQ            = $E000
+
 ; ------------------------------------------------------------------------------------------
 ; Variables
 ; ------------------------------------------------------------------------------------------
 !let sid = sid_loader("data/Next_Door.sid")
 !!utils.debug(sid)
 
-; sprite X sine movement
-!let SINX_LEN = 60
-!let SINX_SCALE = 30
-!let SINX_PAD = 80
-
 !let UPDATE_IRQ = 249
 !let FIRST_IRQ = 62   ; $40 - 2
 !let NB_LINES = 8*18 ; has to be multiple of 8
 !let NB_BITMAPS = 4
+
 ; ------------------------------------------------------------------------------------------
 ; Program
 ; ------------------------------------------------------------------------------------------
@@ -90,7 +81,6 @@
 ; Execution starts here
 ;--------------------------------------------------------------
 entry: {
-
     jsr init
 
 forever: 
@@ -160,7 +150,7 @@ face_bitmap0: !binary "data/face0.map", (320*176/8), 0
 
 * = VIC_FRAME0.bank+VIC_FRAME0.scr_mem
 face_screen_mem0: !binary "data/face0.scr"
-!!utils.debug(["SCREENMEM0 DATA from", maths.int_to_hex(face_screen_mem0), "to", maths.int_to_hex(*), (*-face_screen_mem0), "bytes"])
+!!utils.debug(["SCREEN MEM0 DATA from", maths.int_to_hex(face_screen_mem0), "to", maths.int_to_hex(*), (*-face_screen_mem0), "bytes"])
 
 * = VIC_FRAME1.bank + VIC_FRAME1.bitmap_mem
 face_bitmap1: !binary "data/face1.map", (320*176/8), 0
@@ -168,7 +158,7 @@ face_bitmap1: !binary "data/face1.map", (320*176/8), 0
 
 * = VIC_FRAME1.bank+VIC_FRAME1.scr_mem
 face_screen_mem1: !binary "data/face1.scr"
-!!utils.debug(["SCREENMEM1 DATA from", maths.int_to_hex(face_screen_mem1), "to", maths.int_to_hex(*), (*-face_screen_mem1), "bytes"])
+!!utils.debug(["SCREEN MEM1 DATA from", maths.int_to_hex(face_screen_mem1), "to", maths.int_to_hex(*), (*-face_screen_mem1), "bytes"])
 
 * = VIC_FRAME2.bank + VIC_FRAME2.bitmap_mem
 face_bitmap2: !binary "data/face2.map", (320*176/8), 0 
@@ -176,7 +166,7 @@ face_bitmap2: !binary "data/face2.map", (320*176/8), 0
 
 * = VIC_FRAME2.bank+VIC_FRAME2.scr_mem
 face_screen_mem2: !binary "data/face2.scr"
-!!utils.debug(["SCREENMEM2 DATA from", maths.int_to_hex(face_screen_mem2), "to", maths.int_to_hex(*), (*-face_screen_mem2), "bytes"])
+!!utils.debug(["SCREEN MEM2 DATA from", maths.int_to_hex(face_screen_mem2), "to", maths.int_to_hex(*), (*-face_screen_mem2), "bytes"])
 
 * = VIC_FRAME3.bank + VIC_FRAME3.bitmap_mem
 face_bitmap3: !binary "data/face3.map", (320*176/8), 0  
@@ -184,7 +174,7 @@ face_bitmap3: !binary "data/face3.map", (320*176/8), 0
 
 * = VIC_FRAME3.bank+VIC_FRAME3.scr_mem
 face_screen_mem3: !binary "data/face3.scr"
-!!utils.debug(["SCREENMEM3 DATA from", maths.int_to_hex(face_screen_mem3), "to", maths.int_to_hex(*), (*-face_screen_mem3), "bytes"])
+!!utils.debug(["SCREEN MEM3 DATA from", maths.int_to_hex(face_screen_mem3), "to", maths.int_to_hex(*), (*-face_screen_mem3), "bytes"])
 
 ; ------------------------------------------------------------------------------------------
 ; Segment Init
@@ -197,16 +187,16 @@ init: {
     sta $01         			                    ; $e000-$ffff
 
     lda #%00111000
-    sta vic.scr_ctrl
+    sta vic.scr_ctrl                                ; set bitmap mode
 
     lda #%00001000                                  ; set hires mode, 40 columns
     sta vic.scr_ctrl2
 
     lda #0
-    sta $dd00
+    sta $dd00                                       ; required to enable dd02 pokes
 
     lda #0
-    sta vic.border_col
+    sta vic.border_col                              ; black border
 
     lda #0
     sta vic.sprite_en                               ; disable sprites
@@ -221,29 +211,28 @@ init: {
 	lda #0
 	tax			
 	tay			
-    jsr sid.init	; jump to sid player init
+    jsr sid.init	                                ; jump to sid player init
 
     ldy #0
 loop:
-    lda xscroll_offsets,y
-    sta zp.xscroll_reg,y
+    lda xscroll_offsets,y                           ; init zp variables
+    sta zp.xscroll_reg,y                            ; copy precalc x half scroll registers to zp
     iny
     cpy #NB_LINES
     bne loop
 
-    lda #<xscroll_offsets
+    lda #<xscroll_offsets                           ; store xscroll_offsets address
     sta zp.current_xoffset
     lda #>xscroll_offsets
     sta zp.current_xoffset+1
 
-    lda #<bitmap_offsets
+    lda #<bitmap_offsets                            ; store bitmap_offsets address
     sta zp.current_boffset
     lda #>bitmap_offsets
     sta zp.current_boffset+1
 
-    +setup_irq(bitmap_irq, FIRST_IRQ)
-    cli							                    ; set up irq to replace the kernal IRQ   
-
+    +setup_irq(bitmap_irq, FIRST_IRQ)               ; set up irq to replace the kernal IRQ   
+    cli							                    
     rts
 
 }
@@ -254,6 +243,10 @@ loop:
 ; IRQs
 ; ------------------------------------------------------------------------------------------
 * = SEGMENT_IRQ
+
+; ------------------------------------------------------------------------------------------
+; Update IRQ: set next frame parameters
+; ------------------------------------------------------------------------------------------
 update_irq: {
     +irq_start(end)
 
@@ -270,23 +263,23 @@ update_irq: {
     ; increment pointer and reset if arrived at half the table
     +inc16(zp.current_xoffset, 1)
     lda zp.current_xoffset
-    cmp #<xscroll_offsets_end-NB_LINES      ; check lsb of half the table address
+    cmp #<xscroll_offsets_end-NB_LINES              ; check lsb of half the table address
     bne cont
     lda zp.current_xoffset+1 
-    cmp #>xscroll_offsets_end-NB_LINES      ; check msb of half the table address
+    cmp #>xscroll_offsets_end-NB_LINES              ; check msb of half the table address
     bne cont
 
     ; else reset
-    lda #<xscroll_offsets                   ; reset to table start
+    lda #<xscroll_offsets                           ; reset to table start
     sta zp.current_xoffset
     lda #>xscroll_offsets
     sta zp.current_xoffset+1    
 
 cont:
-    !let nb_blocks = 8                       ; what is the best number... need details timing. Bigger size improces the loop speed but increase the self-modying part
+    !let nb_blocks = 8                              ; what is the best number... need details timing. Bigger size improces the loop speed but increase the self-modying part
     !let block_size = NB_LINES/nb_blocks
-    ldx zp.current_xoffset                   ; modify the loop base on table pointer LSB
-    ldy zp.current_xoffset+1                 ; and MSB
+    ldx zp.current_xoffset                          ; modify the loop base on table pointer LSB
+    ldy zp.current_xoffset+1                        ; and MSB
     !for i in range(nb_blocks) {
         txa
         !if (i != 0) {
@@ -295,8 +288,8 @@ cont:
         }
         sta loop+(i*6)+1
         tya
-        !if (i != 0) {                        ; would be great to detect cross over rater than by default
-            adc #0                            ; if carry, update msb
+        !if (i != 0) {                              ; would be great to detect cross over rater than by default
+            adc #0                                  ; if carry, update msb
         }
         sta loop+(i*6)+2 
     }
@@ -308,7 +301,7 @@ cont:
     ldy #block_size
 loop:
     !for i in range(nb_blocks) {
-        lda $dead,y                             ; will be patched by previous code
+        lda $dead,y                                 ; will be patched by previous code
         sta zp.xscroll_reg+(i*block_size),y                    
     }
     dey
@@ -320,14 +313,14 @@ update_bitmap:
     ; increment pointer and reset if arrived at half the table
     +inc16(zp.current_boffset, 1)
     lda zp.current_boffset
-    cmp #<bitmap_offsets_end-NB_LINES      ; check lsb of half the table address
+    cmp #<bitmap_offsets_end-NB_LINES           ; check lsb of half the table address
     bne patch_bitmap_irq
     lda zp.current_boffset+1 
-    cmp #>bitmap_offsets_end-NB_LINES      ; check msb of half the table address
+    cmp #>bitmap_offsets_end-NB_LINES           ; check msb of half the table address
     bne patch_bitmap_irq
 
     ; else reset
-    lda #<bitmap_offsets                   ; reset to table start
+    lda #<bitmap_offsets                        ; reset to table start
     sta zp.current_boffset
     lda #>bitmap_offsets
     sta zp.current_boffset+1    
@@ -360,20 +353,25 @@ patch_irq:
 end:
 }
 
-; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+; ------------------------------------------------------------------------------------------
+; Bitmap IRQ: sync code to modify at each rasterline (23 cyles max)
+; - bank thru dd02
+; - d018 mem setup
+; - x-scroll register
+; then force a badline
+; The code is self-modified by the update irq  
+; ------------------------------------------------------------------------------------------
 bitmap_irq: { 
     +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
 
 irq_stable:
     txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
 
-    +waste_cycles(58)
+    +waste_cycles(58)                                   ; we're now at cycle 8 of the first picture rasterline 
 
-    ; keep reinit value for inc
+    ; keep reinit value for inc later on
     ldy #$38
-
-    ; force badline on 0th rasterline, it means the stable raster has to be set as a 0th rasterline - 2
-    sty $d011 
+    sty $d011                                           ; force badline on 0th rasterline, it means the stable raster has to be set as a 0th rasterline - 2
 
 loop_start:
     !for line in range(NB_LINES / 8) {
@@ -385,7 +383,7 @@ loop_start:
         }
         +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
         lda zp.xscroll_reg+(line*8)+7
-        sta $d016-$38,y         ; stupid trick to waste 1 cycle
+        sta $d016-$38,y                                 ; stupid trick to waste 1 cycle and keep the loop size contant for patching
         sty $d011
     }
 loop_end:

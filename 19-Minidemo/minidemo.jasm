@@ -40,7 +40,7 @@
 ;  + $0000-$1200 big sprites sprites (has to be aligned on 64 bytes)  (4608 bytes)
 ;  + $1c00-$1FFF screen memory (tiles, written once)                  (1024 bytes)
 ;  + $2000-$27FF charset (has to be at CHAR_VIC_MEM_ADDR)             (2048 bytes, first 5 bytes used only)
-;  + $2800-$37c0 font sprites (has to be aligned on 64 bytes)         (4032 bytes, 2112 bytes remaining in VIC memory)
+;  + $2800-$37c0 font sprites (has to be aligned on 64 bytes)         (4032 bytes, 2112 bytes remaining in VIC memory + 2043 bytes of unused char mem)
 ; $8000-$b200 precomputed charset data                                (12800 bytes)
 
 !let SCR_VIC_MEM_ADDR       = $1c00 ; where tiles will be set one time

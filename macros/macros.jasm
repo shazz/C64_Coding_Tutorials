@@ -155,9 +155,18 @@ loop:
     sta $dd00
 }
 
+!macro setup_cia_port(bank_start, BITMAP_ADDR, CHAR_MEM_ADDR, SCREEN_MEM_ADDR) {
+    !let dd02 = utils.generate_dd02(bank_start)
+    !let d018 = utils.generate_d018(CHAR_MEM_ADDR, BITMAP_ADDR, SCREEN_MEM_ADDR) & %11111100
+    ; !!utils.debug(["bank", bank_start, BITMAP_ADDR, SCREEN_MEM_ADDR, "dd02", dd02, "d018", utils.generate_d018(CHAR_MEM_ADDR, BITMAP_ADDR, SCREEN_MEM_ADDR), d018, "mixed", (dd02 | d018)])
+    lda #(dd02 | d018)
+    sta $dd02
+    sta $d018
+}
+
 !macro setup_vic_memory(BITMAP_ADDR, CHAR_MEM_ADDR, SCREEN_MEM_ADDR) {
     !let reg = utils.generate_d018(CHAR_MEM_ADDR, BITMAP_ADDR, SCREEN_MEM_ADDR)
-    !!utils.debug(["VIC setup:", reg])
+    !!utils.debug([BITMAP_ADDR, CHAR_MEM_ADDR, SCREEN_MEM_ADDR, "VIC setup:", reg])
     lda #reg
     sta vic.mem_setup
 }
