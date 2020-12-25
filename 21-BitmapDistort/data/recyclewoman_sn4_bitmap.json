@@ -1,0 +1,18 @@
+{
+    "source": "recyclewoman_sn4.png",
+    "source_width": 320,
+    "source_height": 200,
+    "nb_bitmaps": 4,
+    "bitmap_files": [
+        "data/recyclewoman_sn4_0_bitmap.bin",
+        "data/recyclewoman_sn4_1_bitmap.bin",
+        "data/recyclewoman_sn4_2_bitmap.bin",
+        "data/recyclewoman_sn4_3_bitmap.bin"
+    ],
+    "screen_mem_files": [
+        "data/recyclewoman_sn4_0_screenmem.bin",
+        "data/recyclewoman_sn4_1_screenmem.bin",
+        "data/recyclewoman_sn4_2_screenmem.bin",
+        "data/recyclewoman_sn4_3_screenmem.bin"
+    ]
+}
