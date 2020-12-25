@@ -116,15 +116,14 @@ init: {
     lda #0
     sta $dd00                                       ; required to enable dd02 pokes
 
-    lda #15
-    sta vic.border_col                              ;  border
+    lda #15                                         ; set everything to grey
+    sta vic.border_col                              ; border, window, extra colors
     sta vic.bck_col
-    sta $d022
-    sta $d023
-    sta $d024
+    sta vic.back_extra_col1
+    sta vic.back_extra_col2
+    sta vic.back_extra_col3
 
     +clear_screen({ screen: $d800, clearByte: 15, usePtr: FALSE})
-
 
     lda #0
     sta vic.sprite_en                               ; disable sprites
@@ -177,7 +176,7 @@ xscroll_offsets:
 !let boundary = 0.5*(NB_BITMAPS*8.0-1.0)
 !!utils.debug(["boundary", boundary])
 !for i in range(NB_LINES*2) { 
-    !let sine = Math.round(boundary+(Math.sin(i/NB_LINES * 2 * Math.PI * 2.0)*boundary))
+    !let sine = Math.round(boundary+(Math.sin(i/NB_LINES * 3 * Math.PI * 2.0)*boundary))
     !let x_offset = sine % 8
     ; !!utils.debug([i, sine, x_offset])
     !byte (x_offset | %1000)
@@ -187,7 +186,7 @@ xscroll_offsets_end:
 
 bitmap_offsets:
 !for i in range(NB_LINES*2) { 
-    !let sine = Math.round(boundary+(Math.sin(i/NB_LINES * 2 * Math.PI * 2.0)*boundary))
+    !let sine = Math.round(boundary+(Math.sin(i/NB_LINES * 3 * Math.PI * 2.0)*boundary))
     !let bitmap_offset = Math.floor(sine / 8)
 
     !let dd02_reg = 0
@@ -250,14 +249,14 @@ face_bitmap2: !binary bitmaps_desc.bitmap_files[2], (320*176/8), 0
 face_screen_mem2: !binary bitmaps_desc.screen_mem_files[2], (320*176/64), 0
 !!utils.debug(["SCREENMEM2 DATA from", maths.int_to_hex(face_screen_mem2), "to", maths.int_to_hex(*), (*-face_screen_mem2), "bytes"])
 
-; ---
+; --- This VIC segment is used for the text mode on top/bottom of the bitmap, as these are 0, they can overlap
 * = VIC_FRAME_TEXT.bank+VIC_FRAME_TEXT.char_mem
-empty2: !fill 1, 0
-!!utils.debug(["VIC_FRAME_TEXT CHAR MEM DATA from", maths.int_to_hex(empty2), "to", maths.int_to_hex(*), (*-empty2), "bytes"])
+empty_char_mem: !fill 1, 0
+!!utils.debug(["VIC_FRAME_TEXT CHAR MEM DATA from", maths.int_to_hex(empty_char_mem), "to", maths.int_to_hex(*), (*-empty_char_mem), "bytes"])
 
 ; * = VIC_FRAME_TEXT.bank+VIC_FRAME_TEXT.scr_mem
-empty1: !fill 1000, $00
-!!utils.debug(["VIC_FRAME_TEXT SCR MEM DATA from", maths.int_to_hex(empty1), "to", maths.int_to_hex(*), (*-empty1), "bytes"])
+empty_screen_mem: !fill 1000, $00   ; fill the screen mem with 0 to show char 0
+!!utils.debug(["VIC_FRAME_TEXT SCR MEM DATA from", maths.int_to_hex(empty_screen_mem), "to", maths.int_to_hex(*), (*-empty_screen_mem), "bytes"])
 ; ---
 
 * = VIC_FRAME3.bank + VIC_FRAME3.bitmap_mem
@@ -410,25 +409,22 @@ irq_stable:
 loop_start:
     !for line in range(NB_LINES / 8) {
         !for i in range(7) {
-            +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
+            +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem) ; will be patched
             lda zp.xscroll_reg+(line*8)+i
-            sta $d016    
-            inc $d011
+            sta $d016                                   ; set x scroll
+            inc $d011                                   ; force badline
         }
-        +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
+        +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem) ; will be patched
         lda zp.xscroll_reg+(line*8)+7
         sta $d016-$38,y                                 ; stupid trick to waste 1 cycle and keep the loop size contant for patching
-        sty $d011
+        sty $d011                                       ; force badline
     }
 loop_end:
 
     +setup_cia_port(VIC_FRAME_TEXT.bank, VIC_FRAME_TEXT.bitmap_mem, VIC_FRAME_TEXT.char_mem, VIC_FRAME_TEXT.scr_mem)
 
     lda #%00011000
-    sta vic.scr_ctrl                                ; set text mode
-
-    ; lda #%00011000
-    ; sta vic.scr_ctrl2                               ; set multicolor mode
+    sta vic.scr_ctrl                                    ; set text mode
 
     +irq_end(update_irq, UPDATE_IRQ, TRUE) 
 end:
