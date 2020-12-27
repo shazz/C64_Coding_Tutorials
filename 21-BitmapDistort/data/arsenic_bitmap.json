@@ -1,0 +1,23 @@
+{
+    "source": "arsenic.png",
+    "source_width": 160,
+    "source_height": 200,
+    "nb_bitmaps": 4,
+    "background_color": 0,
+    "same_color_ram": true,
+    "bitmap_files": [
+        "data/arsenic_0_bitmap.bin",
+        "data/arsenic_1_bitmap.bin",
+        "data/arsenic_2_bitmap.bin",
+        "data/arsenic_3_bitmap.bin"
+    ],
+    "screen_mem_files": [
+        "data/arsenic_0_screenmem.bin",
+        "data/arsenic_1_screenmem.bin",
+        "data/arsenic_2_screenmem.bin",
+        "data/arsenic_3_screenmem.bin"
+    ],
+    "color_ram_files": [
+        "data/arsenic_colorram.bin"
+    ]
+}

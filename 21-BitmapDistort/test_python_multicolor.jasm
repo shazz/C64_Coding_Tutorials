@@ -1,0 +1,205 @@
+!let debug = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+!use "../macros/sid"   as sid_loader
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+!let bitmaps_desc = loadJson("data/arsenic_bitmap.json")
+!!utils.debug(bitmaps_desc)
+
+!let VIC_FRAME0 = {             ; d018  = 0b11111000 = $f8
+    bank        : $0000,        ; dd02  = 0b11
+    bitmap_mem  : $2000,        ; mixed = 0b11111011 = $fb
+    scr_mem     : $3c00,
+    char_mem    : $2000
+}
+!let VIC_FRAME1 = {             ; d018  = 0b01110000 = $70
+    bank        : $4000,        ; dd02  = 0b01
+    bitmap_mem  : $0000,        ; mixed = 0b01110001 = $71
+    scr_mem     : $1c00,
+    char_mem    : $0000
+}
+!let VIC_FRAME2 = {
+    bank        : $4000,
+    bitmap_mem  : $2000,
+    scr_mem     : $3c00,
+    char_mem    : $2000
+}
+!let VIC_FRAME3 = {
+    bank        : $8000,        ; d018  = 0b11111000 = $f8   
+    bitmap_mem  : $2000,        ; dd02  = 0b10
+    scr_mem     : $3c00,        ; mixed = 0b11111010 = $fa
+    char_mem    : $0000
+}
+
+!let SEGMENT_INIT           = $C000
+!let SEGMENT_TABLES         = $C100
+!let SEGMENT_IRQ            = $C500
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+
+!let IRQ = 30
+!let NB_BITMAPS = 1
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: {
+
+    jsr init
+
+forever: 
+    jmp forever                                             ; at this point, only IRQs do something
+}
+
+
+!!utils.debug(["STARTUP code from", maths.int_to_hex(entry), "to", maths.int_to_hex(*), (*-entry), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment as to be visible from selected VIC bank
+; ------------------------------------------------------------------------------------------
+* = VIC_FRAME0.bank + VIC_FRAME0.bitmap_mem
+face_bitmap0: !binary bitmaps_desc.bitmap_files[0], (320*176/8), 0
+!!utils.debug(["BITMAP0 DATA from", maths.int_to_hex(face_bitmap0), "to", maths.int_to_hex(*), (*-face_bitmap0), "bytes"])
+
+* = VIC_FRAME0.bank+VIC_FRAME0.scr_mem
+face_screen_mem0: !binary bitmaps_desc.screen_mem_files[0]
+!!utils.debug(["SCREENMEM0 DATA from", maths.int_to_hex(face_screen_mem0), "to", maths.int_to_hex(*), (*-face_screen_mem0), "bytes"])
+
+* = VIC_FRAME1.bank + VIC_FRAME1.bitmap_mem
+face_bitmap1: !binary bitmaps_desc.bitmap_files[1], (320*176/8), 0
+!!utils.debug(["BITMAP1 DATA from", maths.int_to_hex(face_bitmap1), "to", maths.int_to_hex(*), (*-face_bitmap1), "bytes"])
+
+* = VIC_FRAME1.bank+VIC_FRAME1.scr_mem
+face_screen_mem1: !binary bitmaps_desc.screen_mem_files[1]
+!!utils.debug(["SCREENMEM1 DATA from", maths.int_to_hex(face_screen_mem1), "to", maths.int_to_hex(*), (*-face_screen_mem1), "bytes"])
+
+* = VIC_FRAME2.bank + VIC_FRAME2.bitmap_mem
+face_bitmap2: !binary bitmaps_desc.bitmap_files[2], (320*176/8), 0 
+!!utils.debug(["BITMAP2 DATA from", maths.int_to_hex(face_bitmap2), "to", maths.int_to_hex(*), (*-face_bitmap2), "bytes"])
+
+* = VIC_FRAME2.bank+VIC_FRAME2.scr_mem
+face_screen_mem2: !binary bitmaps_desc.screen_mem_files[2]
+!!utils.debug(["SCREENMEM2 DATA from", maths.int_to_hex(face_screen_mem2), "to", maths.int_to_hex(*), (*-face_screen_mem2), "bytes"])
+
+* = VIC_FRAME3.bank + VIC_FRAME3.bitmap_mem
+face_bitmap3: !binary bitmaps_desc.bitmap_files[3], (320*176/8), 0  
+!!utils.debug(["BITMAP3 DATA from", maths.int_to_hex(face_bitmap3), "to", maths.int_to_hex(*), (*-face_bitmap3), "bytes"])
+
+* = VIC_FRAME3.bank+VIC_FRAME3.scr_mem
+face_screen_mem3: !binary bitmaps_desc.screen_mem_files[3]
+!!utils.debug(["SCREENMEM3 DATA from", maths.int_to_hex(face_screen_mem3), "to", maths.int_to_hex(*), (*-face_screen_mem3), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment Init
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_INIT
+init: {
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic 00110 101
+    sta $01         			                    ; $e000-$ffff
+
+    lda #%00111000
+    sta vic.scr_ctrl
+
+    lda #%00011000                                  ; set hires mode, 40 columns
+    sta vic.scr_ctrl2
+
+    lda #bitmaps_desc.background_color
+    sta vic.border_col
+    sta vic.bck_col
+
+    ldx #0
+copy_color_ram:
+	lda bitmap_col,x                                ; copy colormem + x to $d800 Color RAM (1000 bytes, only bits #0-#3).
+	sta $d800,x
+	lda bitmap_col+$100,x 
+	sta $d900,x
+	lda bitmap_col+$200,x 
+	sta $da00,x
+	lda bitmap_col+$300,x 
+	sta $db00,x
+
+	inx
+	bne copy_color_ram
+
+    +setup_banks(VIC_FRAME0.bank)       
+    +setup_vic_memory(VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)  
+
+    !!utils.debug(["BITMAP", maths.int_to_hex(VIC_FRAME0.bitmap_mem), "CHAR", maths.int_to_hex(VIC_FRAME0.char_mem), "SCREEN", maths.int_to_hex(VIC_FRAME0.scr_mem)])
+    !!utils.debug(["Bitmap at", maths.int_to_hex(VIC_FRAME0.bank+VIC_FRAME0.bitmap_mem), "screen mem at", maths.int_to_hex(VIC_FRAME0.bank+VIC_FRAME0.scr_mem)]) 
+
+    +setup_irq(bitmap_irq, IRQ)
+    cli							                    ; set up irq to replace the kernal IRQ   
+
+    rts
+}
+
+!!utils.debug(["INIT code from", maths.int_to_hex(SEGMENT_INIT), "to", maths.int_to_hex(*), (*-SEGMENT_INIT), "bytes"])
+
+* = SEGMENT_TABLES
+bitmap_col: !binary bitmaps_desc.color_ram_files[0]
+!!utils.debug(["TABLES segment from", maths.int_to_hex(SEGMENT_TABLES), "to", maths.int_to_hex(*), (*-SEGMENT_TABLES), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_IRQ
+
+; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+bitmap_irq: { 
+    +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+irq_stable:
+    txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+
+    +waste_cycles(58)
+
+    LDA #0
+    STA $DD00
+    +waste_cycles(63)
+
+    ; +setup_banks(VIC_FRAME0.bank)      
+    ; +setup_vic_memory(VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)  
+    ; +setup_banks(VIC_FRAME1.bank)       
+    ; +setup_vic_memory(VIC_FRAME1.bitmap_mem, VIC_FRAME1.char_mem, VIC_FRAME1.scr_mem)  
+    +setup_banks(VIC_FRAME2.bank)       
+    +setup_vic_memory(VIC_FRAME2.bitmap_mem, VIC_FRAME2.char_mem, VIC_FRAME2.scr_mem)  
+    ; +setup_banks(VIC_FRAME3.bank)       
+    ; +setup_vic_memory(VIC_FRAME3.bitmap_mem, VIC_FRAME3.char_mem, VIC_FRAME3.scr_mem)  
+
+    ; +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
+    ;+setup_cia_port(VIC_FRAME1.bank, VIC_FRAME1.bitmap_mem, VIC_FRAME1.char_mem, VIC_FRAME1.scr_mem)
+    ; +setup_cia_port(VIC_FRAME2.bank, VIC_FRAME2.bitmap_mem, VIC_FRAME2.char_mem, VIC_FRAME2.scr_mem)
+    ; +setup_cia_port(VIC_FRAME3.bank, VIC_FRAME3.bitmap_mem, VIC_FRAME3.char_mem, VIC_FRAME3.scr_mem)
+
+    +irq_end(bitmap_irq, IRQ, TRUE) 
+end:
+}
+
+!!utils.debug(["IRQ code from", maths.int_to_hex(SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-SEGMENT_IRQ), "bytes"])
+
