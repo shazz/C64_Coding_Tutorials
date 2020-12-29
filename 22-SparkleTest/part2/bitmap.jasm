@@ -1,0 +1,181 @@
+!let debug = 0
+!let use_sparkle = 1
+
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../../macros/utils" as utils
+!use "../../macros/maths" as maths
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+!let parts = loadJson("../parts.json")
+
+!let bitmaps_desc = loadJson("data/arsenic_bitmap.json")
+!!utils.debug(bitmaps_desc)
+
+!let VIC_FRAME0 = {             
+    bank        : $0000,        
+    bitmap_mem  : $2000,        
+    scr_mem     : $3c00,
+    char_mem    : $2000
+}
+
+!let SEGMENT_INIT           = parts.part_bitmap.seg_init
+!let SEGMENT_IRQ            = parts.part_bitmap.seg_irq 
+!let SEGMENT_TABLES         = parts.part_bitmap.seg_tables
+!let bitmap_col             = SEGMENT_TABLES
+
+; ------------------------------------------------------------------------------------------
+; Memory locations managed by Sparkle
+; ------------------------------------------------------------------------------------------
+!if (use_sparkle == TRUE) {
+    !let face_bitmap0            = VIC_FRAME0.bank + VIC_FRAME0.bitmap_mem
+    !let face_screen_mem0        = VIC_FRAME0.bank+VIC_FRAME0.scr_mem
+}
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let IRQ = 30
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
+start:
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: {
+
+    sei
+    lda #$35                                        ; Bank out kernal and basic 00110 101
+    sta $01                                         ; $e000-$ffff
+
+    lda #%00111000
+    sta vic.scr_ctrl
+
+    lda #%00011000                                  ; set hires mode, 40 columns
+    sta vic.scr_ctrl2
+
+    lda #bitmaps_desc.background_color
+    sta vic.border_col
+    sta vic.bck_col
+
+!if (use_sparkle == FALSE) {
+    ldx #0
+copy_color_ram:
+    lda bitmap_col,x                                ; copy colormem + x to $d800 Color RAM (1000 bytes, only bits #0-#3).
+    sta $d800,x
+    lda bitmap_col+$100,x 
+    sta $d900,x
+    lda bitmap_col+$200,x 
+    sta $da00,x
+    lda bitmap_col+$300,x 
+    sta $db00,x
+
+    inx
+    bne copy_color_ram
+}
+
+    +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
+
+    !!utils.debug(["BITMAP", maths.int_to_hex(VIC_FRAME0.bitmap_mem), "CHAR", maths.int_to_hex(VIC_FRAME0.char_mem), "SCREEN", maths.int_to_hex(VIC_FRAME0.scr_mem)])
+    !!utils.debug(["Bitmap at", maths.int_to_hex(VIC_FRAME0.bank+VIC_FRAME0.bitmap_mem), "screen mem at", maths.int_to_hex(VIC_FRAME0.bank+VIC_FRAME0.scr_mem)]) 
+
+    +setup_irq(bitmap_irq, IRQ)
+    cli                                             ; set up irq to replace the kernal IRQ   
+
+!if (use_sparkle == FALSE) {
+    forever:
+        jmp forever
+}
+    rts
+}
+
+!!utils.debug(["INIT code from", maths.int_to_hex(start), "to", maths.int_to_hex(*), (*-start), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment as to be visible from selected VIC bank
+; ------------------------------------------------------------------------------------------
+!if (use_sparkle == FALSE) {
+
+!!utils.debug("Setting data segments")
+* = VIC_FRAME0.bank + VIC_FRAME0.bitmap_mem
+face_bitmap0: !binary bitmaps_desc.bitmap_files[0], (320*176/8), 0
+!!utils.debug(["BITMAP data from", maths.int_to_hex(face_bitmap0), "to", maths.int_to_hex(*), (*-face_bitmap0), "bytes"])
+
+* = VIC_FRAME0.bank+VIC_FRAME0.scr_mem
+face_screen_mem0: !binary bitmaps_desc.screen_mem_files[0]
+!!utils.debug(["SCREENMEM data from", maths.int_to_hex(face_screen_mem0), "to", maths.int_to_hex(*), (*-face_screen_mem0), "bytes"])
+
+* = SEGMENT_TABLES
+bitmap_col: !binary bitmaps_desc.color_ram_files[0]
+!!utils.debug(["COLOR RAM data from", maths.int_to_hex(bitmap_col), "to", maths.int_to_hex(*), (*-bitmap_col), "bytes"])
+
+}
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_IRQ
+
+; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+bitmap_irq: { 
+    +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+irq_stable:
+    txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+
+    +waste_cycles(58)
+
+    lda parts.sequencer.frame_counter+1
+    cmp #2
+    bne display
+    lda parts.sequencer.frame_counter
+    cmp #88
+    bne display  
+
+    lda #1
+    sta parts.sequencer.part_done
+    jmp end-10
+
+display:
+    +inc16(parts.sequencer.frame_counter, 1)               ; update part_counter
+
+!if(use_sparkle == FALSE) {
+    LDA #0
+    STA $DD00
+}
+    +setup_cia_port(VIC_FRAME0.bank, VIC_FRAME0.bitmap_mem, VIC_FRAME0.char_mem, VIC_FRAME0.scr_mem)
+
+!if (use_sparkle) {
+    jsr parts.music.play
+}
+
+    +irq_end(bitmap_irq, IRQ, TRUE) 
+end:
+}
+
+; ------------------------------------------------------------------------------------------
+; Data
+; ------------------------------------------------------------------------------------------
+;Sparkle part counter
+part_frame_counter: !word 0
+
+!!utils.debug(["IRQ", maths.int_to_hex(SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-SEGMENT_IRQ), "bytes / start", maths.int_to_hex(SEGMENT_IRQ-start)])
+

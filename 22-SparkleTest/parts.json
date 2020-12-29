@@ -1,0 +1,26 @@
+{
+    "sequencer": {
+        "part_done": 8191,
+        "frame_counter": 8189,
+        "segment": 7680,
+        "order" : ["part_charset", "part_bitmap"]
+        
+    },
+    "music": {
+        "init": 4096,
+        "play": 4099
+    },
+    "part_charset": {
+        "seg_init": 2061,
+        "seg_irq": 16384,
+        "seg_current_charset": 8192,
+        "seg_charsets": 28672,
+        "duration": 600
+    },
+    "part_bitmap": {
+        "seg_init": 2061,
+        "seg_irq": 50432,
+        "seg_tables": 49408,
+        "duration": 600
+    }
+}
