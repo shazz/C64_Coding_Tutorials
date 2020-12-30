@@ -1,26 +1,46 @@
 {
+    "demo": {
+        "id": "disk1",
+        "name": "SparkleTest",
+        "dir_art": "dirart.txt",
+        "interleaves": [5, 3, 3, 3],
+        "zp": 10,
+        "loop": 0
+    },
     "sequencer": {
         "part_done": 8191,
         "frame_counter": 8189,
         "segment": 7680,
-        "order" : ["part_charset", "part_bitmap"]
-        
+        "order" : ["part_charset", "part_bitmap"],
+        "script": "sequencer/sequencer.sls"
     },
     "music": {
         "init": 4096,
         "play": 4099
     },
     "part_charset": {
-        "seg_init": 2061,
+        "path": "part1/charset",
+        "align": false,
+        "seg_init": 2049,
         "seg_irq": 16384,
         "seg_current_charset": 8192,
         "seg_charsets": 28672,
-        "duration": 600
+        "duration": 600,
+        "data": [
+            { "path": "part1/data/charset_40s_5x4_padded.bin", "address": 28672 }
+        ]
     },
     "part_bitmap": {
-        "seg_init": 2061,
+        "path": "part2/bitmap",
+        "align": false,
+        "seg_init": 2049,
         "seg_irq": 50432,
         "seg_tables": 49408,
-        "duration": 600
+        "duration": 600,
+        "data": [
+            { "path": "part2/data/arsenic_0_bitmap.bin", "address": 8192, "offset": 0, "size": 7040 },
+            { "path": "part2/data/arsenic_0_screenmem.bin", "address": 15360 },
+            { "path": "part2/data/arsenic_0_colorram.bin", "address": 55296 }
+        ]
     }
 }

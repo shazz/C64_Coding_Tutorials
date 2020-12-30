@@ -54,10 +54,10 @@
 !let current_charset    = parts.part_charset.seg_current_charset ; size CHARSET_WIDTH, Segment $2000: displayed charset, set by vic.mem_setup
 !let charsets           = parts.part_charset.seg_charsets ; Segment $7000: charsets banks
 
-start:
 ; ------------------------------------------------------------------------------------------
 ; Program
 ; ------------------------------------------------------------------------------------------
+_SEG_ENTRY_START_:
 +basic_start(entry)
 ;--------------------------------------------------------------
 ; Execution starts here
@@ -124,13 +124,15 @@ copy_line:
     rts
 
 }
-!!utils.debug(["INIT code from", maths.int_to_hex(start), "to", maths.int_to_hex(*), (*-start), "bytes"])
+!!utils.debug(["INIT code from", maths.int_to_hex(_SEG_ENTRY_START_), "to", maths.int_to_hex(*), (*-_SEG_ENTRY_START_), "bytes"])
+_SEG_ENTRY_END_:
 
 ; ------------------------------------------------------------------------------------------
 ; IRQ, Routines and Data
 ; ------------------------------------------------------------------------------------------
 
 * = SEGMENT_IRQ
+_SEG_IRQ_START_:
 ; ------------------------------------------------------------------------------------------
 ; Routines
 ; ------------------------------------------------------------------------------------------
@@ -260,7 +262,8 @@ screencodes:
 ; charset colors
 charcolors: !binary COLOR_FILE
 
-!!utils.debug(["IRQ", maths.int_to_hex(SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-SEGMENT_IRQ), "bytes / start", maths.int_to_hex(SEGMENT_IRQ-start)])
+!!utils.debug(["IRQ", maths.int_to_hex(_SEG_IRQ_START_), "to", maths.int_to_hex(*), (*-_SEG_IRQ_START_), "bytes / start", maths.int_to_hex(_SEG_IRQ_START_-_SEG_ENTRY_START_)])
+_SEG_IRQ_END_:
 
 ; ------------------------------------------------------------------------------------------
 ; Standalone version

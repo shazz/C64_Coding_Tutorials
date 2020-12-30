@@ -207,7 +207,7 @@ loop:
 ; Ack, end current raster IRQ and set new raster IRQ
 ;------------------------------------------------------------------------
 !macro end_irq(next_irq_addr, next_irq_line, irq_line_hi, fixed_line) {
-    asl $d019               ; Ack all interrupts
+    ; asl $d019               ; Ack all interrupts
     lda #<next_irq_addr     ; Set next IRQ in hardware vector (no kernal)
     sta $fffe
     lda #>next_irq_addr
@@ -227,6 +227,7 @@ loop:
         and #$7f            ; clear raster line interrupt
         sta $d011
     }
+    asl $d019               ; Ack all interrupts
 }
 
 ;------------------------------------------------------------------------
@@ -245,6 +246,7 @@ loop:
 ;------------------------------------------------------------------------
 !macro irq_end(next, line, fixed_line) {
     +end_irq(next, line, FALSE, fixed_line)
+skip_next:
     lda #$00
     ldx #$00
     ldy #$00
