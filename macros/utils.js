@@ -2,6 +2,17 @@ module.exports = {
     debug: ({}, args) => {
         console.log(args);
     },
+    get_fade_table: ({}, start, nb_elements) => {
+        const fade_2_black_chain = [0x00, 0x0d, 0x09, 0x0c, 0x02, 0x08, 0x00, 0x0f, 0x02, 0x00, 0x08, 0x09, 0x04, 0x03, 0x04, 0x05];
+        var fade = Array(nb_elements).fill(0);
+        var col = start;
+
+        for (var i = 0; i < nb_elements; i++) {
+            col = fade_2_black_chain[col];
+            fade[i] = col; 
+        }
+        return fade
+    },
     reverse: ({}, val) => {
         return val.reverse();
     },

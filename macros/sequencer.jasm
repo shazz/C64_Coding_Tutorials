@@ -1,0 +1,38 @@
+; ------------------------------------------------------------------------------------------
+; Imports
+; ------------------------------------------------------------------------------------------
+
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+
+; ------------------------------------------------------------------------------------------
+; Macros
+; ------------------------------------------------------------------------------------------
+
+;------------------------------------------------------------------------
+; check_part_fc(value, fc, display) 
+; Check if this is still time to display the effect or not
+;------------------------------------------------------------------------
+!macro check_part_fc(value, fc, display) {
+
+    !let high_byte = (value & %1111111100000000) >> 8
+    !let low_byte  = (value & 255)
+    !!utils.debug(["Frame counter", value, high_byte, low_byte])
+    lda fc+1
+    cmp #high_byte
+    bne display
+    lda fc
+    cmp #low_byte
+    bne display  
+}
+
+;------------------------------------------------------------------------
+; inc_part_fc(fc) 
+; Increment the part frame counter
+;------------------------------------------------------------------------
+!macro inc_part_fc(fc) {
+    inc fc
+    bne ok             
+    inc fc+1
+ok:
+}

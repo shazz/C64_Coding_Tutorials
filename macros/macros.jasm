@@ -363,10 +363,10 @@ skip_next:
 }
 
 ;------------------------------------------------------------------------
-; inc16(n, val)
+; add8_t0_16(n, val)
 ; Add a 8bits value to a 16bits value
 ;------------------------------------------------------------------------
-!macro inc16(n, val) {
+!macro add8_to_16(n, val) {
 	clc		
 	lda n
 	adc #val
@@ -377,10 +377,10 @@ ok:
 }
 
 ;------------------------------------------------------------------------
-; dec16(n, val)
+; sub8_to_16(n, val)
 ; Substracts a 8bits value to a 16bits value
 ;------------------------------------------------------------------------
-!macro dec16(n, val) {
+!macro sub8_to_16(n, val) {
 	sec		
 	lda n
 	sbc #val
@@ -389,6 +389,29 @@ ok:
     dec n+1
 ok:
 }
+
+;------------------------------------------------------------------------
+; inc16(mem)
+; Add a 1 to a 16bits value
+;------------------------------------------------------------------------
+!macro inc16(mem) {
+    inc mem+0
+    bne ok             
+    inc mem+1
+ok:
+}
+
+;------------------------------------------------------------------------
+; dec16(val)
+; Decrement 1 to a 16bits value
+;------------------------------------------------------------------------
+!macro dec16(mem) {
+        lda mem+0       ;Test if the LSB is zero
+        bne skip        ;If it isn't we can skip the next instruction
+        dec mem+1       ;Decrement the MSB when the LSB will underflow
+skip:   dec mem+0       ;Decrement the LSB   
+}
+
 
 ;------------------------------------------------------------------------
 ; sub16(res, n1, n2) 
