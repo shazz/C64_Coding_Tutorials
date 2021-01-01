@@ -1,0 +1,73 @@
+
+!let parts = loadJson("../parts.json")
+
+!let	SIDInit				= $1000	; Music Init
+!let	SIDPlay				= $1003	; Music Play
+!let	SparkleLoad			= $0180	; Loader call
+!let	SparkleInstIRQ		= $01d5	; IRQ installer in loader
+!let    SparkleFallbackIRQ 	= $01db
+
+* = $1e00
+
+		lda	#$01				; Setting up raster IRQ - in the Example project, this is done from script, loading values directly to $d011, $d012, $d01a and $dc0d
+		sta	$d01a
+
+		lda	#$00
+		sta	$d012
+
+		lda	#$1b
+		sta	$d011
+
+		lda	#$7f
+		sta	$dc0d
+		sta	$dd0d				; $dd0d is not initialized in the Example project
+		
+		bit	$dc0d				; Can't do this from script...
+		bit	$dd0d
+		ldx	#<SIDPlay
+		lda	#>SIDPlay
+		jsr	SparkleInstIRQ		; Install fallback IRQ and music subroutine vectors
+
+		lda #0
+		jsr	SIDInit				; Initialize music
+		cli						; Enable IRQ, the I flag was set during loader initialization
+
+; -------------------------------------------------------------------------------------------
+; Sequencer
+; -------------------------------------------------------------------------------------------
+
+PartCharset:	
+		lda #0
+		sta PartDone
+
+		jsr SparkleFallbackIRQ
+
+		jsr	SparkleLoad								; Load next part
+		jsr parts.part_charset.seg_init				; Jump to part init
+WaitPartCharsetDone:
+		lda PartDone
+		beq WaitPartCharsetDone
+
+PartBitmap:	
+		lda #0
+		sta PartDone
+
+		jsr SparkleFallbackIRQ
+
+		jsr	SparkleLoad			; Load next part
+		jsr parts.part_bitmap.seg_init
+
+WaitPartBitmapDone:
+		lda PartDone
+		beq WaitPartBitmapDone
+
+		jmp PartCharset
+
+; -------------------------------------------------------------------------------------------
+; Variables
+; -------------------------------------------------------------------------------------------
+* = $1fff
+PartDone:
+	!byte	0					; First part is loaded automatically, 2 more left
+
+

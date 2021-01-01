@@ -1,0 +1,26 @@
+{
+    "part_charset": {
+        "ENTRY": {
+            "start": 2049,
+            "end": 2388,
+            "size": 339
+        },
+        "IRQ": {
+            "start": 16384,
+            "end": 17589,
+            "size": 1205
+        }
+    },
+    "part_bitmap": {
+        "ENTRY": {
+            "start": 2049,
+            "end": 2139,
+            "size": 90
+        },
+        "IRQ": {
+            "start": 50432,
+            "end": 50576,
+            "size": 144
+        }
+    }
+}

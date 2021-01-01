@@ -1,0 +1,432 @@
+!let debug = 1
+!let use_sparkle = 0
+
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../../macros/macros.jasm"
+!include "../../macros/sequencer.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+	xsintab_counter:    $03,
+    ysintab_counter:    $04,
+    x_positions:        $05,    ; 16 bytes
+    y_positions:        $15,    ; nb_rows bytes (9)
+    irq_lines:          $1E     ; nb_rows bytes (9)
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../../macros/utils" as utils
+!use "../../macros/maths" as maths
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+!let parts = loadJson("../parts.json")
+!let SEGMENT_INIT           = parts.part_bigsprite.seg_init
+!let SEGMENT_IRQ            = parts.part_bigsprite.seg_irq 
+!let SEGMENT_SPRITES		= parts.part_bigsprite.seg_sprites
+!let SEGMENT_TABLES			= parts.part_bigsprite.seg_tables
+
+!let VIC_FRAME = {             
+    bank        : $0000,        
+    bitmap_mem  : $2400,        
+    scr_mem     : $0400,
+    char_mem    : $1000
+}   
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let desc = loadJson("data/skull5.json")
+!!utils.debug(desc)
+
+!let SPRITE_COLS = 8
+
+!let FIRST_IRQ = 40
+!let TOP_POS = 50
+
+; sprite X sine movement
+!let SINX_LEN = 60
+!let SINX_SCALE = 30
+!let SINX_PAD = 80
+
+; sprite Y sine movement
+!let SINY_LEN = 40
+!let SINY_SCALE = 10
+!let SINY_PAD = TOP_POS+SINY_SCALE
+
+!let DELAY_FADE = 2
+!let FADE_MAX_COLS = 8
+; ------------------------------------------------------------------------------------------
+; Memory locations managed by Sparkle
+; ------------------------------------------------------------------------------------------
+!let sprite_data  = SEGMENT_SPRITES ; Segment $2000: charsets banks
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
+_SEG_ENTRY_START_:
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: { 
+    jsr init                                        ; relocated in another segment else music doesn't fit
+
+    !if (use_sparkle == FALSE) {
+        jmp *
+    }
+    rts
+}
+_SEG_ENTRY_END_:
+
+; ------------------------------------------------------------------------------------------
+; IRQ, Routines and Data
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_IRQ
+_SEG_IRQ_START_:
+
+fade_sprites: {
+
+    ldx fade_delay
+    cpx #0
+    beq fade
+
+    dex
+    stx fade_delay
+    rts
+
+fade:
+    ldy fade_pos
+
+    lda fade_multi_color1, y
+    sta vic.sprite_extra_col1
+
+    lda fade_multi_color2, y
+    sta vic.sprite_extra_col2
+
+    lda fade_sprite_color, y
+    !for i in range(SPRITE_COLS) {
+        sta vic.sprite0_color+i
+    }
+
+    iny
+    sty fade_pos
+
+    ; lda vic.sprite_extra_col1   ; only first 4 bits are relevant
+    ; and #$0f
+    ; tax
+    ; lda fade_2_black, x
+    ; sta vic.sprite_extra_col1
+
+    ; lda vic.sprite_extra_col2   ; only first 4 bits are relevant
+    ; and #$0f
+    ; tax
+    ; lda fade_2_black, x                    
+    ; sta vic.sprite_extra_col2
+                       
+    ; !for i in range(SPRITE_COLS) {
+    ;     lda vic.sprite0_color+i
+    ;     and #$0f
+    ;     tax
+    ;     lda fade_2_black, x  
+    ;     sta vic.sprite0_color+i
+    ; }
+
+    ldx fade_counter
+    dex
+    stx fade_counter
+
+    lda #DELAY_FADE
+    sta fade_delay
+
+    rts
+}
+
+update_irq: {
+    +irq_start(end)
+
+    +check_part_fc(600, parts.sequencer.frame_counter, display)
+
+    ; fadeout
+    lda fade_counter
+    cmp #0
+    beq end_part
+
+    jsr fade_sprites
+    jmp display2
+
+end_part:
+    lda #1
+    sta parts.sequencer.part_done
+    jmp update_irq::end-10
+
+display:
+    +inc_part_fc(parts.sequencer.frame_counter)   
+display2:
+    +irq_end(irq, FIRST_IRQ, TRUE) 
+end:
+}
+
+; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+irq: { 
+    !for i in range(desc.nb_rows+1) {
+        +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+    irq_stable:
+        txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+        +waste_cycles(33)                                   ; waste 29 to be at cycle 25+33=58 just before the DMA steal
+
+        ; at this point we have a stable IRQ at cycle 14 after the DMA
+        +cpu_time_start()
+
+        ; first irq, reset X pos
+        !if (i == 0) {
+            ldx zp.ysintab_counter
+            lda ysintab,x
+
+            ; compute IRQ rasterlines based on new top Y
+            clc
+            adc #20-3
+            sta zp.irq_lines
+            !for row in range(1, desc.nb_rows) {
+                ; clc
+                adc #20
+                sta zp.irq_lines+row
+            }
+
+            ; compute row Y positions
+            lda ysintab,x
+            !for spr in range(desc.nb_rows) {
+                sta zp.y_positions+spr
+                ; clc
+                adc #21
+            }
+            inx
+            cpx #SINY_LEN
+            bne no_reset_y
+            ldx #0
+        no_reset_y:
+            stx zp.ysintab_counter
+
+            ; compute 16bits X positions
+            ldy #0
+            ldx zp.xsintab_counter
+            lda xsintab,x  
+            !for spr in range(SPRITE_COLS) {
+                sta zp.x_positions+(spr*2)
+                sty zp.x_positions+(spr*2)+1
+            }
+            !for spr in range(SPRITE_COLS) {
+                +add8_to_16(zp.x_positions+(spr*2), 24*spr)
+                lda zp.x_positions+(2*spr)
+                sta vic.sprite0_x+(2*spr)	
+            }
+            inx
+            cpx #SINX_LEN
+            bne no_reset_x
+            ldx #0
+        no_reset_x:
+            stx zp.xsintab_counter
+
+            ; set high byte sprite x
+            lda zp.x_positions+(2*7)+1		; get msb7 [6,5,4,3,2,1,0] 
+            !for spr in utils.reverse(range(SPRITE_COLS)) { 	
+                asl							; msb << 1
+                ora zp.x_positions+(2*spr)+1	; or with msb-1
+            }
+            sta vic.sprites_x
+        }
+
+        ; last row, replace by blank data (here, first one, not that good
+        !if (i == desc.nb_rows) {
+            lda #(sprite_data/64)
+            sta $07f8 + 0
+            sta $07f8 + 1
+            sta $07f8 + 2
+            sta $07f8 + 3
+            sta $07f8 + 4
+            sta $07f8 + 5
+            sta $07f8 + 6
+            sta $07f8 + 7
+
+            +cpu_time_stop()
+
+            +irq_end(update_irq, 0, TRUE)              ; last loop turn, go back to top
+        
+        ; for other rows
+        } else {     
+            lda zp.y_positions+i
+            !for y in range(SPRITE_COLS) {
+                sta vic.sprite0_y+(y*2)                 ; adjust next Y positions starting at TOP_POS, +21 pixels,..
+            }
+
+            ldx #((sprite_data+($200*i))/64)+4          ; optimized code to set the sprites pointers
+            lda #$fb
+            sax $07f8 + 0                              
+            stx $07f8 + 4   
+            inx
+            sax $07f8 + 1
+            stx $07f8 + 5
+            inx
+            sax $07f8 + 2
+            stx $07f8 + 6
+            inx
+            sax $07f8 + 3
+            stx $07f8 + 7
+
+            +cpu_time_stop()
+
+            +irq_end(end_loop, zp.irq_lines+i, FALSE)
+        end_loop:
+        }
+    end:
+    }
+}
+
+!!utils.debug(["IRQ", maths.int_to_hex(_SEG_IRQ_START_), "to", maths.int_to_hex(*), (*-_SEG_IRQ_START_), "bytes / start", maths.int_to_hex(_SEG_IRQ_START_-_SEG_ENTRY_START_)])
+_SEG_IRQ_END_:
+
+; -----------------------------------------------------------------------------------------
+; Segment $2000: as to be visible from selected VIC back (0: $0000 -> $3fff)
+; ------------------------------------------------------------------------------------------
+!if (use_sparkle == FALSE) {
+    * = $2800
+    sprite_data: !binary desc.datafile
+    !!utils.debug(["end of SPRITE data", *, maths.int_to_hex(*)])
+}
+
+; ------------------------------------------------------------------------------------------
+; Segment Init
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_INIT
+_SEG_INIT_START_:
+init: {
+    
+    lda #desc.background_color
+    sta vic.bck_col                                 ; set window color to sprite transparent color
+    sta vic.border_col                              ; set border color to sprite transparent color
+
+    +setup_cia_port(VIC_FRAME.bank, VIC_FRAME.bitmap_mem, VIC_FRAME.char_mem, VIC_FRAME.scr_mem)         
+
+    +clear_screen({"clearByte": $20, "screen": $0400, usePtr: FALSE})
+
+	lda #0
+    sta vic.sprite_dblx  	                        ; no double width
+    sta vic.sprite_dblh			                    ; no double height
+	sta vic.sprite_pri	        		            ; no priority
+
+    lda #%11111111                                  ; all sprites multicolor
+    sta vic.sprite_colmode                          ; single color sprites
+
+    lda #desc.multi_color1                          ; set sprite first shared color
+    sta vic.sprite_extra_col1
+
+    lda #desc.multi_color2                          ; set sprite first shared color
+    sta vic.sprite_extra_col2
+
+    lda #desc.sprite_color                          ; set sprite specific color
+    !for i in range(SPRITE_COLS) {
+        sta vic.sprite0_color+i
+    }
+
+    lda #TOP_POS
+    !for y in range(SPRITE_COLS) {
+        sta vic.sprite0_y+(y*2)                     ; set first y pos
+    }    
+
+    lda #(1<<SPRITE_COLS)-1		       
+    sta vic.sprite_en		                        ; enable sprites
+
+!if (use_sparkle == FALSE) {
+    sei
+    lda #$35        			                    ; Bank out kernal and basic
+    sta $01         			                    ; $e000-$ffff
+}
+
+    lda #0
+    sta zp.xsintab_counter
+    sta zp.ysintab_counter
+
+    ; set all msb to 0 in case of
+    !for i in range(SPRITE_COLS) {
+        sta zp.x_positions+(i*2)+1
+    }    
+
+    ; set initial positions, first sinus position
+    ldx xsintab
+    !for i in range(SPRITE_COLS) {
+        stx zp.x_positions+(i*2)
+        +add8_to_16(zp.x_positions+(i*2), 24*i)
+    }
+
+    ; set up initial y postions
+    !for i in range(desc.nb_rows) {
+        ; !let next_rasterline = TOP_POS+20+(i*20)-3  ; Set next rasterline to the next 20 pixels blocks - 3 to set the stable irq
+        lda #TOP_POS+20+(i*20)-3
+        sta zp.irq_lines+i
+    }    
+
+    +setup_irq(update_irq, 0)
+    cli							                    ; set up irq to replace the kernal IRQ   
+
+    rts
+}
+!!utils.debug(["INIT code from", maths.int_to_hex(_SEG_INIT_START_), "to", maths.int_to_hex(*), (*-_SEG_INIT_START_), "bytes"])
+_SEG_INIT_END_:
+
+; ------------------------------------------------------------------------------------------
+; Segment Tables
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_TABLES
+_SEG_TABLES_START_:
+
+!let xsinvals = maths.sintab(SINX_LEN, SINX_SCALE)
+xsintab:
+!for v in xsinvals {
+    ; !!utils.debug([Math.round(SINX_PAD+v)])
+    !byte Math.round(SINX_PAD+v)
+}
+end_xsintab:
+
+!let ysinvals = maths.sintab(SINY_LEN, SINY_SCALE)
+ysintab:
+!for v in ysinvals {
+    ; !!utils.debug(["y sin", Math.round(SINY_PAD+v)])
+    !byte Math.round(60+v)
+}
+end_ysintab:
+
+fade_counter: !byte FADE_MAX_COLS
+fade_delay:   !byte DELAY_FADE
+
+fade_multi_color1: 
+!for i in utils.get_fade_table(desc.multi_color1, FADE_MAX_COLS) {
+    !byte i
+}
+
+fade_multi_color2: 
+!for i in utils.get_fade_table(desc.multi_color2, FADE_MAX_COLS) {
+    !byte i
+}
+
+fade_sprite_color: 
+!for i in utils.get_fade_table(desc.sprite_color,  FADE_MAX_COLS) {
+    !byte i
+}
+
+fade_pos:   !byte 0 
+
+!!utils.debug(["TABLES data from", maths.int_to_hex(_SEG_TABLES_START_), "to", maths.int_to_hex(*), (*-_SEG_TABLES_START_), "bytes"])
+_SEG_TABLES_END_:
+
+; ------------------------------------------------------------------------------------------
+; End of Code
+; ------------------------------------------------------------------------------------------

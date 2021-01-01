@@ -1,0 +1,79 @@
+
+; ------------------------------------------------------------------------------------------
+; Plugins & Macros
+; ------------------------------------------------------------------------------------------
+!use "../../macros/utils" as utils
+!include "../../macros/macros.jasm"
+
+!let parts = loadJson("../parts.json")
+
+!let	SIDInit				= parts.music.init		; Music Init
+!let	SIDPlay				= parts.music.play		; Music Play
+!let	SparkleLoad			= $0180					; Loader call
+!let	SparkleInstIRQ		= $01d5					; IRQ installer in loader
+!let    SparkleFallbackIRQ 	= $01db					; IRQ fallback
+
+; ------------------------------------------------------------------------------------------
+; Sequencer
+; ------------------------------------------------------------------------------------------
+* = parts.sequencer.segment
+
+	lda	#$01				; Setting up raster IRQ
+	sta	vic.irq_ctrl
+
+	lda	#$00				; Set fallback IRQ rasterline (0)
+	sta	vic.raster_line
+
+	lda	#$1b				; Set default Vic ctrl
+	sta	vic.scr_ctrl
+
+	lda	#$7f
+	sta	$dc0d
+	sta	$dd0d				
+	
+	bit	$dc0d				; Can't do this from script...
+	bit	$dd0d
+	ldx	#<SIDPlay
+	lda	#>SIDPlay
+	jsr	SparkleInstIRQ		; Install fallback IRQ and music subroutine vectors
+
+	lda #0
+	jsr	SIDInit				; Initialize music
+	cli						; Enable IRQ, the I flag was set during loader initialization
+
+; -------------------------------------------------------------------------------------------
+; Sequencer
+; -------------------------------------------------------------------------------------------
+!for part in parts.sequencer.order {
+	!let part_details = parts[part]
+	!!utils.debug([part, part_details])
+Part:	
+	lda #0
+	sta PartDone
+	sta FramesCounter
+	sta FramesCounter+1
+
+	jsr SparkleFallbackIRQ
+
+	jsr	SparkleLoad				; Load next part
+	jsr part_details.seg_init	; jump to next part
+
+WaitPartDone:
+	lda PartDone
+	beq WaitPartDone
+}
+
+Forever:
+	jsr SparkleFallbackIRQ
+	jmp Forever
+
+; -------------------------------------------------------------------------------------------
+; Variables / Shared with parts
+; -------------------------------------------------------------------------------------------
+* = parts.sequencer.frame_counter
+FramesCounter:  !word 0
+
+* = parts.sequencer.part_done
+PartDone:		!byte 0					; Boolean, set to 1 if the current part is done
+
+

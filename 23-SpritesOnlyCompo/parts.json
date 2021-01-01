@@ -1,0 +1,45 @@
+{
+    "demo": {
+        "id": "trsi",
+        "name": "SpritesOnly",
+        "dir_art": "dirart.txt",
+        "interleaves": [5, 3, 3, 3],
+        "zp": 10,
+        "loop": 0
+    },
+    "sequencer": {
+        "part_done": 8191,
+        "frame_counter": 8189,
+        "segment": 7680,
+        "order" : ["part_bigsprite", "part_multiplexer"],
+        "script": "sequencer/sequencer.sls"
+    },
+    "music": {
+        "init": 4096,
+        "play": 4099
+    },
+    "part_bigsprite": {
+        "path": "part_bigsprite/bigsprite",
+        "align": false,
+        "seg_init": 16384,
+        "seg_irq": 2100,
+        "seg_sprites": 10240,
+        "seg_tables": 28672,
+        "duration": 600,
+        "data": [
+            { "path": "part1/data/charset_40s_5x4_padded.bin", "address": 28672 }
+        ]
+    },
+    "part_multiplexer": {
+        "path": "part_multiplexer/multiplexer",
+        "align": false,
+        "seg_init": 2049,
+        "seg_irq": 50432,
+        "seg_tables": 49408,
+        "seg_sprites": 8192,
+        "duration": 600,
+        "data": [
+            { "path": "part2/data/arsenic_0_bitmap.bin", "address": 8192, "offset": 0, "size": 7040 }
+        ]
+    }
+}
