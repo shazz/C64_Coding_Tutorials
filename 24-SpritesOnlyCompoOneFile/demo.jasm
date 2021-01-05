@@ -1,0 +1,165 @@
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+!use "../macros/sid" as sid_loader
+
+; ------------------------------------------------------------------------------------------
+; Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+!include "../macros/sequencer.jasm"
+
+!let parts = loadJson("parts.json")
+!let sid = sid_loader("data/music.sid")
+
+!let	SIDInit				= parts.music.init		; Music Init
+!let	SIDPlay				= parts.music.play		; Music Play
+!let 	LoopDemo			= 1
+
+!let	SparkleLoadA		= _SparkleLoadA		    ; Load a given bundle (A: $00-$7f, A>$7f flip disk)
+!let 	SparkleLoadNext		= _SparkleLoadNext		; Load next bundle (1.5: $0180)
+!let	SparkleInstIRQ		= _SparkleInstIRQ		; IRQ installer in loader (1.5: $01d5)
+!let    SparkleFallbackIRQ 	= _SparkleFallbackIRQ	; IRQ fallback (1.5: $01db)
+!let 	SparkleDefaultIRQ	= $02e5					; IRQ address
+!let 	SparkleRTI			= $02ff					; RTI instruction
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+; ------------------------------------------------------------------------------------------
+; Execution starts here
+; ------------------------------------------------------------------------------------------
+entry: { 
+    jmp parts.sequencer.segment                                    
+}
+; -------------------------------------------------------------------------------------------
+; Music
+; -------------------------------------------------------------------------------------------
+* = sid.startAddress
+!byte sid.data
+!!utils.debug(["MUSIC code from", maths.int_to_hex(sid.startAddress), "to", maths.int_to_hex(*), (*-sid.startAddress), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Sequencer
+; ------------------------------------------------------------------------------------------
+* = parts.sequencer.segment
+
+	lda	#$01				; Setting up raster IRQ
+	sta	vic.irq_ctrl
+
+	lda	#$1b				; Set default Vic ctrl
+	sta	vic.scr_ctrl
+
+	lda	#$7f
+	sta	$dc0d
+	sta	$dd0d				
+	
+	bit	$dc0d				; Can't do this from script...
+	bit	$dd0d
+
+	ldy	#<SIDPlay			; lsb
+	ldx	#>SIDPlay			; msb
+	lda #0					; raster line
+	jsr	SparkleInstIRQ		; Install fallback IRQ and music subroutine vectors
+
+	lda #0
+	jsr	SIDInit				; Initialize music
+	cli						; Enable IRQ, the I flag was set during loader initialization
+
+; -------------------------------------------------------------------------------------------
+; Sequencer
+; -------------------------------------------------------------------------------------------
+
+LoopStart:
+!for part in parts.sequencer.order {
+	!let part_details = parts[part]
+	!!utils.debug([part, part_details])
+Part:	
+	lda #0
+	sta PartDone
+	sta FramesCounter
+	sta FramesCounter+1
+
+	jsr SparkleFallbackIRQ			; A is used to set the rasterline
+
+	jsr	SparkleLoadNext				; Load next part
+	jsr part_details.seg_init		; jump to next part
+
+WaitPartDone:
+	lda PartDone
+	beq WaitPartDone
+}
+
+	lda #0
+	sta PartDone
+	sta FramesCounter
+	sta FramesCounter+1
+
+	jsr SparkleFallbackIRQ			; A is used to set the rasterline
+
+!if (LoopDemo) {
+	lda #1                         	; We will skip the sequencer, and load the first part instead
+	jsr SparkleLoadA                ; Load part
+	lda #$1b
+	sta vic.scr_ctrl                ; Last part leaves the screen turned off
+	+vsync()                   		; wait for next frame
+
+	jmp LoopStart+17		        ; Label to the first part's JSR in the Sequencer ($1e38 IIRC)
+} else {
+	jmp *
+}
+
+; -------------------------------------------------------------------------------------------
+; Variables / Shared with parts
+; -------------------------------------------------------------------------------------------
+* = parts.sequencer.frame_counter
+FramesCounter:  !word 0
+
+* = parts.sequencer.part_done
+PartDone:		!byte 0					; Boolean, set to 1 if the current part is done
+
+; -------------------------------------------------------------------------------------------
+; Sparkle mocks
+; -------------------------------------------------------------------------------------------
+_SparkleLoadNext:
+    rts
+
+_SparkleLoadA:
+    rts
+
+_SparkleFallbackIRQ:
+    rts
+
+_SparkleInstIRQ:
+    sei
+    lda #$35        	    ; Bank out kernal and basic
+    sta $01         		; $e000-$ffff
+
+    sta $d012               ; Set raster interrupt to rasterline `irq_line`
+
+    lda #$7f                ; $7f = 0111 1111
+    sta $dc0d               ; enable all interrupts
+    sta $dd0d               ; enable all NMI
+
+    sty $fffe
+    stx $ffff
+
+    lda #$01            
+    sta $d01a               ; Enable Raster interrupt
+    
+    asl $d019               ; Ack all interrupts
+    bit $dc0d               ; Enable all interrupts
+    bit $dd0d               ; Enable all NMI
+
+    rts
+
+; -------------------------------------------------------------------------------------------
+; Big Sprite
+; -------------------------------------------------------------------------------------------
+!include "bigsprite.jasm"
+

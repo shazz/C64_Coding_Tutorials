@@ -1,0 +1,14 @@
+----------------
+sparkle test - s
+parkle test - sp
+arkle test - spa
+rkle test - spar
+kle test - spark
+le test - sparkl
+e test - sparkle
+ test - sparkle 
+test - sparkle t
+est - sparkle te
+st - sparkle tes
+t - sparkle test
+----------------

@@ -1,26 +1,31 @@
 {
-    "part_charset": {
-        "ENTRY": {
-            "start": 2049,
-            "end": 2388,
-            "size": 339
-        },
+    "part_bigsprite": {
         "IRQ": {
+            "start": 2100,
+            "end": 3956,
+            "size": 1856
+        },
+        "INIT": {
             "start": 16384,
-            "end": 17589,
-            "size": 1205
+            "end": 16726,
+            "size": 342
+        },
+        "TABLES": {
+            "start": 28672,
+            "end": 28799,
+            "size": 127
         }
     },
-    "part_bitmap": {
-        "ENTRY": {
-            "start": 2049,
-            "end": 2139,
-            "size": 90
+    "part_multiplexer": {
+        "INIT": {
+            "start": 2385,
+            "end": 2632,
+            "size": 247
         },
         "IRQ": {
             "start": 50432,
-            "end": 50576,
-            "size": 144
+            "end": 53204,
+            "size": 2772
         }
     }
 }

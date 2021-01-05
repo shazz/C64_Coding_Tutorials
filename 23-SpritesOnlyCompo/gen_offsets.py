@@ -24,6 +24,8 @@ def int_to_hex(nr):
 
 def get_offsets(part_path: str) -> Dict:
     
+    print(f"Extracting segments from labels: {part_path}")
+    
     offsets = {}
     
     with open(part_path, "r") as f:
@@ -42,11 +44,21 @@ def get_offsets(part_path: str) -> Dict:
                     offsets[segment]["end"] = int(f"0x{address}", 0)
                     offsets[segment]["size"] = offsets[segment]["end"] - offsets[segment]["start"]
 
+    if len(offsets) == 0:
+        raise ValueError("No segment found!")
+
     return offsets
 
-def gen_sls(desc: Dict, offsets: Dict) -> str:
+def gen_sls(desc: Dict, offsets: Dict, version: int) -> str:
     
-    script  = f"ID:\t{desc['demo']['id']}\n"
+    print(f"Generating Sparkle Script file (version {version})")
+
+    script = "[Sparkle Loader Script]\n\n"
+    script += f"Path:\t{desc['demo']['id']}\n"
+    script += f"Header:\t{desc['demo']['header']}\n"
+
+    script += f"ID:\t{desc['demo']['id']}\n" 
+    
     script += f"Name:\t{desc['demo']['name']}\n"
     script += f"Start:\t{'{0:04x}'.format(desc['sequencer']['segment'])}\n"
     script += f"DirArt:\t{desc['demo']['dir_art']}\n"
@@ -66,6 +78,8 @@ def gen_sls(desc: Dict, offsets: Dict) -> str:
     for part_name in parts_order:
         if 'align' in parts_desc[part_name] and parts_desc[part_name]['align'] is True:
             script += "Align\n"
+            
+        # add data to bundle
         for data in parts_desc[part_name]['data']:
             path = data['path'].replace('/', '\\')
             address = '{0:04x}'.format(data['address'])
@@ -75,17 +89,20 @@ def gen_sls(desc: Dict, offsets: Dict) -> str:
                 script += f"File:\t{path}\t{address}\t{offset}\t{size}\n"
             else:
                 script += f"File:\t{path}\t{address}\n"
-                
+        
+        # split prg per segment        
         part_offset = offsets[part_name]
-        prg_path = parts_desc[part_name]['path'].replace('/', '\\')
-        prg = f"{prg_path}.prg"
+        print(f"Splitting prg {parts_desc[part_name]}")
+        
+        prg_path = parts_desc[part_name]['prg_path'].replace('/', '\\')
         for segment, params in part_offset.items():
             address = '{0:04x}'.format(params['start'])
-            delta =  params['start'] - parts_desc[part_name]['seg_init'] + 2
+            delta =  params['start'] - parts_desc[part_name]['seg_start'] + 2
             offset = '{0:04x}'.format(delta)
             size = '{0:04x}'.format(params['size'])
             
-            script += f"File:\t{prg}\t{address}\t{offset}\t{size}\n"          
+            print(f"Added prg segment: {prg_path} - [{address}, {offset}, {size}]")
+            script += f"File:\t{prg_path}\t{address}\t{offset}\t{size}\n"          
         
         script += "\n"
         
@@ -95,7 +112,8 @@ if __name__ == "__main__":
 
     demo_offsets = {}
     sls_params = {}
-        
+    version = 2
+    
     with open("parts.json", "r") as f:
         parts_desc = json.load(f)
         
@@ -111,8 +129,8 @@ if __name__ == "__main__":
         json.dump(demo_offsets, f, indent=4, sort_keys=False)
     
     # set sls params
-    script = gen_sls(parts_desc, demo_offsets)
-    with open('demo.sls', 'w') as f:
+    script = gen_sls(parts_desc, demo_offsets, version)
+    with open(f'demo_{version}.sls', 'w') as f:
         f.write(script)
     
     

@@ -2,12 +2,6 @@
 !let use_sparkle = 0
 
 ; ------------------------------------------------------------------------------------------
-; Generic Macros
-; ------------------------------------------------------------------------------------------
-!include "../../macros/macros.jasm"
-!include "../../macros/sequencer.jasm"
-
-; ------------------------------------------------------------------------------------------
 ; Specific Macros
 ; ------------------------------------------------------------------------------------------
 ; Declare zero-page offset helper
@@ -20,16 +14,8 @@
 }
 
 ; ------------------------------------------------------------------------------------------
-; Plugins
-; ------------------------------------------------------------------------------------------
-!use "../../macros/utils" as utils
-!use "../../macros/maths" as maths
-!use "../../macros/sid" as sid_loader
-
-; ------------------------------------------------------------------------------------------
 ; Segments and VIC II setup
 ; ------------------------------------------------------------------------------------------
-!let parts = loadJson("../parts.json")
 !let SEGMENT_INIT           = parts.part_bigsprite.seg_init
 !let SEGMENT_IRQ            = parts.part_bigsprite.seg_irq 
 !let SEGMENT_SPRITES		= parts.part_bigsprite.seg_sprites
@@ -65,29 +51,10 @@
 !let DELAY_FADE = 2
 !let FADE_MAX_COLS = 8
 
-!let sid = sid_loader("../sequencer/data/music.sid")
 ; ------------------------------------------------------------------------------------------
 ; Memory locations managed by Sparkle
 ; ------------------------------------------------------------------------------------------
 !let sprite_data  = SEGMENT_SPRITES ; Segment $2000: charsets banks
-
-; ------------------------------------------------------------------------------------------
-; Program
-; ------------------------------------------------------------------------------------------
-_PRG_START_:
-+basic_start(entry)
-
-;--------------------------------------------------------------
-; Execution starts here
-;--------------------------------------------------------------
-entry: { 
-    jsr init                                        ; relocated in another segment else music doesn't fit
-
-    !if (use_sparkle == FALSE) {
-        jmp *
-    }
-    rts
-}
 
 ; ------------------------------------------------------------------------------------------
 ; IRQ, Routines and Data
@@ -287,28 +254,15 @@ irq: {
     end:
     }
 }
-
-!!utils.debug(["IRQ", maths.int_to_hex(_SEG_IRQ_START_), "to", maths.int_to_hex(*), (*-_SEG_IRQ_START_), "bytes / start", maths.int_to_hex(_SEG_IRQ_START_-_PRG_START_)])
 _SEG_IRQ_END_:
-
-; ------------------------------------------------------------------------------------------
-; MUSIC
-; ------------------------------------------------------------------------------------------
-!if (use_sparkle == FALSE) {
-
-	* = sid.startAddress
-	music:  !byte sid.data
-	!!utils.debug(["MUSIC code from", maths.int_to_hex(sid.startAddress), "to", maths.int_to_hex(*), (*-sid.startAddress), "bytes"])
-}
 
 ; -----------------------------------------------------------------------------------------
 ; Segment $2000: as to be visible from selected VIC back (0: $0000 -> $3fff)
 ; ------------------------------------------------------------------------------------------
-!if (use_sparkle == FALSE) {
-    * = $2800
-    sprite_data: !binary desc.datafile
-    !!utils.debug(["end of SPRITE data", *, maths.int_to_hex(*)])
-}
+* = $2800
+sprite_data: !binary desc.datafile
+!!utils.debug(["end of SPRITE data", *, maths.int_to_hex(*)])
+
 
 ; ------------------------------------------------------------------------------------------
 ; Segment Init
@@ -351,17 +305,6 @@ init: {
 
     lda #(1<<SPRITE_COLS)-1		       
     sta vic.sprite_en		                        ; enable sprites
-
-!if (use_sparkle == FALSE) {
-    sei
-    lda #$35        			                    ; Bank out kernal and basic
-    sta $01         			                    ; $e000-$ffff
-
-	lda #0
-	tax			
-	tay			
-    jsr sid.init	                                ; jump to sid player init
-}
 
     lda #0
     sta zp.xsintab_counter
