@@ -9,8 +9,8 @@
         "loop": 0
     },
     "sequencer": {
-        "part_done": 8191,
-        "frame_counter": 8189,
+        "part_done": 8190,
+        "frame_counter": 8188,
         "segment": 7680,
         "order" : ["part_bigsprite", "part_multiplexer"],
         "script": "sequencer/sequencer.sls"
@@ -19,16 +19,16 @@
         "init": 4096,
         "play": 4099
     },
-    "part_bigsprite": {
+    "part_bigsprite": { 
         "path": "bigsprite/bigsprite",
         "prg_path": "bigsprite/bin/bigsprite.prg",
         "align": false,
         "seg_start": 2049,
-        "seg_init": 16384,
-        "seg_irq": 2100,
-        "seg_sprites": 10240,
-        "seg_tables": 28672,
-        "duration": 300,
+        "seg_init": 21248,
+        "seg_irq": 21760,
+        "seg_tables": 24576,
+        "seg_sprites": 49152,
+        "duration": 800,
         "data": [
             { "path": "bigsprite/data/skull5.bin", "address": 10240 }
         ]
@@ -38,11 +38,11 @@
         "prg_path": "multiplexer/bin/multiplexer-chain.prg",
         "align": false,
         "seg_start": 2049,
-        "seg_init": 2385,
-        "seg_irq": 50432,
-        "seg_tables": 49408,
+        "seg_init": 16384,
+        "seg_irq": 17408,
+        "seg_tables": 19456,
         "seg_sprites": 8192,
-        "duration": 600,
+        "duration": 100,
         "data": [
             { "path": "multiplexer/data/cubes.bin", "address": 8192 }
         ]

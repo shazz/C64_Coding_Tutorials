@@ -24,9 +24,12 @@ module.exports = ({readFileSync, resolveRelative}, filename) => {
         colors.push(0x0f & buf.readUInt8(8+(64*(i+1))));
         // console.log("color at", 8+(64*(i+1)), buf.readUInt8(8+(64*(i+1))));
     }
-    console.log(colors);
-    console.log("Multicolor 1:" + buf.readUInt8(7));
-    console.log("Multicolor 2:" + buf.readUInt8(8));
+    // console.log(numSprites);
+    // console.log("Multicolor 1:" + buf.readUInt8(7));
+    // console.log("Multicolor 2:" + buf.readUInt8(8));
+    // console.log(colors);
+    // console.log(data);
+    
     return {
         numSprites,
         enableMask: (1<<numSprites)-1,

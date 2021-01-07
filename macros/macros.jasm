@@ -164,6 +164,19 @@ loop:
     sta $d018
 }
 
+!macro setup_vic_bank(bank_start, use_dd02) {
+    !if (use_dd02 == TRUE) {
+        !let dd02 = utils.generate_full_dd02(bank_start)
+        ; !!utils.debug(["bank", bank_start, BITMAP_ADDR, SCREEN_MEM_ADDR, "dd02", dd02, "d018", utils.generate_d018(CHAR_MEM_ADDR, BITMAP_ADDR, SCREEN_MEM_ADDR), d018, "mixed", (dd02 | d018)])
+        lda #dd02
+        sta $dd02
+    } else {
+        !let dd00 = utils.generate_dd00(bank_start)
+        lda #dd00
+        sta $dd00
+    }
+}
+
 !macro setup_vic_memory(BITMAP_ADDR, CHAR_MEM_ADDR, SCREEN_MEM_ADDR) {
     !let reg = utils.generate_d018(CHAR_MEM_ADDR, BITMAP_ADDR, SCREEN_MEM_ADDR)
     !!utils.debug([BITMAP_ADDR, CHAR_MEM_ADDR, SCREEN_MEM_ADDR, "VIC setup:", reg])
@@ -172,11 +185,11 @@ loop:
 }
 
 ;------------------------------------------------------------------------
-; setup_irq(irq_addr, irq_line) 
+; setup_irq(irq_addr, irq_line, ack_raster_int) 
 ; Set raster IRQ
 ; TODO: add 9th bit for raster line > 255
 ; -----------------------------------------------------------------------
-!macro setup_irq(irq_addr, irq_line) {
+!macro setup_irq(irq_addr, irq_line, ack_raster_int) {
     lda #$7f                ; $7f = 0111 1111
     sta $dc0d               ; enable all interrupts
     sta $dd0d               ; enable all NMI
@@ -193,10 +206,11 @@ loop:
     !if (irq_line > 255) {
         !error "this macro doesn't support setting the 9th bit of irq line"
     }
-    lda $d011               ; load screen control register
-    and #$7f                ; ack raster interrupt (bit #8)
-    sta $d011       
-
+    !if (ack_raster_int) {
+        lda $d011           ; load screen control register
+        and #$7f            ; ack raster interrupt (bit #8)
+        sta $d011       
+    }
     asl $d019               ; Ack all interrupts
     bit $dc0d               ; Enable all interrupts
     bit $dd0d               ; Enable all NMI
@@ -206,8 +220,8 @@ loop:
 ; end_irq(next_irq_addr, next_irq_line, irq_line_hi) 
 ; Ack, end current raster IRQ and set new raster IRQ
 ;------------------------------------------------------------------------
-!macro end_irq(next_irq_addr, next_irq_line, irq_line_hi, fixed_line) {
-    ; asl $d019               ; Ack all interrupts
+!macro end_irq(next_irq_addr, next_irq_line, ack_raster_irq, irq_line_hi, fixed_line) {
+    asl $d019               ; Ack all interrupts
     lda #<next_irq_addr     ; Set next IRQ in hardware vector (no kernal)
     sta $fffe
     lda #>next_irq_addr
@@ -218,16 +232,18 @@ loop:
         lda next_irq_line      ; Set next raster line interrupt
     }
     sta $d012       
-    !if (irq_line_hi) {     ; if irq_line_hi, then 
-        lda $d011
-        ora #$80            ; 1000 0000
-        sta $d011           ; force raster line interrupt
-    } else {
-        lda $d011
-        and #$7f            ; clear raster line interrupt
-        sta $d011
+    !if (ack_raster_irq) {
+        !if (irq_line_hi) {     ; if irq_line_hi, then 
+            lda $d011
+            ora #$80            ; 1000 0000
+            sta $d011           ; force raster line interrupt
+        } else {
+            lda $d011
+            and #$7f            ; clear raster line interrupt
+            sta $d011
+        }
     }
-    asl $d019               ; Ack all interrupts
+    ; asl $d019               ; Ack all interrupts
 }
 
 ;------------------------------------------------------------------------
@@ -245,7 +261,7 @@ loop:
 ; restore a,x,y registers then RTI (Kernal interrupt vector replacement)
 ;------------------------------------------------------------------------
 !macro irq_end(next, line, fixed_line) {
-    +end_irq(next, line, FALSE, fixed_line)
+    +end_irq(next, line, FALSE, FALSE, fixed_line)
 skip_next:
     lda #$00
     ldx #$00
@@ -438,3 +454,37 @@ skip:   dec mem+0       ;Decrement the LSB
     sta res+1
 }
 
+;------------------------------------------------------------------------
+; vsync
+;------------------------------------------------------------------------
+!macro vsync() {
+    lda vic.scr_ctrl
+    bpl *-3
+
+    lda vic.scr_ctrl
+    bmi *-3
+}
+
+!macro m_init_sprites(nb, data, spd, bank, scr_mem) {
+
+    ; set sprites specific color
+    !for i in range(nb) {
+        lda #spd.colors[0]
+        sta vic.sprite0_color+i         ; set main sprite color
+    }
+
+    ; set extra colors
+    lda #$0e ;spd.multicol1		
+    sta vic.sprite_extra_col1
+
+    lda #spd.multicol2
+    sta vic.sprite_extra_col2
+   
+    ; set sprites pointers
+    !let sprite_balls_adr = (data-bank)/64 
+    lda #sprite_balls_adr
+    !for i in range(nb) {
+		sta bank + scr_mem + $3f8 + i 
+    }
+
+}

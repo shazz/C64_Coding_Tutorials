@@ -1,0 +1,12 @@
+{
+    "source": "fonts-aeg10c.png",
+    "source_width": 1368,
+    "source_height": 21,
+    "nb_chars": 57,
+    "mode": 0,
+    "datafile": "data/fonts-aeg10c.bin",
+    "offsetsfile": "data/fonts-aeg10c_offsets.bin",
+    "ascii_offset": 32,
+    "background_color": 0,
+    "sprite_color": 1
+}

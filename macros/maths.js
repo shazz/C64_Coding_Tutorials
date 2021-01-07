@@ -1,6 +1,6 @@
 module.exports = {
     sintab: ({}, len, scale) => {
-        const res = Array(len).fill(0).map((v,i) => Math.round(Math.sin(i/len * Math.PI * 2.0) * scale));
+        const res = Array(len).fill(0).map((v,i) => Math.round(Math.sin(2*i/len * Math.PI * 2.0) * scale));
         return res;
     },
     sinatttab: ({}, len, scale) => {

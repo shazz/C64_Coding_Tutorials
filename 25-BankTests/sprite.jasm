@@ -1,0 +1,169 @@
+!let debug = 1
+
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+!use "../macros/spd" as spd
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+!let test_bank = 3
+!let VIC_FRAME = {}
+
+!if (test_bank == 0) {
+    VIC_FRAME = {            
+        bank        : $0000,        
+        bitmap_mem  : $2000,        
+        scr_mem     : $0400,
+        char_mem    : $2000
+    }
+}
+!if (test_bank == 1)  {
+    VIC_FRAME = {             
+        bank        : $4000,        
+        bitmap_mem  : $0000,       
+        scr_mem     : $1c00,
+        char_mem    : $0000
+    }
+}
+!if (test_bank == 2) {
+    VIC_FRAME = {
+        bank        : $4000,
+        bitmap_mem  : $2000,
+        scr_mem     : $3c00,
+        char_mem    : $2000
+    }
+}
+!if (test_bank == 3) {
+    VIC_FRAME = {
+    bank        : $8000,        ; d018  = 0b11111000 = $f8   
+    bitmap_mem  : $2000,        ; dd02  = 0b10
+    scr_mem     : $3c00,        ; mixed = 0b11111010 = $fa
+    char_mem    : $0000
+    }
+}
+!!utils.debug(["BANK setup:", VIC_FRAME])
+
+!let SEGMENT_INIT           = $1000
+!let balls = spd("data/dragonball.spd")
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
++basic_start(entry)
+
+entry: {
+    jsr init
+    jmp *                                             ; at this point, only IRQs do something
+}
+
+!!utils.debug(["STARTUP code from", maths.int_to_hex(entry), "to", maths.int_to_hex(*), (*-entry), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment Init
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_INIT
+init: {
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic 00110 101
+    sta $01         			                    ; $e000-$ffff							                    ;  
+
+    lda #%00011000
+    sta vic.scr_ctrl
+
+    lda #%00011000                                  ; set multicolor mode, 40 columns
+    sta vic.scr_ctrl2
+
+    lda #0
+    sta vic.border_col
+
+    +setup_banks(VIC_FRAME.bank)       
+    +setup_vic_memory(VIC_FRAME.bitmap_mem, VIC_FRAME.char_mem, VIC_FRAME.scr_mem)  
+
+    !!utils.debug(["screen mem at", maths.int_to_hex(VIC_FRAME.bank+VIC_FRAME.scr_mem)]) 
+    +clear_screen({"clearByte": $20, "screen": VIC_FRAME.bank+VIC_FRAME.scr_mem, usePtr: FALSE})
+
+	lda #0
+    sta vic.sprite_dblx  	    ; no double width
+    sta vic.sprite_dblh			; no double height
+	sta vic.sprite_pri			; no priority
+    
+    lda #%11111111
+    sta vic.sprite_colmode      ; multicolor sprites
+
+    ldy #100
+    !for i in range(8) {
+       lda #30 + (i*30)
+       sta vic.sprite0_x+(i*2)
+       sty vic.sprite0_y+(i*2)
+    }
+
+    lda #balls.multicol1
+    sta vic.sprite_extra_col1       
+    lda #balls.multicol2
+    sta vic.sprite_extra_col2
+
+    !for i in range(8) {
+        lda #balls.colors[i]
+        sta vic.sprite0_color+i         ; set main sprite color
+    }
+
+    ;  set default area for sprite pointer 0 to 128*64 = 8192 ($2000) when our sprite data is located. 
+    ; *64 because each sprite is 64 bytes
+
+    !for i in range(8) {
+        !let sprite_adr = (sprites-VIC_FRAME.bank+(i*64))/64 
+        !!utils.debug(["Set sprite pointer", maths.int_to_hex(VIC_FRAME.bank+VIC_FRAME.scr_mem + $03f8 + i), maths.int_to_hex(sprite_adr*64), maths.int_to_hex(sprite_adr)])	
+
+        lda #sprite_adr
+        sta VIC_FRAME.bank+VIC_FRAME.scr_mem + $03f8 + i  ; set default area for sprite pointer 0 to 128*64 = 8192 ($2000) when our sprite data is located. *64 because each sprite is 64K
+    }
+
+	lda #%11111111    	
+	sta vic.sprite_en	
+
+    !!utils.debug(["BITMAP", maths.int_to_hex(VIC_FRAME.bitmap_mem), "CHAR", maths.int_to_hex(VIC_FRAME.char_mem), "SCREEN", maths.int_to_hex(VIC_FRAME.scr_mem)])
+    !!utils.debug(["Bitmap at", maths.int_to_hex(VIC_FRAME.bank+VIC_FRAME.bitmap_mem), "screen mem at", maths.int_to_hex(VIC_FRAME.bank+VIC_FRAME.scr_mem)]) 
+
+     +setup_irq(irq, 0, 0)
+    cli
+
+    rts
+
+}
+
+irq: {
+    +irq_start(end)
+
+
+    +irq_end(irq, 0, TRUE) 
+end:
+}
+
+!!utils.debug(["INIT code from", maths.int_to_hex(SEGMENT_INIT), "to", maths.int_to_hex(*), (*-SEGMENT_INIT), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment as to be visible from selected VIC bank
+; ------------------------------------------------------------------------------------------
+* = VIC_FRAME.bank + VIC_FRAME.bitmap_mem
+sprites: 
+!for i in range(balls.numSprites) {
+    !byte balls.data[i]
+}
+!!utils.debug(["SPRITE DATA from", maths.int_to_hex(sprites), "to", maths.int_to_hex(*), (*-sprites), "bytes"])
