@@ -1,0 +1,148 @@
+!let debug = 1
+; ------------------------------------------------------------------------------------------
+; Generic Macros
+; ------------------------------------------------------------------------------------------
+!include "../macros/macros.jasm"
+
+; ------------------------------------------------------------------------------------------
+; Specific Macros
+; ------------------------------------------------------------------------------------------
+; Declare zero-page offset helper
+!let zp = {
+    next_irq:  $03
+}
+
+; ------------------------------------------------------------------------------------------
+; Plugins
+; ------------------------------------------------------------------------------------------
+!use "../macros/utils" as utils
+!use "../macros/maths" as maths
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+!let SEGMENT_INIT           = $C000
+!let SEGMENT_IRQ            = $C300
+!let SEGMENT_TABLES         = $C400
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+!let IRQ = 30
+
+; ------------------------------------------------------------------------------------------
+; Program
+; ------------------------------------------------------------------------------------------
++basic_start(entry)
+
+;--------------------------------------------------------------
+; Execution starts here
+;--------------------------------------------------------------
+entry: {
+
+    jsr init
+
+forever: 
+    jmp forever                                             ; at this point, only IRQs do something
+}
+
+
+!!utils.debug(["STARTUP code from", maths.int_to_hex(entry), "to", maths.int_to_hex(*), (*-entry), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment Init
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_INIT
+init: {
+
+    sei
+    lda #$35        			                    ; Bank out kernal and basic 00110 101
+    sta $01         			                    ; $e000-$ffff
+
+    lda #%00001000
+    sta vic.scr_ctrl
+
+    lda #$e
+    sta vic.border_col
+
+    ldx #0
+    stx current_ptr
+
+    lda curtain_curve_lo, x
+    sta zp.next_irq
+    lda curtain_curve_hi, x
+    sta zp.next_irq+1
+
+    +setup_irq(top_irq, 0, TRUE)
+    cli							                    ; set up irq to replace the kernal IRQ   
+
+    rts
+
+}
+
+!!utils.debug(["INIT code from", maths.int_to_hex(SEGMENT_INIT), "to", maths.int_to_hex(*), (*-SEGMENT_INIT), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; IRQs
+; ------------------------------------------------------------------------------------------
+* = SEGMENT_IRQ
+
+top_irq: {
+    +irq_start(end)
+
+    lda #0
+    sta vic.bck_col
+    sta vic.border_col
+
+    lda current_ptr
+    clc
+    adc #1
+
+    cmp #100
+    bne cont
+    lda #0
+cont:
+    sta current_ptr
+    tax
+    lda curtain_curve_lo, x
+    sta zp.next_irq
+    lda curtain_curve_hi, x
+    sta zp.next_irq+1
+
+
+    +irq_end(curtain_irq, zp.next_irq, FALSE, TRUE) 
+end:    
+}
+
+; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+curtain_irq: { 
+    +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+irq_stable:
+    txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+
+    +waste_cycles(52)                                   ; next rasterline
+
+    lda #$e
+    sta vic.bck_col
+    sta vic.border_col
+
+
+    +irq_end(top_irq, 0, TRUE, FALSE) 
+end:
+}
+
+!!utils.debug(["IRQ code from", maths.int_to_hex(SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-SEGMENT_IRQ), "bytes"])
+
+current_ptr: !byte 0
+
+!let sinvals = maths.sintab(100, 144)
+curtain_curve_lo:
+!for v in sinvals {
+    !byte (144+3+v) & 255       ; center the sin wave
+    !!utils.debug((144+3+v) & 255)
+}
+curtain_curve_hi:
+!for v in sinvals {
+    !byte (144+3+v) >> 8       ; center the sin wave
+    ; !!utils.debug((150+5+v) >> 8)
+}

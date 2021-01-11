@@ -189,10 +189,11 @@ PartNumber:     !byte 0
     ysintab_counter:    $04,
     x_positions:        $05,    ; 16 bytes
     y_positions:        $15,    ; nb_rows bytes (9)
-    irq_lines:          $1E,     ; nb_rows bytes (9)
-	text_x_pos:         $30,    ; 16 bytes
+    irq_lines:          $1E,    ; nb_rows bytes (9)
+    sprite_pos_ptr:     $40,    ; 8 positions counter
     scrolltext_pos:     $50,
-    scrolltext_ptr:     $51,   
+    scrolltext_ptr:     $51,
+    curtains_next_irq:  $52,   
     table_ptr:          $60,   ; 1 byte
     curr_sprite:        $61,   ; 1 byte
     d017_table:         $62,   ; D017_TABLE_LEN bytes (around 40 bytes) 
@@ -218,6 +219,25 @@ PartNumber:     !byte 0
 !!utils.debug(["IRQ", maths.int_to_hex(BIGSPRITE_SEGMENT_IRQ)])
 !!utils.debug(["Tables", maths.int_to_hex(BIGSPRITE_SEGMENT_TABLES)])
 !!utils.debug(["Sprites", maths.int_to_hex(BIGSPRITE_SEGMENT_SPRITES)])
+
+; ------------------------------------------------------------------------------------------
+; Segments and VIC II setup
+; ------------------------------------------------------------------------------------------
+!let CURTAINS_SEGMENT_INIT          = parts.part_curtains.seg_init
+!let CURTAINS_SEGMENT_IRQ           = parts.part_curtains.seg_irq 
+!let CURTAINS_SEGMENT_TABLES		= parts.part_curtains.seg_tables
+
+!let VIC_FRAME_CURTAINS = {             
+    bank        : $0000,        
+    bitmap_mem  : $2000,        
+    scr_mem     : $0400,
+    char_mem    : $2000
+}
+
+!!utils.debug("Curtains Segments:")
+!!utils.debug(["Init", maths.int_to_hex(CURTAINS_SEGMENT_INIT)])
+!!utils.debug(["IRQ", maths.int_to_hex(CURTAINS_SEGMENT_IRQ)])
+!!utils.debug(["Tables", maths.int_to_hex(CURTAINS_SEGMENT_TABLES)])
 
 ; ------------------------------------------------------------------------------------------
 ; Segments and VIC II setup
@@ -485,7 +505,7 @@ stable_irq:
     }
 
 finish_irq:
-    +irq_end(multi_update_irq, MULTI_UPDATE_IRQ, TRUE)
+    +irq_end(multi_update_irq, MULTI_UPDATE_IRQ, TRUE, FALSE)
 end:
 }
 
@@ -606,7 +626,7 @@ display:
     lda #$0b                ; set IDLE mode
     sta vic.scr_ctrl    
 
-    +irq_end(irq_strecher, MULTI_TOP_POS-2, TRUE) 
+    +irq_end(irq_strecher, MULTI_TOP_POS-2, TRUE, FALSE) 
 end:
 }
 
@@ -687,37 +707,6 @@ reboundtab:
 }
 end_reboundtab:
 
-x_positions_table_lsb:
-!for s in range(MULTI_SPRITES_NB) {
-    !let step = -24 + (s*MULTI_NB_POS)
-    !for x in range(MULTI_NB_POS_PER_SPRITE) {
-        !let val = 0
-        !if (step < 0) {
-            val = 479 + step + 24
-        } else {
-            val = step
-        }
-        !byte val & $0ff
-        ; !!utils.debug(["sprite", s, x, val, val & $0ff])
-        step = step + MULTI_SPEED_X
-    }
-}
-x_positions_table_msb:
-!for s in range(MULTI_SPRITES_NB) {
-    !let step = -24 + (s*MULTI_NB_POS)
-    !for x in range(MULTI_NB_POS_PER_SPRITE) {
-        !let val = 0
-        !if (step < 0) {
-            val = 479 - step - 24
-        } else {
-            val = step
-        }
-        !byte (val & $100) >> 8
-        ; !!utils.debug(["sprite msb", s, x, val, (val & $100) >> 8])
-        step = step + MULTI_SPEED_X
-    }
-}
-
 !!utils.debug(["MULTI TABLES from", maths.int_to_hex(MULTI_SEGMENT_TABLES), "to", maths.int_to_hex(*), (*-MULTI_SEGMENT_TABLES), "bytes"])
 
 
@@ -747,13 +736,14 @@ x_positions_table_msb:
 !let BIGSPRITE_SINY_SCALE = 7
 !let BIGSPRITE_SINY_PAD = BIGSPRITE_TOP_POS + BIGSPRITE_SINY_SCALE
 
-!let BIGSPRITE_DELAY_FADE = 2
-!let BIGSPRITE_FADE_MAX_COLS = 8
+!let BIGSPRITE_DELAY_FADE = 6
+!let BIGSPRITE_FADE_MAX_COLS = 6
 
 !let BIGSPRITE_SCROLL_SPEED = 4
 !let BIGSPRITE_SCROLL_TOP_Y_POS = 16
 !let BIGSPRITE_SCROLL_BOTTOM_Y_POS = 266
 !let BIGSPRITE_SCROLL_SPACING = 2
+!let BIGSPRITE_SCREEN_WIDTH = 376
 
 ; -----------------------------------------------------------------------------------------
 ; Segment INIT
@@ -828,8 +818,13 @@ init_bigsprite: {
     }    
 
     ; setup scrolltext
+    ldx zp.scrolltext_pos
+    bne cont
+
     ldx #0
     stx zp.scrolltext_pos
+
+cont:
     !for i in range(8) {
         lda scrolltext, x
         clc
@@ -840,11 +835,17 @@ init_bigsprite: {
 
     ; set text initial positions
     !for i in range(8) {
-        lda #BIGSPRITE_SCROLL_SPEED+(i*(48+BIGSPRITE_SCROLL_SPACING)) & $ff
-        sta zp.text_x_pos+(2*i)
-   	    lda #BIGSPRITE_SCROLL_SPEED+(i*(48+BIGSPRITE_SCROLL_SPACING)) >> 8
-	    sta zp.text_x_pos+(2*i)+1     
-    }    
+        ; lda #(i*(x_positions_table_lsb_end-x_positions_table_lsb)/8)
+        lda #i*12
+        sta zp.sprite_pos_ptr+i
+    }  
+
+    lda #BIGSPRITE_FADE_MAX_COLS
+    sta fade_counter
+    lda #BIGSPRITE_DELAY_FADE
+    sta fade_delay
+    lda #0
+    sta fade_pos
 
     +setup_irq(update_irq, 0, TRUE)
     cli							                    ; set up irq to replace the kernal IRQ   
@@ -870,28 +871,27 @@ update_irq: {
     }  
 
     !for i in utils.reverse(range(8)) {
-		+sub8_to_16(zp.text_x_pos+(2*i), BIGSPRITE_SCROLL_SPEED)
+        lda zp.sprite_pos_ptr+i
+        bne next_sprite
 
-        lda zp.text_x_pos+(2*i)+1  ; if lower part, just got to next sprite
-        beq next_sprite 
-        
-        lda #$1                     ; else reset hi to 1
-        sta zp.text_x_pos+(2*i)+1        
+        ldx zp.scrolltext_pos
+        lda scrolltext+8, x
+        tay
 
-        lda zp.text_x_pos+(2*i)     ; if right part "visible, that's ok too
-        cmp #100
-        bcc next_sprite
-
-        cmp #247                    ; if right part more than 503 (invisible) reset to 503 to end left scroll
-        bcc noreset                 ; 510 disappear, 503 come back
-
-        lda #247-BIGSPRITE_SCROLL_SPEED                    
-        sta zp.text_x_pos+(2*i)   
-        jmp next_sprite
-
-    noreset:
-        cmp #207                    ; if end of left scroll (from 247 to 207) not done, just display
-        bcs next_sprite
+        ; set the sprite to the right of the previous
+        !if (i == 0) {
+            lda zp.sprite_pos_ptr+7
+            clc
+            adc #13         ; 13 because 7th already updated
+        } else {
+            lda zp.sprite_pos_ptr+(i-1)
+            clc
+            adc #12
+        }
+        ; decrease by offset to avoid empty spaces
+        sec
+        sbc scrolltext_offsets, y   
+        sta zp.sprite_pos_ptr+i
 
         ; advance scroller pos or reset if last char
         ldx zp.scrolltext_pos
@@ -912,29 +912,11 @@ update_irq: {
         lda scrolltext+7, x
         tay
 
-        ; reset to the right of the previous sprite
-        !if (i==0) {
-            lda zp.text_x_pos+(2*7)
-            clc
-            adc #48+BIGSPRITE_SCROLL_SPACING ;+SCROLL_SPEED
-            sec
-            sbc scrolltext_offsets, y     
-            sta zp.text_x_pos	 
-            lda zp.text_x_pos+(2*7)+1
-            sta zp.text_x_pos+1	  
-        } else {
-            lda zp.text_x_pos+(2*(i-1))
-            clc
-            adc #48+BIGSPRITE_SCROLL_SPACING-BIGSPRITE_SCROLL_SPEED 
-            sec
-            sbc scrolltext_offsets, y      
-            sta zp.text_x_pos+(2*i)	 
-            lda zp.text_x_pos+(2*(i-1))+1
-            sta zp.text_x_pos+(2*i)+1	     
-        }
         next_sprite:
-    }   
+        dec zp.sprite_pos_ptr+i
+    }
 
+fading_time:
     ; re-enable borders
     lda $d011
     ora #$08
@@ -942,7 +924,7 @@ update_irq: {
 
     +cpu_time_stop()
 
-    +irq_end(irq, BIGSPRITE_FIRST_IRQ, TRUE) 
+    +irq_end(irq, BIGSPRITE_FIRST_IRQ, TRUE, FALSE) 
 end:
 }
 
@@ -967,6 +949,30 @@ irq: {
             lda #%11111111                                      ; all sprites multicolor
             sta vic.sprite_colmode                              ; single color sprites
 
+            +check_part_fc(parts.part_bigsprite.duration, parts.sequencer.frame_counter, no_yet)
+
+            ; fadeout
+            lda fade_counter
+            cmp #0
+            beq end_part
+
+            jsr fade_sprites
+            jmp fading_time
+
+        end_part:
+
+            ; reset VIC
+            +setup_banks(0)
+            +setup_vic_memory($2000, $2000, $0400)
+
+            lda #1
+            sta parts.sequencer.part_done
+            asl $d019  
+            jmp update_irq::end-7
+
+        no_yet:
+            +inc_part_fc(parts.sequencer.frame_counter)   
+
             lda #desc.multi_color1                               ; set sprite first shared color
             sta vic.sprite_extra_col1
 
@@ -977,6 +983,7 @@ irq: {
             !for i in range(BIGSPRITE_SPRITE_COLS) {
                 sta vic.sprite0_color+i
             }
+        fading_time:
 
             ldx zp.ysintab_counter
             lda ysintab,x
@@ -1032,7 +1039,7 @@ irq: {
                 ora zp.x_positions+(2*spr)+1	; or with msb-1
             }
             sta vic.sprites_x
-        }
+        } ; end i == 0
 
         ; last row, replace by blank data (here, first one, not that good
         !let SPR_PTR = VIC_FRAME_BIGSPRITE.bank + VIC_FRAME_BIGSPRITE.scr_mem
@@ -1061,7 +1068,7 @@ irq: {
 
             +cpu_time_stop()
 
-            +irq_end(border_irq, 250, TRUE)              ; last loop turn, go back to top
+            +irq_end(border_irq, 250, TRUE, FALSE)              ; last loop turn, go back to top
         
         ; for other rows
         } else {     
@@ -1090,7 +1097,7 @@ irq: {
 
             +cpu_time_stop()
 
-            +irq_end(end_loop, zp.irq_lines+i, FALSE)
+            +irq_end(end_loop, zp.irq_lines+i, FALSE, FALSE)
         end_loop:
         }
     end:
@@ -1120,15 +1127,18 @@ border_irq: {
 
     ; set sprite x pos LSB
     !for i in range(8) {
-        lda zp.text_x_pos+(i*2)	
+        ldx zp.sprite_pos_ptr+i
+        lda x_positions_table_lsb, x
 		sta vic.sprite0_x+(i*2)
     }
 
     ; set sprite x pos MSB
-    lda zp.text_x_pos+(2*(8-1))+1		; get msb7 [7,6,5,4,3,2,1,0] 
+    ldx zp.sprite_pos_ptr+7
+    lda x_positions_table_msb, x
 	!for i in utils.reverse(range(8)) { 	
 		asl							    ; msb << 1
-		ora zp.text_x_pos+(2*i)+1	    ; or with msb-1
+		ldx zp.sprite_pos_ptr+i
+        ora x_positions_table_msb, x	; or with msb-1
 	}
 	sta vic.sprites_x
 
@@ -1136,48 +1146,14 @@ border_irq: {
     jsr parts.music.play
     +cpu_time_stop()
 
-    +check_part_fc(parts.part_bigsprite.duration, parts.sequencer.frame_counter, inc_fc_counter)
-
-    ; fadeout
-    lda fade_counter
-    cmp #0
-    beq end_part
-
-    jsr fade_sprites
-    jmp fading_time
-
-end_part:
-
-    ; reset VIC
-    +setup_banks(0)
-    +setup_vic_memory($2000, $2000, $0400)
-
-    lda #1
-    sta parts.sequencer.part_done
-    asl $d019  
-    jmp update_irq::end-7
-
-inc_fc_counter:
-    +inc_part_fc(parts.sequencer.frame_counter)   
-fading_time:
-
     +cpu_time_stop()
 
-    +irq_end(update_irq, 0, TRUE) 
+    +irq_end(update_irq, 0, TRUE, FALSE) 
 end:
 }
 
 fade_sprites: {
 
-    ldx fade_delay
-    cpx #0
-    beq fade
-
-    dex
-    stx fade_delay
-    rts
-
-fade:
     ldy fade_pos
 
     lda fade_multi_color1, y
@@ -1191,12 +1167,18 @@ fade:
         sta vic.sprite0_color+i
     }
 
-    iny
-    sty fade_pos
+    ldx fade_delay
+    cpx #0
+    beq update
 
-    ldx fade_counter
     dex
-    stx fade_counter
+    stx fade_delay
+
+    rts
+    
+update:
+    inc fade_pos
+    dec fade_counter
 
     lda #BIGSPRITE_DELAY_FADE
     sta fade_delay
@@ -1206,11 +1188,11 @@ fade:
 
 !!utils.debug(["BIGSPRITE IRQ from", maths.int_to_hex(BIGSPRITE_SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-BIGSPRITE_SEGMENT_IRQ), "bytes"])
 
-
 ; ------------------------------------------------------------------------------------------
 ; Segment Tables
 ; ------------------------------------------------------------------------------------------
 * = BIGSPRITE_SEGMENT_TABLES
+
 !let xsinvals = maths.sintab(BIGSPRITE_SINX_LEN, BIGSPRITE_SINX_SCALE)
 xsintab:
 !for v in xsinvals {
@@ -1243,13 +1225,43 @@ fade_sprite_color:
 
 fade_pos:   !byte 0 
 
-!let text = utils.ascii_to_byte("        ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789      ", fonts_spr.ascii_offset) ; first 8 characters has to be blank
+!let text = utils.ascii_to_byte("        ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 WELCOME TO THE ONLY SPRITES COMPO BY TRSI!  I HOPE YOU WILL ENJOY IT        ", fonts_spr.ascii_offset) ; first 8 characters has to be blank
 scrolltext:
 !for b in text {
     !byte b
 }
 end_scrolltext:
 scrolltext_offsets: !binary fonts_spr.offsetsfile
+
+; 1d0 (464) to 1f7 (503) then 0, 1, 2... 1ce
+x_positions_table_lsb:
+!let max_left = 479
+!let val = max_left
+!for x in range((503-max_left+BIGSPRITE_SCROLL_SPEED)/BIGSPRITE_SCROLL_SPEED) {
+    !byte val & $0ff
+    !!utils.debug(["pos", x, val, val & $0ff, (val & $100) >> 8])
+    val = val + BIGSPRITE_SCROLL_SPEED
+}
+!!val = val - 503 -1
+!for x in range(BIGSPRITE_SCREEN_WIDTH/BIGSPRITE_SCROLL_SPEED) {
+    !byte val & $0ff
+    !!utils.debug(["pos", x, val, val & $0ff, (val & $100) >> 8])
+    val = val + BIGSPRITE_SCROLL_SPEED
+}
+x_positions_table_lsb_end:
+
+x_positions_table_msb:
+!!val = max_left
+!for x in range((503-max_left+BIGSPRITE_SCROLL_SPEED)/BIGSPRITE_SCROLL_SPEED) {
+    !byte (val & $100) >> 8
+    val = val + BIGSPRITE_SCROLL_SPEED
+}
+!!val = val - 503 - 1
+!for x in range(BIGSPRITE_SCREEN_WIDTH/BIGSPRITE_SCROLL_SPEED) {
+    !byte (val & $100) >> 8
+    val = val + BIGSPRITE_SCROLL_SPEED
+}
+x_positions_table_msb_end:
 
 !!utils.debug(["BIGSPRITE TABLES from", maths.int_to_hex(BIGSPRITE_SEGMENT_TABLES), "to", maths.int_to_hex(*), (*-BIGSPRITE_SEGMENT_TABLES), "bytes"])
 
@@ -1263,6 +1275,139 @@ sprite_data: !binary desc.datafile
 !align 64
 fonts_sprite_data: !binary fonts_spr.datafile 
 !!utils.debug(["BIGSPRITE fonts from", maths.int_to_hex(fonts_sprite_data), "to", maths.int_to_hex(*), (*-fonts_sprite_data), "bytes"])
+
+
+; ------------------------------------------------------------------------------------------
+; End of Code
+; ------------------------------------------------------------------------------------------
+
+; -------------------------------------------------------------------------------------------
+; Curtains
+; -------------------------------------------------------------------------------------------
+
+; ------------------------------------------------------------------------------------------
+; Variables
+; ------------------------------------------------------------------------------------------
+
+
+; -----------------------------------------------------------------------------------------
+; Segment INIT
+; ------------------------------------------------------------------------------------------
+
+* = CURTAINS_SEGMENT_INIT
+
+    lda #%00001000
+    sta vic.scr_ctrl
+
+	+setup_vic_bank(VIC_FRAME_CURTAINS.bank, FALSE)
+	+setup_vic_memory(VIC_FRAME_CURTAINS.bitmap_mem, VIC_FRAME_CURTAINS.char_mem, VIC_FRAME_CURTAINS.scr_mem)
+
+    ldx #0
+    stx current_ptr
+
+    lda curtain_curve_lo, x
+    sta zp.curtains_next_irq
+    lda curtain_curve_hi, x
+    sta zp.curtains_next_irq+1
+
+    +setup_irq(curtain_top_irq, 0, TRUE)
+    cli							                    ; set up irq to replace the kernal IRQ   
+
+    rts
+
+!!utils.debug(["CURTAINS INIT from", maths.int_to_hex(CURTAINS_SEGMENT_INIT), "to", maths.int_to_hex(*), (*-CURTAINS_SEGMENT_INIT), "bytes"])
+
+; -----------------------------------------------------------------------------------------
+; Segment IRQ
+; ------------------------------------------------------------------------------------------
+* = CURTAINS_SEGMENT_IRQ
+
+curtain_top_irq: {
+    +irq_start(end)
+
+
+
+    lda #$6
+    sta vic.bck_col
+    sta vic.border_col
+
+    lda current_ptr
+    clc
+    adc #1
+
+    cmp #70
+    bne cont
+
+    lda #1
+    sta parts.sequencer.part_done
+    asl $d019  
+    jmp update_irq::end-7
+
+cont:
+    sta current_ptr
+    tax
+    lda curtain_curve_lo, x
+    sta zp.curtains_next_irq
+    lda curtain_curve_hi, x
+    sta zp.curtains_next_irq+1
+
+    +irq_end(curtain_stable_irq, zp.curtains_next_irq, FALSE, TRUE) 
+end:    
+}
+
+; this stable IRQ will be repeated / modified for each row of sprite (+1 to clear), then setup the next
+curtain_stable_irq: { 
+    +double_irq(end, irq_stable)                        ; setting the stable IRQ needs 2 rasterlines
+
+irq_stable:
+    txs                                                 ; we're now at cycle 25 (+/- jitter) after txs
+
+    +waste_cycles(52)                                   ; next rasterline
+
+    lda #0
+    sta vic.bck_col
+    sta vic.border_col
+
+    +cpu_time_start()
+    jsr parts.music.play
+    +cpu_time_stop()
+
+    +irq_end(curtain_top_irq, 0, TRUE, FALSE) 
+end:
+}
+
+
+!!utils.debug(["CURTAINS IRQ from", maths.int_to_hex(CURTAINS_SEGMENT_IRQ), "to", maths.int_to_hex(*), (*-CURTAINS_SEGMENT_IRQ), "bytes"])
+
+; ------------------------------------------------------------------------------------------
+; Segment Tables
+; ------------------------------------------------------------------------------------------
+* = CURTAINS_SEGMENT_TABLES
+
+current_ptr: !byte 0
+
+curtain_curve_lo:
+!for i in utils.reverse(range(70)) {
+    !byte (288 - (i*4)) & 255 
+}
+curtain_curve_hi:
+!for i in utils.reverse(range(70)) {
+    !byte (288 - (i*4)) >> 8
+}
+; !let sine = Math.round(MULTI_SIN_SCALE*Math.sin(i/MULTI_SCREEN_WIDTH * MULTI_PERIOD * Math.PI * 2.0))
+; !let sinvals = maths.sintab(100, 140)
+; curtain_curve_lo:
+; !for v in sinvals {
+;     !byte (140+8+v) & 255       ; center the sin wave
+;     !!utils.debug(140+2+v)
+; }
+; curtain_curve_hi:
+; !for v in sinvals {
+;     !byte (140+8+v) >> 8       ; center the sin wave
+;     ; !!utils.debug((150+5+v) >> 8)
+; }
+
+!!utils.debug(["CURTAIN TABLES from", maths.int_to_hex(CURTAINS_SEGMENT_TABLES), "to", maths.int_to_hex(*), (*-CURTAINS_SEGMENT_TABLES), "bytes"])
 
 
 ; ------------------------------------------------------------------------------------------

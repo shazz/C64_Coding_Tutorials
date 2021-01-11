@@ -12,7 +12,7 @@
         "part_done": 8190,
         "frame_counter": 8188,
         "segment": 7680,
-        "order" : ["part_bigsprite", "part_multiplexer"],
+        "order" : ["part_bigsprite", "part_curtains", "part_multiplexer"],
         "script": "sequencer/sequencer.sls"
     },
     "music": {
@@ -28,10 +28,21 @@
         "seg_irq": 21760,
         "seg_tables": 24576,
         "seg_sprites": 49152,
-        "duration": 800,
+        "duration": 200,
         "data": [
             { "path": "bigsprite/data/skull5.bin", "address": 10240 }
         ]
+    },
+    "part_curtains": { 
+        "path": "bigsprite/curtains",
+        "prg_path": "bigsprite/bin/curtains.prg",
+        "align": false,
+        "seg_start": 2049,
+        "seg_init": 57856,
+        "seg_irq": 57950,
+        "seg_tables": 58200,
+        "duration": 200,
+        "data": [ ]
     },
     "part_multiplexer": {
         "path": "multiplexer/multiplexer-chain",

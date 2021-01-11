@@ -227,13 +227,9 @@ loop:
     lda #>next_irq_addr
     sta $ffff
     !if (fixed_line) {
-        lda #next_irq_line      ; Set next raster line interrupt
-    } else {
-        lda next_irq_line      ; Set next raster line interrupt
-    }
-    sta $d012       
-    !if (ack_raster_irq) {
-        !if (irq_line_hi) {     ; if irq_line_hi, then 
+        lda #(next_irq_line & 255)      ; Set next raster line interrupt
+        sta $d012
+        !if (next_irq_line > 255) {     ; if irq_line_hi, then 
             lda $d011
             ora #$80            ; 1000 0000
             sta $d011           ; force raster line interrupt
@@ -242,8 +238,23 @@ loop:
             and #$7f            ; clear raster line interrupt
             sta $d011
         }
+    } else {
+        lda next_irq_line      ; Set next raster line interrupt
+        sta $d012
+        !if (irq_line_hi) {
+            lda next_irq_line+1
+            beq clear
+            lda $d011
+            ora #$80            ; 1000 0000
+            sta $d011
+            jmp end           
+        clear:
+            lda $d011
+            and #$7f            
+            sta $d011
+        end:
+        }
     }
-    ; asl $d019               ; Ack all interrupts
 }
 
 ;------------------------------------------------------------------------
@@ -260,8 +271,8 @@ loop:
 ; irq_end(next, line)
 ; restore a,x,y registers then RTI (Kernal interrupt vector replacement)
 ;------------------------------------------------------------------------
-!macro irq_end(next, line, fixed_line) {
-    +end_irq(next, line, FALSE, FALSE, fixed_line)
+!macro irq_end(next, line, fixed_line, irq_line_hi) {
+    +end_irq(next, line, FALSE, irq_line_hi, fixed_line)
 skip_next:
     lda #$00
     ldx #$00
